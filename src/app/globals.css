@@ -551,6 +551,7 @@ body:before {
   height: auto;
   aspect-ratio: 16/9;
   object-fit: cover;
+  object-position: top center;
   display: block;
   border-radius: 14px;
   border: 1px solid var(--line);

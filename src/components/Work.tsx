@@ -15,44 +15,31 @@ interface WorkProject {
 
 const workProjects: WorkProject[] = [
   {
+    id: "fintrack-pro",
+    title: "FinTrack Pro - Aplikasi Manajemen Keuangan Terpadu & Multi-User",
+    description:
+      "Aplikasi web manajemen keuangan pribadi & grup yang dilengkapi analisis arus kas, budgeting bulanan, target tabungan, otomatisasi transaksi berulang, serta audit trail keamanan finansial.",
+    image: "/images/projects/fintrack-pro.png",
+    link: "https://github.com/Neideav/fintrack-pro",
+    tags: ["React.js", "Express.js", "Tailwind CSS", "MySQL", "JWT Auth", "Recharts"],
+  },
+  {
     id: "shopcart",
-    title: "Shopcart - Full-Stack E-Commerce & AWS Cloud Infrastructure",
-    description: "Architected a high-concurrency e-commerce application deployed on AWS with Laravel, React, Docker, and managed database infrastructure with Redis caching and zero-downtime Nginx routing.",
+    title: "Shopcart - Modern E-Commerce Platform & Audio Electronics Storefront",
+    description:
+      "Modern e-commerce storefront styled with clean aesthetics (warm ivory, dark forest emerald, spacious typography) featuring dynamic product discovery, search filtering, and responsive shopping cart.",
     image: "/images/projects/shopcart.png",
     link: "https://github.com/Neideav/shopcart",
-    tags: ["Laravel", "React", "Docker", "AWS", "RDS", "MySQL"],
+    tags: ["Laravel", "Blade", "Tailwind CSS", "SQLite", "E-Commerce", "UI/UX"],
   },
   {
-    id: "ctf",
-    title: "HackDefend CTF - Cybersecurity Training Platform & Sandboxing",
-    description: "Cybersecurity training platform built around isolated challenge containers, automated flag cryptographic verification, network bridge isolation, and live scoring telemetry.",
-    image: "/images/projects/ctf.png",
-    link: "https://github.com/Neideav/ctf-platform",
-    tags: ["Next.js", "TypeScript", "Docker", "Linux", "Cybersecurity"],
-  },
-  {
-    id: "cloudops",
-    title: "CloudOps Insight - Container Deployment & CI/CD Infrastructure",
-    description: "Automated multi-stage application delivery pipeline using Jenkins CI/CD, Docker container orchestration, systemd watchdogs, and Nginx reverse proxy routing.",
-    image: "/images/projects/cloudops.png",
-    link: "https://github.com/Neideav/cloud-deployment-infra",
-    tags: ["AWS", "Docker", "Linux", "CI/CD", "Jenkins"],
-  },
-  {
-    id: "api-gateway",
-    title: "Resilient Microservices Edge API Gateway",
-    description: "Distributed reverse proxy and API gateway with token-bucket rate limiting backed by Redis, centralized JWT verification, and structured JSON logs.",
-    image: "/images/projects/shopcart.png",
-    link: "https://github.com/Neideav",
-    tags: ["Node.js", "Docker", "Nginx", "Redis", "PostgreSQL"],
-  },
-  {
-    id: "linux-sec",
-    title: "Hardened Linux Server & Telemetry Automation",
-    description: "Automated bash telemetry scripts, firewall iptables hardening, and centralized log aggregation for production Linux hosting environments.",
-    image: "/images/projects/ctf.png",
-    link: "https://github.com/Neideav",
-    tags: ["Linux", "Bash", "Security", "Nginx", "CloudWatch"],
+    id: "kumo-ai",
+    title: "Kumo AI — Next-Generation Intelligent Workspace & AI Assistant",
+    description:
+      "Ruang kerja AI generasi baru dengan streaming Server-Sent Events (SSE) berkecepatan tinggi, antarmuka minimalis modern, eksplorasi ide kreatif, analisis konsep, dan debugging kode multi-model.",
+    image: "/images/projects/kumo-ai.png",
+    link: "https://github.com/Neideav/KumoAI",
+    tags: ["React 18", "Vite", "Tailwind CSS", "SSE Streaming", "AI Intelligence", "FastAPI"],
   },
 ];
 
@@ -60,7 +47,8 @@ export function Work() {
   const [activeIndex, setActiveIndex] = useState(1);
 
   const getPositionStyle = (index: number) => {
-    const diff = (index - activeIndex + workProjects.length) % workProjects.length;
+    const total = workProjects.length;
+    const diff = (index - activeIndex + total) % total;
 
     // Center
     if (diff === 0) {
@@ -74,36 +62,18 @@ export function Work() {
     // Near Right
     if (diff === 1) {
       return {
-        transform: "translate(calc(-50% + 200px), -50%) scale(0.72)",
+        transform: "translate(calc(-50% + 220px), -50%) scale(0.74)",
         zIndex: 4,
         opacity: 0.85,
-        pointerEvents: "auto" as const,
-      };
-    }
-    // Far Right
-    if (diff === 2) {
-      return {
-        transform: "translate(calc(-50% + 330px), -50%) scale(0.55)",
-        zIndex: 3,
-        opacity: 0.3,
         pointerEvents: "auto" as const,
       };
     }
     // Near Left
-    if (diff === workProjects.length - 1) {
+    if (diff === 2) {
       return {
-        transform: "translate(calc(-50% - 200px), -50%) scale(0.72)",
+        transform: "translate(calc(-50% - 220px), -50%) scale(0.74)",
         zIndex: 4,
         opacity: 0.85,
-        pointerEvents: "auto" as const,
-      };
-    }
-    // Far Left
-    if (diff === workProjects.length - 2) {
-      return {
-        transform: "translate(calc(-50% - 330px), -50%) scale(0.55)",
-        zIndex: 3,
-        opacity: 0.3,
         pointerEvents: "auto" as const,
       };
     }
@@ -117,7 +87,9 @@ export function Work() {
   };
 
   const getMobileStackStyle = (index: number) => {
-    const diff = (index - activeIndex + workProjects.length) % workProjects.length;
+    const total = workProjects.length;
+    const diff = (index - activeIndex + total) % total;
+
     switch (diff) {
       case 0:
         return {
@@ -128,13 +100,13 @@ export function Work() {
       case 1:
         return {
           transform: "translate(12px, -7.6px) rotate(-2.7deg) scale(0.94)",
-          opacity: 0.75,
+          opacity: 0.8,
           zIndex: 20,
         };
       case 2:
         return {
           transform: "translate(14px, 17.6px) rotate(6.6deg) scale(0.88)",
-          opacity: 0.55,
+          opacity: 0.6,
           zIndex: 10,
         };
       default:
