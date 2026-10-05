@@ -2,13 +2,13 @@
 
 import React from "react";
 import Image from "next/image";
-import { Trophy, ExternalLink, ShieldCheck, GraduationCap } from "lucide-react";
+import { Trophy, ExternalLink, ShieldCheck, GraduationCap, Languages } from "lucide-react";
 
 interface AwardItem {
   id: string;
   title: string;
   link: string;
-  icon: "cap" | "trophy" | "shield";
+  icon: "cap" | "trophy" | "shield" | "languages";
 }
 
 const awardsList: AwardItem[] = [
@@ -25,16 +25,22 @@ const awardsList: AwardItem[] = [
     icon: "trophy",
   },
   {
-    id: "best-capstone",
-    title: "Best Capstone System & Architecture",
-    link: "https://github.com/Neideav",
-    icon: "trophy",
-  },
-  {
     id: "confluent-certified",
     title: "Confluent Certified Data Streaming Engineer",
     link: "https://certificates.confluent.io/ca9e0ec3-3477-4e96-a728-6b7a780215f5#acc.6g2t0FeD",
     icon: "shield",
+  },
+  {
+    id: "efset-english",
+    title: "EF SET English Certificate — C2 Proficient (91/100)",
+    link: "https://cert.efset.org/vukNhe",
+    icon: "languages",
+  },
+  {
+    id: "best-capstone",
+    title: "Best Capstone System & Architecture",
+    link: "https://github.com/Neideav",
+    icon: "trophy",
   },
 ];
 
@@ -47,6 +53,8 @@ export function Awards() {
         return <Trophy className="w-5 h-5 text-zinc-300" />;
       case "shield":
         return <ShieldCheck className="w-5 h-5 text-zinc-300" />;
+      case "languages":
+        return <Languages className="w-5 h-5 text-zinc-300" />;
     }
   };
 

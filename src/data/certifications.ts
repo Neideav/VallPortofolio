@@ -3,7 +3,7 @@ export interface Certification {
   name: string;
   provider: string;
   year: string;
-  category: "Confluent" | "IBM" | "Cloud" | "Cybersecurity" | "Linux & Infrastructure";
+  category: "Language" | "Confluent" | "IBM" | "Cloud" | "Cybersecurity" | "Linux & Infrastructure";
   credentialId?: string;
   verificationUrl?: string;
   status: "Verified" | "Completed" | "Active";
@@ -12,6 +12,18 @@ export interface Certification {
 }
 
 export const certifications: Certification[] = [
+  {
+    id: "efset-english",
+    name: "EF SET English Certificate — C2 Proficient (91/100)",
+    provider: "EF Standard English Test (EF SET)",
+    year: "2026",
+    category: "Language",
+    credentialId: "vukNhe",
+    verificationUrl: "https://cert.efset.org/vukNhe",
+    status: "Verified",
+    summary: "Achieved the highest level of English proficiency (C2 Proficient — 91/100 CEFR scale) with 92/100 in Technical Reading and 90/100 in Listening comprehension, verifying native/bilingual communication capability.",
+    skillsAcquired: ["Technical Documentation", "C2 Proficient", "Cross-Border Engineering", "Fluent Communication"]
+  },
   {
     id: "confluent-data-streaming",
     name: "Data Streaming Engineer Foundations",
