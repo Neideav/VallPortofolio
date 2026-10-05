@@ -23,15 +23,48 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (e?: React.MouseEvent<HTMLButtonElement>) => {
     const nextDark = !isDark;
-    setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
+
+    const applyTheme = () => {
+      setIsDark(nextDark);
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+    };
+
+    if (
+      typeof document !== "undefined" &&
+      "startViewTransition" in document &&
+      e &&
+      e.currentTarget
+    ) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      document.documentElement.style.setProperty("--vt-x", `${x}px`);
+      document.documentElement.style.setProperty("--vt-y", `${y}px`);
+      document.documentElement.style.setProperty("--vt-r", `${endRadius}px`);
+      document.documentElement.classList.add("vt-disable-anim", "vt-wipe-active");
+
+      const transition = (document as any).startViewTransition(() => {
+        applyTheme();
+      });
+
+      transition.finished.finally(() => {
+        document.documentElement.classList.remove("vt-disable-anim", "vt-wipe-active");
+      });
     } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+      applyTheme();
     }
   };
 
@@ -104,11 +137,8 @@ export function Navbar() {
             className="nav-theme-toggle"
             aria-label="Toggle theme"
           >
-            {isDark ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-slate-800" />
-            )}
+            <Sun className="w-4 h-4 icon-sun" />
+            <Moon className="w-4 h-4 icon-moon" />
           </button>
 
           <a

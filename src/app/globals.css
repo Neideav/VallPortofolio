@@ -505,6 +505,41 @@ body:before {
   }
 }
 
+/* View Transition Theme Ripple Wipe (matching Richard Miculob's reference) */
+::view-transition-new(root),
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+.vt-wipe-active::view-transition-new(root) {
+  animation: vt-circle-wipe 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes vt-circle-wipe {
+  0% {
+    clip-path: circle(0 at var(--vt-x) var(--vt-y));
+  }
+  100% {
+    clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y));
+  }
+}
+
+.vt-disable-anim,
+.vt-disable-anim *,
+.vt-disable-anim :after,
+.vt-disable-anim :before {
+  transition: none !important;
+}
+
 .nav-theme-toggle {
   display: inline-flex;
   align-items: center;
@@ -524,6 +559,41 @@ body:before {
 .nav-theme-toggle:hover {
   background: var(--surface-2);
   transform: translateY(-1px);
+}
+
+.icon-sun,
+.icon-moon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -8px;
+  margin-left: -8px;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+}
+
+/* Light mode (default) */
+.icon-sun {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+  color: #f59e0b;
+}
+
+.icon-moon {
+  transform: rotate(-90deg) scale(0.5);
+  opacity: 0;
+  color: var(--text);
+}
+
+/* Dark mode */
+.dark .icon-sun {
+  transform: rotate(90deg) scale(0.5);
+  opacity: 0;
+}
+
+.dark .icon-moon {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+  color: var(--text);
 }
 
 @media (max-width: 768px) {
@@ -1168,19 +1238,19 @@ body:before {
 .card-stack-card {
   position: absolute;
   inset: 0;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 18px;
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.5);
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, border-color 0.3s ease;
+  box-shadow: 0 16px 32px -10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, border-color 0.3s ease, background-color 0.4s ease;
 }
 
 .card-stack:hover .card-stack-card {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--text);
 }
 
 .card-stack-label {
@@ -1322,16 +1392,16 @@ body:before {
   position: relative;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #141416;
-  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.25);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .collage-item:hover {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--text);
   transform: translateY(-4px);
-  box-shadow: 0 24px 44px -12px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 44px -12px rgba(0, 0, 0, 0.35);
 }
 
 .collage-item img {
@@ -1380,17 +1450,18 @@ body:before {
   justify-content: space-between;
   gap: 20px;
   padding: 24px 28px;
-  background: #141416;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 18px;
   text-decoration: none;
   color: var(--text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .award-card:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: #18181b;
+  border-color: var(--text);
+  background: var(--surface-2);
   transform: translateX(6px);
 }
 
@@ -1404,8 +1475,8 @@ body:before {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1415,8 +1486,8 @@ body:before {
 }
 
 .award-card:hover .award-card-icon {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text);
+  background: var(--surface);
 }
 
 .award-card-title {
@@ -1683,8 +1754,9 @@ body:before {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #ffffff;
-  color: #000000;
+  background: var(--text);
+  color: var(--surface);
+  border: 1.5px solid var(--text);
   border-radius: 9999px;
   padding: 14px 32px;
   font-family: var(--font-mono), monospace;
@@ -1693,14 +1765,15 @@ body:before {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   transition: all 0.25s ease;
 }
 
 .contact-resume-btn:hover {
-  background: #e4e4e7;
+  background: var(--surface);
+  color: var(--text);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
 }
 
 .contact-cards {
@@ -1715,18 +1788,19 @@ body:before {
   align-items: center;
   gap: 18px;
   padding: 22px 26px;
-  background: #141416;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 18px;
   text-decoration: none;
   color: var(--text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .contact-card:hover {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--text);
   transform: translateY(-2px);
-  background: #18181b;
+  background: var(--surface-2);
 }
 
 .contact-card-icon {
@@ -1736,16 +1810,16 @@ body:before {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   color: var(--text);
   flex-shrink: 0;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .contact-card:hover .contact-card-icon {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text);
+  background: var(--surface);
 }
 
 .contact-card-info {
@@ -1802,7 +1876,7 @@ body:before {
   gap: 8px;
   padding: 16px 28px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid var(--text);
   border-radius: 9999px;
   color: var(--text);
   font-family: var(--font-mono), monospace;
@@ -1816,8 +1890,8 @@ body:before {
 }
 
 .contact-cta:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: #ffffff;
+  background: var(--text);
+  color: var(--surface);
   transform: translateY(-1px);
 }
 

@@ -58,7 +58,7 @@ export function About() {
         {/* Profile Header */}
         <div className="about-profile-header">
           <div className="about-profile-image-wrapper">
-            <div className="relative w-28 h-28 rounded-full overflow-hidden border border-[var(--line)] shadow-md bg-[#18181b]">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden border border-[var(--line)] shadow-md bg-[var(--surface-2)]">
               <Image
                 src="/images/nauval-portrait.png"
                 alt="Muhammad Bahruddin Nauvaldy Maulana"
