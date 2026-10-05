@@ -7,6 +7,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [coffeeCount, setCoffeeCount] = useState(24);
 
   useEffect(() => {
     // Check initial dark mode
@@ -58,7 +59,7 @@ export function Navbar() {
         </a>
 
         {/* Center: Links */}
-        <div className="nav-center hidden md:flex">
+        <div className="nav-center">
           <a
             href="#work"
             onClick={(e) => handleNavClick(e, "#work")}
@@ -113,7 +114,7 @@ export function Navbar() {
           <a
             href="#contact"
             onClick={(e) => handleNavClick(e, "#contact")}
-            className="nav-cta hidden md:block"
+            className="nav-cta"
           >
             Hire Me
           </a>
@@ -121,7 +122,7 @@ export function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-inherit"
+            className="md:hidden p-2 rounded-xl text-inherit flex items-center justify-center"
             aria-label="Open navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -129,52 +130,78 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Backdrop & Dropdown */}
       {mobileMenuOpen && (
-        <div className="fixed top-24 left-4 right-4 z-50 md:hidden p-5 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-2xl flex flex-col gap-3">
-          <a
-            href="#work"
-            onClick={(e) => handleNavClick(e, "#work")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 border-b border-[var(--line)]"
-          >
-            Work
-          </a>
-          <a
-            href="#what-i-can-do"
-            onClick={(e) => handleNavClick(e, "#what-i-can-do")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 border-b border-[var(--line)]"
-          >
-            What I Can Do
-          </a>
-          <a
-            href="#about"
-            onClick={(e) => handleNavClick(e, "#about")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 border-b border-[var(--line)]"
-          >
-            About
-          </a>
-          <a
-            href="#awards"
-            onClick={(e) => handleNavClick(e, "#awards")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 border-b border-[var(--line)]"
-          >
-            Awards
-          </a>
-          <a
-            href="#trainings"
-            onClick={(e) => handleNavClick(e, "#trainings")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 border-b border-[var(--line)]"
-          >
-            Trainings
-          </a>
-          <a
-            href="#contact"
-            onClick={(e) => handleNavClick(e, "#contact")}
-            className="text-sm font-semibold tracking-wider uppercase py-2 text-emerald-500"
-          >
-            Contact / Hire Me
-          </a>
-        </div>
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="fixed top-20 left-4 right-4 z-50 md:hidden p-5 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-2xl flex flex-col gap-2.5">
+            <a
+              href="#work"
+              onClick={(e) => handleNavClick(e, "#work")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+            >
+              <span>Work</span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
+            </a>
+            <a
+              href="#what-i-can-do"
+              onClick={(e) => handleNavClick(e, "#what-i-can-do")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+            >
+              <span>What I Can Do</span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
+            </a>
+            <a
+              href="#about"
+              onClick={(e) => handleNavClick(e, "#about")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+            >
+              <span>About</span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">03</span>
+            </a>
+            <a
+              href="#awards"
+              onClick={(e) => handleNavClick(e, "#awards")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+            >
+              <span>Awards</span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">04</span>
+            </a>
+            <a
+              href="#trainings"
+              onClick={(e) => handleNavClick(e, "#trainings")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+            >
+              <span>Trainings</span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">05</span>
+            </a>
+            <a
+              href="#contact"
+              onClick={(e) => handleNavClick(e, "#contact")}
+              className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
+            >
+              Contact / Hire Me &rarr;
+            </a>
+
+            {/* Coffee Button in Menu */}
+            <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between">
+              <span className="text-xs text-[var(--muted)]">Support creator</span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCoffeeCount((prev) => prev + 1);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-2)] text-xs font-mono active:scale-95 transition-transform"
+              >
+                <span>☕ Buy Coffee</span>
+                <span className="text-[11px] text-amber-500 font-bold">{coffeeCount}</span>
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </>
   );
