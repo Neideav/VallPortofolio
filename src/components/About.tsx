@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, Code2, FlaskConical, Rocket } from "lucide-react";
+import { Code2, FlaskConical, Rocket } from "lucide-react";
 
 export function About() {
   const traits = [
     { label: "TRAIT", value: "Problem Solver" },
-    { label: "TRAIT", value: "Automation-Driven" },
+    { label: "TRAIT", value: "Organized" },
+    { label: "TRAIT", value: "Continuous Learner" },
     { label: "TRAIT", value: "Security-First" },
     { label: "TRAIT", value: "High Availability" },
   ];
@@ -23,25 +24,25 @@ export function About() {
     switch (diff) {
       case 0:
         return {
-          transform: "translate(6px, -4px) rotate(-7deg) scale(1)",
+          transform: "translate(0px, 0px) rotate(-6deg) scale(1)",
           opacity: 1,
           zIndex: 30,
         };
       case 1:
         return {
-          transform: "translate(2px, 11px) rotate(10deg) scale(0.955)",
-          opacity: 0.75,
+          transform: "translate(12px, 10px) rotate(10deg) scale(0.96)",
+          opacity: 0.82,
           zIndex: 20,
         };
       case 2:
         return {
-          transform: "translate(30px, 22px) rotate(-13deg) scale(0.91)",
+          transform: "translate(-8px, 18px) rotate(-14deg) scale(0.92)",
           opacity: 0.55,
           zIndex: 10,
         };
       default:
         return {
-          transform: "translate(134px, -67px) rotate(43deg) scale(0.85)",
+          transform: "translate(28px, 16px) rotate(22deg) scale(0.85)",
           opacity: 0,
           zIndex: 5,
         };
@@ -49,7 +50,7 @@ export function About() {
   };
 
   return (
-    <section id="about" className="section">
+    <section id="about" className="section scroll-mt-28">
       <div className="section-label">ABOUT ME</div>
       <h2 className="section-title">Problem Solver. Systems Engineer.</h2>
 
@@ -57,13 +58,14 @@ export function About() {
         {/* Profile Header */}
         <div className="about-profile-header">
           <div className="about-profile-image-wrapper">
-            <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-[var(--line)] shadow-lg">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden border border-[var(--line)] shadow-md">
               <Image
                 src="/images/profile.png"
                 alt="Muhammad Bahruddin Nauvaldy Maulana"
                 fill
                 sizes="112px"
                 className="object-cover object-top"
+                priority
               />
             </div>
           </div>
@@ -71,7 +73,18 @@ export function About() {
           <div className="about-profile-info">
             <div className="about-profile-name">
               <span>MUHAMMAD BAHRUDDIN NAUVALDY MAULANA</span>
-              <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-500/20" />
+              <svg
+                className="w-5 h-5 text-blue-500 flex-shrink-0"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-label="Verified"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </div>
 
             <div className="about-profile-stats">
@@ -124,11 +137,11 @@ export function About() {
             <div className="currently-strip-items">
               <div className="currently-item">
                 <span className="currently-icon">
-                  <Code2 className="w-4 h-4 text-emerald-500" />
+                  <Code2 className="w-4 h-4 text-[var(--text)]" />
                 </span>
                 <div className="currently-text">
                   <div className="currently-item-label">Building</div>
-                  <div className="currently-item-detail text-xs text-[var(--muted)]">
+                  <div className="currently-item-detail">
                     Web &amp; Cloud Infrastructure
                   </div>
                 </div>
@@ -136,11 +149,11 @@ export function About() {
 
               <div className="currently-item">
                 <span className="currently-icon">
-                  <FlaskConical className="w-4 h-4 text-emerald-500" />
+                  <FlaskConical className="w-4 h-4 text-[var(--text)]" />
                 </span>
                 <div className="currently-text">
                   <div className="currently-item-label">Exploring</div>
-                  <div className="currently-item-detail text-xs text-[var(--muted)]">
+                  <div className="currently-item-detail">
                     Linux Security &amp; CTF Defense
                   </div>
                 </div>
@@ -148,11 +161,11 @@ export function About() {
 
               <div className="currently-item">
                 <span className="currently-icon">
-                  <Rocket className="w-4 h-4 text-emerald-500" />
+                  <Rocket className="w-4 h-4 text-[var(--text)]" />
                 </span>
                 <div className="currently-text">
                   <div className="currently-item-label">Learning</div>
-                  <div className="currently-item-detail text-xs text-[var(--muted)]">
+                  <div className="currently-item-detail">
                     Distributed Systems &amp; K8s
                   </div>
                 </div>
