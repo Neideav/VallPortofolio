@@ -164,6 +164,7 @@ export function Work() {
                     alt={project.title}
                     fill
                     priority={isCenter}
+                    unoptimized
                     className="work-album-img"
                     sizes="400px"
                   />
@@ -193,6 +194,7 @@ export function Work() {
                   src={project.image}
                   alt={project.title}
                   fill
+                  unoptimized
                   className="object-cover rounded-xl"
                   sizes="320px"
                 />
