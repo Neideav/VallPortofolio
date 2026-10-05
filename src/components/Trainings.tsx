@@ -62,25 +62,25 @@ export function Trainings() {
     }));
   };
 
-  const getImageStyle = (entryIndex: number, imgIndex: number, currentTop: number, total: number) => {
+  const getImageStyle = (imgIndex: number, currentTop: number, total: number) => {
     const diff = (imgIndex - currentTop + total) % total;
     if (diff === 0) {
       return {
-        transform: "translate(0px, 0px) rotate(0deg) scale(1)",
+        transform: "translate(0px, 0px) scale(1)",
         opacity: 1,
         zIndex: 30,
       };
     }
     if (diff === 1) {
       return {
-        transform: "translate(12px, -8px) rotate(3.5deg) scale(0.94)",
-        opacity: 0.75,
+        transform: "translate(6px, 6px) scale(0.97)",
+        opacity: 0.7,
         zIndex: 20,
       };
     }
     return {
-      transform: "translate(24px, 16px) rotate(-4.2deg) scale(0.88)",
-      opacity: 0.55,
+      transform: "translate(12px, 12px) scale(0.94)",
+      opacity: 0.45,
       zIndex: 10,
     };
   };
@@ -106,15 +106,15 @@ export function Trainings() {
             >
               {/* Text Side */}
               <div className="experience-text">
-                <div className="experience-header flex justify-between items-start gap-4 mb-2">
-                  <div className="experience-title">{entry.title}</div>
+                <div className="experience-header">
                   <div className="experience-date">{entry.date}</div>
+                  <h3 className="experience-title">{entry.title}</h3>
                 </div>
 
                 <div className="experience-org">{entry.org}</div>
-                <div className="experience-desc">{entry.desc}</div>
+                <p className="experience-desc">{entry.desc}</p>
 
-                <div>
+                <div className="mt-3">
                   <a
                     href={entry.certificateUrl}
                     target="_blank"
@@ -129,12 +129,12 @@ export function Trainings() {
 
               {/* Interactive Image Stack Side */}
               <div
-                className="experience-image-stack"
+                className="experience-image-stack group"
                 onClick={() => cycleImage(entry.id, entry.images.length)}
-                title="Click image to cycle stack"
+                title="Tap image to view next screenshot"
               >
                 {entry.images.map((imgSrc, imgIndex) => {
-                  const style = getImageStyle(index, imgIndex, currentTop, entry.images.length);
+                  const style = getImageStyle(imgIndex, currentTop, entry.images.length);
                   return (
                     <div
                       key={imgIndex}
@@ -145,12 +145,19 @@ export function Trainings() {
                         src={imgSrc}
                         alt={`${entry.title} screenshot`}
                         fill
+                        unoptimized
                         className="object-cover rounded-xl"
                         sizes="(max-width: 768px) 100vw, 500px"
                       />
                     </div>
                   );
                 })}
+
+                {/* Mobile & Desktop Tap Indicator Badge */}
+                <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10 text-[11px] font-mono pointer-events-none">
+                  <span>{currentTop + 1}/{entry.images.length}</span>
+                  <span className="opacity-70 text-[10px]">· Tap to flip</span>
+                </div>
               </div>
             </div>
           );

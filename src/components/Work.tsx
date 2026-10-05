@@ -45,9 +45,38 @@ const workProjects: WorkProject[] = [
 
 export function Work() {
   const [activeIndex, setActiveIndex] = useState(1);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const total = workProjects.length;
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % total);
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + total) % total);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+
+    if (diff > 40) {
+      // Swiped left -> next
+      handleNext();
+    } else if (diff < -40) {
+      // Swiped right -> prev
+      handlePrev();
+    }
+    setTouchStartX(null);
+  };
 
   const getPositionStyle = (index: number) => {
-    const total = workProjects.length;
     const diff = (index - activeIndex + total) % total;
 
     // Center
@@ -86,43 +115,7 @@ export function Work() {
     };
   };
 
-  const getMobileStackStyle = (index: number) => {
-    const total = workProjects.length;
-    const diff = (index - activeIndex + total) % total;
-
-    switch (diff) {
-      case 0:
-        return {
-          transform: "translate(0px, 0px) rotate(0deg) scale(1)",
-          opacity: 1,
-          zIndex: 30,
-        };
-      case 1:
-        return {
-          transform: "translate(12px, -7.6px) rotate(-2.7deg) scale(0.94)",
-          opacity: 0.8,
-          zIndex: 20,
-        };
-      case 2:
-        return {
-          transform: "translate(14px, 17.6px) rotate(6.6deg) scale(0.88)",
-          opacity: 0.6,
-          zIndex: 10,
-        };
-      default:
-        return {
-          transform: "translate(106px, -44px) rotate(18deg) scale(0.88)",
-          opacity: 0,
-          zIndex: 5,
-        };
-    }
-  };
-
   const activeProject = workProjects[activeIndex];
-
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % workProjects.length);
-  };
 
   return (
     <section id="work" className="section">
@@ -175,32 +168,71 @@ export function Work() {
         </div>
       </div>
 
-      {/* Mobile Stacked Interactive View */}
-      <div className="md:hidden my-8 px-4">
-        <div
-          onClick={handleNext}
-          className="relative w-full aspect-[16/10] max-w-[320px] mx-auto cursor-pointer select-none"
-          title="Tap to view next project"
-        >
-          {workProjects.map((project, index) => {
-            const style = getMobileStackStyle(index);
-            return (
-              <div
-                key={project.id}
-                className="stacked-image"
-                style={style}
-              >
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  unoptimized
-                  className="object-cover rounded-xl"
-                  sizes="320px"
+      {/* Mobile Polished Carousel View */}
+      <div
+        className="md:hidden my-6 px-1"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="relative w-full max-w-[360px] mx-auto">
+          {/* Main Card Image with smooth transition */}
+          <div
+            onClick={handleNext}
+            className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)] shadow-xl cursor-pointer select-none active:scale-[0.98] transition-transform"
+          >
+            <Image
+              src={activeProject.image}
+              alt={activeProject.title}
+              fill
+              unoptimized
+              priority
+              className="object-cover object-top"
+              sizes="(max-width: 768px) 100vw, 360px"
+            />
+            {/* Project Index Overlay Badge */}
+            <div className="absolute top-3 right-3 font-mono text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/10">
+              0{activeIndex + 1} / 0{total}
+            </div>
+          </div>
+
+          {/* Navigation Controls: Arrows and Dots */}
+          <div className="flex items-center justify-between mt-4 px-2">
+            <button
+              onClick={handlePrev}
+              className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
+              aria-label="Previous project"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+
+            {/* Pagination Dots */}
+            <div className="flex items-center gap-2">
+              {workProjects.map((p, idx) => (
+                <button
+                  key={p.id}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    idx === activeIndex
+                      ? "w-6 bg-[var(--text)]"
+                      : "w-2 bg-[var(--line)] hover:bg-[var(--muted)]"
+                  }`}
+                  aria-label={`Go to project ${idx + 1}`}
                 />
-              </div>
-            );
-          })}
+              ))}
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
+              aria-label="Next project"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -208,11 +240,11 @@ export function Work() {
       <div className="work-info">
         <h3 className="work-info-title">{activeProject.title}</h3>
         <p className="work-info-desc">{activeProject.description}</p>
-        <div className="flex flex-wrap justify-center gap-2 mb-4">
+        <div className="flex flex-wrap justify-center gap-1.5 mb-5 px-2">
           {activeProject.tags.map((tag) => (
             <span
               key={tag}
-              className="px-2.5 py-1 rounded-md text-xs font-mono bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+              className="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
             >
               {tag}
             </span>

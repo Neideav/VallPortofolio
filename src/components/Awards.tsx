@@ -76,7 +76,8 @@ export function Awards() {
                 src="/images/awards/jhic-cert.jpg"
                 alt="Sertifikat Top 30 Nasional Jagoan Hosting Infra Competition 2025"
                 fill
-                sizes="(max-width: 768px) 100vw, 320px"
+                unoptimized
+                sizes="(max-width: 768px) 50vw, 320px"
                 className="object-cover object-center"
               />
               <div className="collage-overlay" />
@@ -88,7 +89,8 @@ export function Awards() {
                 src="/images/awards/award-ceremony.jpg"
                 alt="Championship Award Ceremony"
                 fill
-                sizes="(max-width: 768px) 100vw, 320px"
+                unoptimized
+                sizes="(max-width: 768px) 50vw, 320px"
                 className="object-cover object-top"
               />
               <div className="collage-overlay" />
@@ -103,7 +105,8 @@ export function Awards() {
                 src="/images/awards/academic-honors.jpg"
                 alt="Academic Honors Graduate"
                 fill
-                sizes="(max-width: 768px) 100vw, 320px"
+                unoptimized
+                sizes="(max-width: 768px) 50vw, 320px"
                 className="object-cover object-top"
               />
               <div className="collage-overlay" />
@@ -115,7 +118,8 @@ export function Awards() {
                 src="/images/awards/hackathon-booth.jpg"
                 alt="Cloud Architecture Showcase Booth"
                 fill
-                sizes="(max-width: 768px) 100vw, 320px"
+                unoptimized
+                sizes="(max-width: 768px) 50vw, 320px"
                 className="object-cover object-center"
               />
               <div className="collage-overlay" />

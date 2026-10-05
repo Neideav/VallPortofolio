@@ -24,25 +24,25 @@ export function About() {
     switch (diff) {
       case 0:
         return {
-          transform: "translate(0px, 0px) rotate(-6deg) scale(1)",
+          transform: "translate(0px, 0px) rotate(-3deg) scale(1)",
           opacity: 1,
           zIndex: 30,
         };
       case 1:
         return {
-          transform: "translate(12px, 10px) rotate(10deg) scale(0.96)",
+          transform: "translate(6px, 6px) rotate(3deg) scale(0.96)",
           opacity: 0.82,
           zIndex: 20,
         };
       case 2:
         return {
-          transform: "translate(-8px, 18px) rotate(-14deg) scale(0.92)",
+          transform: "translate(-4px, 12px) rotate(-4deg) scale(0.92)",
           opacity: 0.55,
           zIndex: 10,
         };
       default:
         return {
-          transform: "translate(28px, 16px) rotate(22deg) scale(0.85)",
+          transform: "translate(10px, 8px) rotate(5deg) scale(0.85)",
           opacity: 0,
           zIndex: 5,
         };
@@ -175,24 +175,29 @@ export function About() {
           </div>
 
           {/* Right: Interactive Card Stack */}
-          <div
-            className="card-stack"
-            onClick={cycleCard}
-            title="Click to cycle traits"
-          >
-            {traits.map((trait, index) => {
-              const style = getCardStyle(index);
-              return (
-                <div
-                  key={trait.value}
-                  className="card-stack-card"
-                  style={style}
-                >
-                  <div className="card-stack-label">{trait.label}</div>
-                  <div className="card-stack-value">{trait.value}</div>
-                </div>
-              );
-            })}
+          <div className="flex flex-col items-center">
+            <div
+              className="card-stack"
+              onClick={cycleCard}
+              title="Click to cycle traits"
+            >
+              {traits.map((trait, index) => {
+                const style = getCardStyle(index);
+                return (
+                  <div
+                    key={trait.value}
+                    className="card-stack-card"
+                    style={style}
+                  >
+                    <div className="card-stack-label">{trait.label}</div>
+                    <div className="card-stack-value">{trait.value}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <span className="font-mono text-[10px] text-[var(--muted)] opacity-70 mt-2">
+              Tap to flip traits
+            </span>
           </div>
         </div>
       </div>
