@@ -29,10 +29,11 @@ export function Hero() {
       <div className="profile-wrap">
         <div className="profile-image-container">
           <Image
-            src="/images/profile.png"
+            src="/images/nauval-portrait.png"
             alt="Muhammad Bahruddin Nauvaldy Maulana"
             fill
             priority
+            unoptimized
             className="profile-image"
             sizes="(max-width: 768px) 95vw, 620px"
           />
