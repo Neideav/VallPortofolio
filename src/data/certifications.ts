@@ -3,7 +3,7 @@ export interface Certification {
   name: string;
   provider: string;
   year: string;
-  category: "IBM" | "Cloud" | "Cybersecurity" | "Linux & Infrastructure";
+  category: "Confluent" | "IBM" | "Cloud" | "Cybersecurity" | "Linux & Infrastructure";
   credentialId?: string;
   verificationUrl?: string;
   status: "Verified" | "Completed" | "Active";
@@ -12,6 +12,18 @@ export interface Certification {
 }
 
 export const certifications: Certification[] = [
+  {
+    id: "confluent-data-streaming",
+    name: "Data Streaming Engineer Foundations",
+    provider: "Confluent",
+    year: "2026 - 2028",
+    category: "Confluent",
+    credentialId: "194820484",
+    verificationUrl: "https://certificates.confluent.io/ca9e0ec3-3477-4e96-a728-6b7a780215f5#acc.6g2t0FeD",
+    status: "Verified",
+    summary: "Industry-recognized certification from Confluent validating expertise in real-time data streaming architectures, Apache Kafka event handling, and modern distributed messaging systems.",
+    skillsAcquired: ["Data Streaming", "Apache Kafka", "Event-Driven Architecture", "Distributed Messaging"]
+  },
   {
     id: "ibm-cloud",
     name: "IBM Cloud Computing Fundamentals",
@@ -23,18 +35,6 @@ export const certifications: Certification[] = [
     status: "Verified",
     summary: "Comprehensive grounding in cloud service models (IaaS, PaaS, SaaS), cloud native architectures, virtualization, and hybrid cloud deployment strategies.",
     skillsAcquired: ["Cloud Infrastructure", "Virtualization", "Cloud Security", "Hybrid Cloud"]
-  },
-  {
-    id: "ibm-devops",
-    name: "IBM DevOps and Software Engineering",
-    provider: "IBM",
-    year: "2025 - 2026",
-    category: "IBM",
-    credentialId: "IBM-DEVOPS-81239",
-    verificationUrl: "https://www.credly.com/organizations/ibm",
-    status: "Verified",
-    summary: "In-depth training on CI/CD principles, automated testing frameworks, containerization, microservices, and Agile infrastructure delivery.",
-    skillsAcquired: ["CI/CD Pipelines", "Docker", "DevOps Culture", "Agile Engineering"]
   },
   {
     id: "cloud-aws-foundations",
@@ -49,16 +49,16 @@ export const certifications: Certification[] = [
     skillsAcquired: ["AWS Core", "VPC Networking", "RDS Management", "IAM Policies"]
   },
   {
-    id: "cybersec-defense",
-    name: "Cybersecurity Defense & Vulnerability Assessment",
-    provider: "National CTF & Cybersecurity Committee",
-    year: "2026",
-    category: "Cybersecurity",
-    credentialId: "CYBER-DEF-FINALIST-2026",
-    verificationUrl: "https://github.com/Neideav",
+    id: "jhic-top30",
+    name: "Top 30 Nasional — Jagoan Hosting Infra Competition (JHIC)",
+    provider: "Jagoan Hosting & Maspion IT (Supported by Komdigi)",
+    year: "2025",
+    category: "Cloud",
+    credentialId: "JHIC-2025-TOP30",
+    verificationUrl: "https://drive.google.com/file/d/1h10-ihrs3HlE0CYKEYV1HAmIz0HE3F2B/view?usp=sharing",
     status: "Verified",
-    summary: "Practical assessment in web application exploitation defense, system vulnerability mitigation, network packet analysis, and secure code review.",
-    skillsAcquired: ["OWASP Defense", "System Auditing", "Penetration Testing", "Threat Mitigation"]
+    summary: "Recognized as Top 30 National in the prestigious Jagoan Hosting Infra Competition (JHIC) 2025 for demonstrating excellence in cloud infrastructure engineering, server deployment, and system resilience.",
+    skillsAcquired: ["Cloud Infrastructure", "Linux Server Administration", "DevOps Delivery", "High Availability"]
   },
   {
     id: "linux-admin",

@@ -28,14 +28,14 @@ export function Contact() {
   };
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" className="section scroll-mt-28">
       <div className="contact-grid">
         {/* Left Side */}
         <div className="contact-left">
           <div className="contact-eyebrow">GET IN TOUCH</div>
           <h2 className="contact-headline">
             LET&apos;S<br />
-            <span className="contact-headline-accent text-emerald-500">WORK</span><br />
+            <span className="contact-headline-accent text-[#10b981]">WORK</span><br />
             TOGETHER
           </h2>
           <p className="contact-description">
@@ -62,15 +62,14 @@ export function Contact() {
               href="mailto:nvaldymaulana@gmail.com"
               className="contact-card"
             >
-              <span className="contact-card-number">01</span>
-              <div className="contact-card-icon text-emerald-500">
-                <Mail className="w-5 h-5" />
+              <div className="contact-card-icon">
+                <Mail className="w-5 h-5 text-zinc-300" />
               </div>
               <div className="contact-card-info">
                 <div className="contact-card-label">EMAIL</div>
                 <div className="contact-card-value">nvaldymaulana@gmail.com</div>
               </div>
-              <ExternalLink className="contact-card-arrow w-4 h-4" />
+              <span className="contact-card-number">01</span>
             </a>
 
             {/* 02 GITHUB */}
@@ -80,14 +79,14 @@ export function Contact() {
               rel="noopener noreferrer"
               className="contact-card"
             >
-              <span className="contact-card-number">02</span>
-              <div className="contact-card-icon text-inherit">
-                <GithubIcon className="w-5 h-5" />
+              <div className="contact-card-icon">
+                <GithubIcon className="w-5 h-5 text-zinc-300" />
               </div>
               <div className="contact-card-info">
                 <div className="contact-card-label">GITHUB</div>
                 <div className="contact-card-value">github.com/Neideav</div>
               </div>
+              <span className="contact-card-number">02</span>
               <ExternalLink className="contact-card-arrow w-4 h-4" />
             </a>
 
@@ -98,14 +97,14 @@ export function Contact() {
               rel="noopener noreferrer"
               className="contact-card"
             >
-              <span className="contact-card-number">03</span>
-              <div className="contact-card-icon text-blue-500">
-                <LinkedinIcon className="w-5 h-5" />
+              <div className="contact-card-icon">
+                <LinkedinIcon className="w-5 h-5 text-zinc-300" />
               </div>
               <div className="contact-card-info">
                 <div className="contact-card-label">LINKEDIN</div>
                 <div className="contact-card-value">linkedin.com/in/nvaldymaulana</div>
               </div>
+              <span className="contact-card-number">03</span>
               <ExternalLink className="contact-card-arrow w-4 h-4" />
             </a>
           </div>

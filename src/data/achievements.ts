@@ -11,12 +11,12 @@ export interface Achievement {
 
 export const achievements: Achievement[] = [
   {
-    id: "ctf-finalist",
-    metric: "01",
-    title: "National Competition Finalist",
-    subtitle: "Cybersecurity & CTF Defense",
-    detail: "Qualified as a national finalist in competitive Capture the Flag events, solving complex challenges across web exploitation, cryptography, and server penetration.",
-    tag: "Security Competitions"
+    id: "jhic-top30",
+    metric: "Top 30",
+    title: "National Infrastructure Competition",
+    subtitle: "Jagoan Hosting Infra Competition (JHIC) 2025",
+    detail: "Awarded Top 30 National out of participants nationwide in deploying high-performance server infrastructure, cloud networking, and resilient Linux server management.",
+    tag: "National Competition"
   },
   {
     id: "ibm-certs",

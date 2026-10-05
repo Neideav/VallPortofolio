@@ -2,87 +2,118 @@
 
 import React from "react";
 import Image from "next/image";
-import { Trophy, Award, ExternalLink, ShieldCheck, GraduationCap } from "lucide-react";
+import { Trophy, ExternalLink, ShieldCheck, GraduationCap } from "lucide-react";
 
 interface AwardItem {
   id: string;
   title: string;
-  provider: string;
   link: string;
-  icon: "trophy" | "award" | "shield" | "cap";
+  icon: "cap" | "trophy" | "shield";
 }
 
 const awardsList: AwardItem[] = [
   {
-    id: "ctf-finalist",
-    title: "National Cybersecurity Competition Finalist",
-    provider: "National CTF Committee",
+    id: "deans-lister",
+    title: "Dean's Lister",
+    link: "https://github.com/Neideav",
+    icon: "cap",
+  },
+  {
+    id: "jhic-top30",
+    title: "Top 30 Nasional — Jagoan Hosting Infra Competition",
+    link: "https://drive.google.com/file/d/1h10-ihrs3HlE0CYKEYV1HAmIz0HE3F2B/view?usp=sharing",
+    icon: "trophy",
+  },
+  {
+    id: "best-capstone",
+    title: "Best Capstone System & Architecture",
     link: "https://github.com/Neideav",
     icon: "trophy",
   },
   {
-    id: "ibm-devops",
-    title: "IBM DevOps and Software Engineering",
-    provider: "IBM Credential",
-    link: "https://www.credly.com/organizations/ibm",
-    icon: "award",
-  },
-  {
-    id: "ibm-cloud",
-    title: "IBM Cloud Computing Fundamentals",
-    provider: "IBM Credential",
-    link: "https://www.credly.com/organizations/ibm",
-    icon: "award",
-  },
-  {
-    id: "aws-infra",
-    title: "AWS Cloud Infrastructure & Services",
-    provider: "Cloud Architecture Foundations",
-    link: "https://aws.amazon.com/certification/",
+    id: "confluent-certified",
+    title: "Confluent Certified Data Streaming Engineer",
+    link: "https://certificates.confluent.io/ca9e0ec3-3477-4e96-a728-6b7a780215f5#acc.6g2t0FeD",
     icon: "shield",
-  },
-  {
-    id: "cs-degree",
-    title: "Dean's Lister & Academic Honors",
-    provider: "Informatics & Computer Science",
-    link: "https://github.com/Neideav",
-    icon: "cap",
   },
 ];
 
 export function Awards() {
   const getIcon = (type: AwardItem["icon"]) => {
     switch (type) {
-      case "trophy":
-        return <Trophy className="w-5 h-5 text-amber-500" />;
-      case "award":
-        return <Award className="w-5 h-5 text-emerald-500" />;
-      case "shield":
-        return <ShieldCheck className="w-5 h-5 text-blue-500" />;
       case "cap":
-        return <GraduationCap className="w-5 h-5 text-purple-500" />;
+        return <GraduationCap className="w-5 h-5 text-zinc-300" />;
+      case "trophy":
+        return <Trophy className="w-5 h-5 text-zinc-300" />;
+      case "shield":
+        return <ShieldCheck className="w-5 h-5 text-zinc-300" />;
     }
   };
 
   return (
-    <section id="awards" className="section">
-      <div className="section-label">Recognition</div>
+    <section id="awards" className="section scroll-mt-28">
+      <div className="section-label">RECOGNITION</div>
       <h2 className="section-title">Awards and Achievements</h2>
       <p className="section-desc">
-        A collection of competition recognitions and verified credentials that reflect my dedication
-        to engineering excellence.
+        A collection of academic and professional recognitions that reflect my dedication to excellence.
       </p>
 
       <div className="awards-layout">
-        {/* Left: Trophy Graphic */}
-        <div className="relative w-full max-w-[580px] h-[340px] sm:h-[400px] rounded-2xl overflow-hidden border border-[var(--line)] shadow-2xl">
-          <Image
-            src="/images/awards/awards.png"
-            alt="Awards and Achievements"
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 580px"
-          />
+        {/* Left: Asymmetrical Staggered Photo Collage */}
+        <div className="collage-container">
+          {/* Column 1 */}
+          <div className="collage-column">
+            <div className="collage-item h-[240px]">
+              <Image
+                src="/images/awards/jhic-cert.jpg"
+                alt="Sertifikat Top 30 Nasional Jagoan Hosting Infra Competition 2025"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover object-center"
+              />
+              <div className="collage-overlay" />
+              <span className="collage-badge">Top 30 Nasional // JHIC 2025</span>
+            </div>
+
+            <div className="collage-item h-[280px]">
+              <Image
+                src="/images/awards/award-ceremony.jpg"
+                alt="Championship Award Ceremony"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover object-top"
+              />
+              <div className="collage-overlay" />
+              <span className="collage-badge">National Stage // Infra Competition</span>
+            </div>
+          </div>
+
+          {/* Column 2 (Offset / Staggered) */}
+          <div className="collage-column collage-column--offset">
+            <div className="collage-item h-[280px]">
+              <Image
+                src="/images/awards/academic-honors.jpg"
+                alt="Academic Honors Graduate"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover object-top"
+              />
+              <div className="collage-overlay" />
+              <span className="collage-badge">Bachelor with Honors</span>
+            </div>
+
+            <div className="collage-item h-[240px]">
+              <Image
+                src="/images/awards/hackathon-booth.jpg"
+                alt="Cloud Architecture Showcase Booth"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover object-center"
+              />
+              <div className="collage-overlay" />
+              <span className="collage-badge">Architecture Showcase</span>
+            </div>
+          </div>
         </div>
 
         {/* Right: Awards Column */}
@@ -93,16 +124,13 @@ export function Awards() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="award-item"
+              className="award-card group"
             >
-              <div className="award-icon">{getIcon(item.icon)}</div>
-              <div>
-                <div className="award-title">{item.title}</div>
-                <div className="font-mono text-[11px] text-[var(--muted)]">
-                  {item.provider}
-                </div>
+              <div className="award-card-left">
+                <div className="award-card-icon">{getIcon(item.icon)}</div>
+                <div className="award-card-title">{item.title}</div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 ml-auto text-[var(--muted)] shrink-0" />
+              <ExternalLink className="award-card-arrow w-4 h-4" />
             </a>
           ))}
         </div>
