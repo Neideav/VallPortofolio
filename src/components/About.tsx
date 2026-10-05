@@ -65,7 +65,7 @@ export function About() {
                 fill
                 unoptimized
                 sizes="112px"
-                className="object-cover object-[center_10%] scale-105"
+                className="object-cover object-[50%_15%] scale-135"
                 priority
               />
             </div>
