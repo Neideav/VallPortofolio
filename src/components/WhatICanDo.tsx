@@ -23,6 +23,46 @@ import {
   BentoSupportVisual,
 } from "./TechLogos";
 
+// Tech stack items directly matched with https://github.com/Neideav/Neideav.git
+const techColumns = [
+  // Column 1: Programming Languages
+  [
+    { name: "Python", icon: "/images/tech/python.svg" },
+    { name: "TypeScript", icon: "/images/tech/ts.svg" },
+    { name: "JavaScript", icon: "/images/tech/js.svg" },
+    { name: "PHP", icon: "/images/tech/php.svg" },
+    { name: "Java", icon: "/images/tech/java.svg" },
+    { name: "C++", icon: "/images/tech/cpp.svg" },
+  ],
+  // Column 2: Frameworks & Backend
+  [
+    { name: "Node.js", icon: "/images/tech/nodejs.svg" },
+    { name: "Laravel", icon: "/images/tech/laravel.svg" },
+    { name: "FastAPI", icon: "/images/tech/fastapi.svg" },
+    { name: ".NET", icon: "/images/tech/dotnet.svg" },
+    { name: "Vue.js", icon: "/images/tech/vue.svg" },
+    { name: "Tailwind CSS", icon: "/images/tech/tailwind.svg" },
+  ],
+  // Column 3: Databases & Web Servers
+  [
+    { name: "MySQL", icon: "/images/tech/mysql.svg" },
+    { name: "PostgreSQL", icon: "/images/tech/postgres.svg" },
+    { name: "Redis", icon: "/images/tech/redis.svg" },
+    { name: "MariaDB", icon: "/images/tech/mariadb.svg" },
+    { name: "Nginx", icon: "/images/tech/nginx.svg" },
+    { name: "Apache", icon: "/images/tech/apache.svg" },
+  ],
+  // Column 4: Cloud, DevOps & Tools
+  [
+    { name: "AWS", icon: "/images/tech/aws.svg" },
+    { name: "Azure", icon: "/images/tech/azure.svg" },
+    { name: "Cloudflare", icon: "/images/tech/cloudflare.svg" },
+    { name: "Vercel", icon: "/images/tech/vercel.svg" },
+    { name: "Git", icon: "/images/tech/git.svg" },
+    { name: "GitHub", icon: "/images/tech/github.svg" },
+  ],
+];
+
 export function WhatICanDo() {
   return (
     <section id="what-i-can-do" className="section">
@@ -32,105 +72,43 @@ export function WhatICanDo() {
           <div className="section-label">MY CAPABILITIES</div>
           <h2 className="section-title">What I Can Do</h2>
           <p className="what-i-can-do-desc">
-            I combine technical, problem-solving, and digital skills to build reliable systems,
-            test systems, manage data, and support efficient digital workflows.
+            I combine cloud architecture, backend development, and cybersecurity skills to build
+            reliable systems, scalable APIs, and secure digital infrastructure.
           </p>
 
-          {/* Tech Stack Columns matching screenshot */}
+          {/* Tech Stack Columns matching Neideav GitHub README */}
           <div className="tech-stack">
-            {/* Column 1: HTML, CSS, JS, React, Python */}
-            <div className="tech-stack-column">
-              <div className="tech-stack-item group" title="HTML">
-                <Html5Logo />
-                <span className="tech-stack-label">HTML</span>
+            {techColumns.map((col, colIdx) => (
+              <div
+                key={colIdx}
+                className={`tech-stack-column ${colIdx >= 2 ? "workspace-column" : ""}`}
+              >
+                {col.map((item) => (
+                  <div key={item.name} className="tech-stack-item group" title={item.name}>
+                    <img
+                      src={item.icon}
+                      alt={item.name}
+                      width={30}
+                      height={30}
+                      loading="lazy"
+                      draggable="false"
+                      className="tech-icon-img"
+                    />
+                    <span className="tech-stack-label">{item.name}</span>
+                  </div>
+                ))}
               </div>
-              <div className="tech-stack-item group" title="CSS">
-                <Css3Logo />
-                <span className="tech-stack-label">CSS</span>
-              </div>
-              <div className="tech-stack-item group" title="JavaScript">
-                <JsLogo />
-                <span className="tech-stack-label">JavaScript</span>
-              </div>
-              <div className="tech-stack-item group" title="React">
-                <ReactLogo />
-                <span className="tech-stack-label">React</span>
-              </div>
-              <div className="tech-stack-item group" title="Python">
-                <PythonLogo />
-                <span className="tech-stack-label">Python</span>
-              </div>
-            </div>
-
-            {/* Column 2: Flask, Django, PHP, CodeIgniter, MySQL */}
-            <div className="tech-stack-column">
-              <div className="tech-stack-item group" title="Flask">
-                <FlaskLogo />
-                <span className="tech-stack-label">Flask</span>
-              </div>
-              <div className="tech-stack-item group" title="Django">
-                <DjangoLogo />
-                <span className="tech-stack-label">Django</span>
-              </div>
-              <div className="tech-stack-item group" title="PHP">
-                <PhpLogo />
-                <span className="tech-stack-label">PHP</span>
-              </div>
-              <div className="tech-stack-item group" title="CodeIgniter">
-                <CodeIgniterLogo />
-                <span className="tech-stack-label">CodeIgniter</span>
-              </div>
-              <div className="tech-stack-item group" title="MySQL">
-                <MysqlLogo />
-                <span className="tech-stack-label">MySQL</span>
-              </div>
-            </div>
-
-            {/* Column 3: Meta, Notion, Google, Trello, Canva */}
-            <div className="tech-stack-column workspace-column">
-              <div className="tech-stack-item group" title="Meta Suite">
-                <MetaLogo />
-                <span className="tech-stack-label">Meta Suite</span>
-              </div>
-              <div className="tech-stack-item group" title="Notion">
-                <NotionLogo />
-                <span className="tech-stack-label">Notion</span>
-              </div>
-              <div className="tech-stack-item group" title="Google">
-                <GoogleLogo />
-                <span className="tech-stack-label">Google</span>
-              </div>
-              <div className="tech-stack-item group" title="Trello">
-                <TrelloLogo />
-                <span className="tech-stack-label">Trello</span>
-              </div>
-              <div className="tech-stack-item group" title="Canva">
-                <CanvaLogo />
-                <span className="tech-stack-label">Canva</span>
-              </div>
-            </div>
-
-            {/* Column 4: Figma, CapCut */}
-            <div className="tech-stack-column workspace-column">
-              <div className="tech-stack-item group" title="Figma">
-                <FigmaLogo />
-                <span className="tech-stack-label">Figma</span>
-              </div>
-              <div className="tech-stack-item group" title="CapCut">
-                <CapCutLogo />
-                <span className="tech-stack-label">CapCut</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Right Side: 2 Bento Cards matching screenshot */}
+        {/* Right Side: 2 Bento Cards matching skillset */}
         <div className="what-i-can-do-right">
           {/* Bento Card 01 */}
           <div className="bento-card bento-large">
             <div className="bento-header">
               <div className="bento-number">01</div>
-              <div className="bento-category">IT, WEB DEVELOPMENT &amp; QA</div>
+              <div className="bento-category">CLOUD &amp; BACKEND SYSTEMS</div>
             </div>
 
             <div className="bento-visual">
@@ -138,24 +116,23 @@ export function WhatICanDo() {
             </div>
 
             <p className="bento-desc">
-              Building and testing functional digital systems, from database-driven web
-              applications to RFID and QR-based solutions, with a focus on reliability,
-              usability, and practical problem-solving.
+              Designing and architecting scalable backend APIs, distributed cloud architectures, and
+              automated CI/CD pipelines with high availability, reliability, and security in mind.
             </p>
 
             <div className="bento-skills">
-              <span className="bento-tag">Web Development</span>
-              <span className="bento-tag">System Testing</span>
-              <span className="bento-tag">Bug Identification</span>
-              <span className="bento-tag">System Analysis</span>
-              <span className="bento-tag">Database Management</span>
-              <span className="bento-tag">MySQL</span>
-              <span className="bento-tag">PHP</span>
+              <span className="bento-tag">Cloud Architecture</span>
+              <span className="bento-tag">Backend Systems</span>
+              <span className="bento-tag">DevOps &amp; CI/CD</span>
+              <span className="bento-tag">API Development</span>
               <span className="bento-tag">Python</span>
-              <span className="bento-tag">HTML</span>
-              <span className="bento-tag">CSS</span>
-              <span className="bento-tag">JavaScript</span>
-              <span className="bento-tag">RFID &amp; QR Integration</span>
+              <span className="bento-tag">Node.js</span>
+              <span className="bento-tag">Laravel</span>
+              <span className="bento-tag">FastAPI</span>
+              <span className="bento-tag">AWS &amp; Azure</span>
+              <span className="bento-tag">PostgreSQL</span>
+              <span className="bento-tag">Docker</span>
+              <span className="bento-tag">Nginx</span>
             </div>
           </div>
 
@@ -163,7 +140,7 @@ export function WhatICanDo() {
           <div className="bento-card bento-medium">
             <div className="bento-header">
               <div className="bento-number">02</div>
-              <div className="bento-category">VA &amp; DIGITAL OPERATIONS</div>
+              <div className="bento-category">FULL-STACK &amp; CYBERSECURITY</div>
             </div>
 
             <div className="bento-visual">
@@ -171,19 +148,19 @@ export function WhatICanDo() {
             </div>
 
             <p className="bento-desc">
-              Supporting teams with organized data, documentation, research, and digital
-              workflows while helping keep day-to-day operations accurate and efficient.
+              Developing secure full-stack applications, analyzing system vulnerabilities through
+              Capture the Flag (CTF) challenges, and managing database infrastructure.
             </p>
 
             <div className="bento-skills">
-              <span className="bento-tag">Data Entry</span>
-              <span className="bento-tag">Data Validation</span>
-              <span className="bento-tag">Document Management</span>
-              <span className="bento-tag">Online Research</span>
-              <span className="bento-tag">Administrative Support</span>
-              <span className="bento-tag">Google Workspace</span>
-              <span className="bento-tag">Social Media Management</span>
-              <span className="bento-tag">Content Optimization</span>
+              <span className="bento-tag">Cybersecurity (CTF)</span>
+              <span className="bento-tag">Vulnerability Assessment</span>
+              <span className="bento-tag">Full-Stack Development</span>
+              <span className="bento-tag">Vue.js &amp; Tailwind</span>
+              <span className="bento-tag">TypeScript</span>
+              <span className="bento-tag">Database Management</span>
+              <span className="bento-tag">Redis Caching</span>
+              <span className="bento-tag">Git &amp; GitHub</span>
             </div>
           </div>
         </div>
