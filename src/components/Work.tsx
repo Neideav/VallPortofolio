@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ExternalLink, ArrowRight } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
@@ -144,15 +145,13 @@ export function Work() {
               A collection of cloud systems, digital projects, and technical work I&apos;ve built.
             </p>
           </div>
-          <a
-            href="https://github.com/Neideav"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/work"
             className="work-album-btn-top"
           >
             <span>View More Projects</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          </Link>
         </div>
       </Reveal>
 

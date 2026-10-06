@@ -1,19 +1,50 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
 import { Sun, Moon, Menu, X } from "lucide-react";
+import { useCoffeeCount } from "@/lib/useCoffeeCount";
+
+function subscribeTheme(callback: () => void) {
+  if (typeof window === "undefined" || typeof MutationObserver === "undefined") {
+    return () => {};
+  }
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.attributeName === "class") {
+        callback();
+      }
+    }
+  });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
+
+function getThemeSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function getThemeServerSnapshot() {
+  return true;
+}
 
 export function Navbar() {
+  const pathname = usePathname();
+  const isWorkPage = pathname === "/work";
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return true;
-  });
-  const [coffeeCount, setCoffeeCount] = useState(24);
+  const isDark = useSyncExternalStore(
+    subscribeTheme,
+    getThemeSnapshot,
+    getThemeServerSnapshot
+  );
+  const { count: coffeeCount, increment: incrementCoffee } = useCoffeeCount();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,7 +59,6 @@ export function Navbar() {
     const nextDark = !isDark;
 
     const applyTheme = () => {
-      setIsDark(nextDark);
       if (nextDark) {
         document.documentElement.classList.add("dark");
         localStorage.setItem("theme", "dark");
@@ -80,11 +110,13 @@ export function Navbar() {
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    setMobileMenuOpen(false);
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      setMobileMenuOpen(false);
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
@@ -92,53 +124,85 @@ export function Navbar() {
     <>
       <nav className={`nav-bar ${scrolled ? "scrolled" : ""}`}>
         {/* Left: Monogram and Brand */}
-        <a
-          href="#hero"
-          onClick={(e) => handleNavClick(e, "#hero")}
-          className="nav-left"
-          aria-label="Nauval - Home"
-        >
-          <div className="nav-logo">N</div>
-          <div className="nav-brand">NAUVAL</div>
-        </a>
+        {isWorkPage ? (
+          <Link
+            href="/"
+            className="nav-left"
+            aria-label="Nauval - Home"
+          >
+            <div className="nav-logo">N</div>
+            <div className="nav-brand">NAUVAL</div>
+          </Link>
+        ) : (
+          <a
+            href="#hero"
+            onClick={(e) => handleNavClick(e, "#hero")}
+            className="nav-left"
+            aria-label="Nauval - Home"
+          >
+            <div className="nav-logo">N</div>
+            <div className="nav-brand">NAUVAL</div>
+          </a>
+        )}
 
         {/* Center: Links */}
         <div className="nav-center">
-          <a
-            href="#work"
-            onClick={(e) => handleNavClick(e, "#work")}
-            className="nav-link"
-          >
-            Work
-          </a>
-          <a
-            href="#what-i-can-do"
-            onClick={(e) => handleNavClick(e, "#what-i-can-do")}
-            className="nav-link"
-          >
-            What I Can Do
-          </a>
-          <a
-            href="#about"
-            onClick={(e) => handleNavClick(e, "#about")}
-            className="nav-link"
-          >
-            About
-          </a>
-          <a
-            href="#awards"
-            onClick={(e) => handleNavClick(e, "#awards")}
-            className="nav-link"
-          >
-            Awards
-          </a>
-          <a
-            href="#trainings"
-            onClick={(e) => handleNavClick(e, "#trainings")}
-            className="nav-link"
-          >
-            Trainings
-          </a>
+          {isWorkPage ? (
+            <>
+              <a
+                href="#technical"
+                onClick={(e) => handleNavClick(e, "#technical")}
+                className="nav-link"
+              >
+                Technical
+              </a>
+              <a
+                href="#digital"
+                onClick={(e) => handleNavClick(e, "#digital")}
+                className="nav-link"
+              >
+                Digital
+              </a>
+            </>
+          ) : (
+            <>
+              <a
+                href="#work"
+                onClick={(e) => handleNavClick(e, "#work")}
+                className="nav-link"
+              >
+                Work
+              </a>
+              <a
+                href="#what-i-can-do"
+                onClick={(e) => handleNavClick(e, "#what-i-can-do")}
+                className="nav-link"
+              >
+                What I Can Do
+              </a>
+              <a
+                href="#about"
+                onClick={(e) => handleNavClick(e, "#about")}
+                className="nav-link"
+              >
+                About
+              </a>
+              <a
+                href="#awards"
+                onClick={(e) => handleNavClick(e, "#awards")}
+                className="nav-link"
+              >
+                Awards
+              </a>
+              <a
+                href="#trainings"
+                onClick={(e) => handleNavClick(e, "#trainings")}
+                className="nav-link"
+              >
+                Trainings
+              </a>
+            </>
+          )}
         </div>
 
         {/* Right: Theme Toggle & Hire Me */}
@@ -152,13 +216,19 @@ export function Navbar() {
             <Moon className="w-4 h-4 icon-moon" />
           </button>
 
-          <a
-            href="#contact"
-            onClick={(e) => handleNavClick(e, "#contact")}
-            className="nav-cta"
-          >
-            Hire Me
-          </a>
+          {isWorkPage ? (
+            <Link href="/#contact" className="nav-cta">
+              Hire Me
+            </Link>
+          ) : (
+            <a
+              href="#contact"
+              onClick={(e) => handleNavClick(e, "#contact")}
+              className="nav-cta"
+            >
+              Hire Me
+            </a>
+          )}
 
           {/* Mobile hamburger */}
           <button
@@ -179,53 +249,91 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
           />
           <div className="fixed top-20 left-4 right-4 z-50 md:hidden p-5 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-2xl flex flex-col gap-2.5">
-            <a
-              href="#work"
-              onClick={(e) => handleNavClick(e, "#work")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-            >
-              <span>Work</span>
-              <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
-            </a>
-            <a
-              href="#what-i-can-do"
-              onClick={(e) => handleNavClick(e, "#what-i-can-do")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-            >
-              <span>What I Can Do</span>
-              <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
-            </a>
-            <a
-              href="#about"
-              onClick={(e) => handleNavClick(e, "#about")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-            >
-              <span>About</span>
-              <span className="text-[10px] font-mono text-[var(--muted)]">03</span>
-            </a>
-            <a
-              href="#awards"
-              onClick={(e) => handleNavClick(e, "#awards")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-            >
-              <span>Awards</span>
-              <span className="text-[10px] font-mono text-[var(--muted)]">04</span>
-            </a>
-            <a
-              href="#trainings"
-              onClick={(e) => handleNavClick(e, "#trainings")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-            >
-              <span>Trainings</span>
-              <span className="text-[10px] font-mono text-[var(--muted)]">05</span>
-            </a>
-            <a
-              href="#contact"
-              onClick={(e) => handleNavClick(e, "#contact")}
-              className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
-            >
-              Contact / Hire Me &rarr;
-            </a>
+            {isWorkPage ? (
+              <>
+                <Link
+                  href="/"
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span>Home</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">00</span>
+                </Link>
+                <a
+                  href="#technical"
+                  onClick={(e) => handleNavClick(e, "#technical")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>Technical</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
+                </a>
+                <a
+                  href="#digital"
+                  onClick={(e) => handleNavClick(e, "#digital")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>Digital</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
+                </a>
+                <Link
+                  href="/#contact"
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact / Hire Me &rarr;
+                </Link>
+              </>
+            ) : (
+              <>
+                <a
+                  href="#work"
+                  onClick={(e) => handleNavClick(e, "#work")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>Work</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
+                </a>
+                <a
+                  href="#what-i-can-do"
+                  onClick={(e) => handleNavClick(e, "#what-i-can-do")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>What I Can Do</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
+                </a>
+                <a
+                  href="#about"
+                  onClick={(e) => handleNavClick(e, "#about")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>About</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">03</span>
+                </a>
+                <a
+                  href="#awards"
+                  onClick={(e) => handleNavClick(e, "#awards")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>Awards</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">04</span>
+                </a>
+                <a
+                  href="#trainings"
+                  onClick={(e) => handleNavClick(e, "#trainings")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
+                >
+                  <span>Trainings</span>
+                  <span className="text-[10px] font-mono text-[var(--muted)]">05</span>
+                </a>
+                <a
+                  href="#contact"
+                  onClick={(e) => handleNavClick(e, "#contact")}
+                  className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
+                >
+                  Contact / Hire Me &rarr;
+                </a>
+              </>
+            )}
 
             {/* Coffee Button in Menu */}
             <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between">
@@ -233,12 +341,14 @@ export function Navbar() {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  setCoffeeCount((prev) => prev + 1);
+                  incrementCoffee();
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-2)] text-xs font-mono active:scale-95 transition-transform"
               >
                 <span>☕ Buy Coffee</span>
-                <span className="text-[11px] text-amber-500 font-bold">{coffeeCount}</span>
+                <span className="text-[11px] text-amber-500 font-bold" suppressHydrationWarning>
+                  {coffeeCount}
+                </span>
               </button>
             </div>
           </div>

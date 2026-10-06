@@ -2,28 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { Coffee } from "lucide-react";
+import { useCoffeeCount } from "@/lib/useCoffeeCount";
 
-export function CoffeeButton() {
-  const [count, setCount] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("nauval_coffee_count");
-        if (saved) {
-          const parsed = parseInt(saved, 10);
-          if (!isNaN(parsed)) return parsed;
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return 24;
-  });
+interface CoffeeButtonProps {
+  alwaysVisible?: boolean;
+}
 
+export function CoffeeButton({ alwaysVisible = false }: CoffeeButtonProps) {
+  const { count, increment } = useCoffeeCount();
   const [popped, setPopped] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(alwaysVisible);
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
+    if (alwaysVisible) return;
+
     const handleScroll = () => {
       // Hide during initial hero screen, appear when scrolling towards #work and beyond
       const isScrolledPastHero = window.scrollY > window.innerHeight * 0.35;
@@ -33,21 +26,13 @@ export function CoffeeButton() {
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [alwaysVisible]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setCount((prev) => {
-      const next = prev + 1;
-      try {
-        localStorage.setItem("nauval_coffee_count", next.toString());
-      } catch {
-        // ignore
-      }
-      return next;
-    });
     setPopped(true);
     setTimeout(() => setPopped(false), 450);
+    increment();
   };
 
   return (
@@ -72,7 +57,9 @@ export function CoffeeButton() {
           <Coffee className="w-5 h-5 text-amber-500" />
         </div>
       )}
-      <span className="coffee-count">{count}</span>
+      <span className="coffee-count" suppressHydrationWarning>
+        {count}
+      </span>
     </button>
   );
 }

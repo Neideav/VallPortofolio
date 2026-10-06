@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Great_Vibes } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -87,19 +88,20 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} ${greatVibes.variable} scroll-smooth dark`}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark');}}catch(e){}})();`,
-          }}
-        />
-      </head>
       <body
         className="font-sans antialiased overflow-x-hidden selection:bg-emerald-500/20 selection:text-emerald-400"
         suppressHydrationWarning
       >
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
         {children}
       </body>
     </html>

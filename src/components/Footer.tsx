@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
+import { useCoffeeCount } from "@/lib/useCoffeeCount";
 
 export function Footer() {
   const [showTopBtn, setShowTopBtn] = useState(false);
-  const [coffeeCount, setCoffeeCount] = useState(24);
+  const { count: coffeeCount, increment: incrementCoffee } = useCoffeeCount();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,12 +25,14 @@ export function Footer() {
       <footer className="footer border-t border-[var(--line)] py-12 px-6 text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-4">
           <button
-            onClick={() => setCoffeeCount((c) => c + 1)}
+            onClick={() => incrementCoffee()}
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-2)] hover:border-[var(--text)] text-xs font-mono transition-all active:scale-95 text-[var(--text)]"
             title="Buy Nauval a coffee"
           >
             <span>☕ Buy me a coffee</span>
-            <span className="text-[11px] text-amber-500 font-bold">{coffeeCount}</span>
+            <span className="text-[11px] text-amber-500 font-bold" suppressHydrationWarning>
+              {coffeeCount}
+            </span>
           </button>
           <div className="space-y-1.5">
             <div className="font-mono text-xs tracking-widest uppercase text-[var(--muted)]">
