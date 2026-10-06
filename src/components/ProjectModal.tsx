@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, CheckCircle2, Cpu, Activity, ShieldCheck } from "lucide-react";
+import { X, ExternalLink, CheckCircle2, Cpu } from "lucide-react";
 import { GithubIcon } from "./Icons";
 import { Project } from "@/data/projects";
 
@@ -60,7 +60,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           {/* Header */}
           <div className="flex items-center gap-2 font-mono text-xs text-emerald-400 mb-2">
             <span>PROJECT {project.number}</span>
-            <span className="text-slate-600">//</span>
+            <span className="text-slate-600">{"//"}</span>
             <span>{project.category}</span>
           </div>
 

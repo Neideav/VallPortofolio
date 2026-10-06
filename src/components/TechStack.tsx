@@ -9,7 +9,6 @@ import {
   Database,
   ShieldCheck,
   Layout,
-  Filter,
 } from "lucide-react";
 import { skillCategories, SkillCategory } from "@/data/skills";
 

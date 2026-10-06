@@ -96,7 +96,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased overflow-x-hidden selection:bg-emerald-500/20 selection:text-emerald-400">
+      <body
+        className="font-sans antialiased overflow-x-hidden selection:bg-emerald-500/20 selection:text-emerald-400"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

@@ -43,6 +43,24 @@ const workProjects: WorkProject[] = [
     link: "https://github.com/Neideav/KumoAI",
     tags: ["React 18", "Vite", "Tailwind CSS", "SSE Streaming", "AI Intelligence", "FastAPI"],
   },
+  {
+    id: "cloudops",
+    title: "Cloud Deployment Infrastructure — AWS, Docker & CI/CD Pipelines",
+    description:
+      "Infrastruktur deployment cloud berbasis AWS dengan orkestrasi multi-container Docker Compose, pipeline Jenkins otomatis, reverse proxy Nginx, dan sistem monitoring zero-downtime.",
+    image: "/images/projects/cloudops.png",
+    link: "https://github.com/Neideav/cloud-deployment-infra",
+    tags: ["AWS", "Docker", "Jenkins", "Nginx", "Linux", "CI/CD"],
+  },
+  {
+    id: "ctf-platform",
+    title: "CTF Training Platform — Isolated Container Sandbox & Cyber Defense",
+    description:
+      "Platform latihan Capture the Flag (CTF) dengan sandbox container Docker terisolasi dinamis untuk pengujian penetrasi etis, sistem scoring real-time SSE, dan keamanan Linux tervaluasi.",
+    image: "/images/projects/ctf.png",
+    link: "https://github.com/Neideav/ctf-platform",
+    tags: ["Next.js", "TypeScript", "Docker", "Cybersecurity", "SSE", "Linux"],
+  },
 ];
 
 export function Work() {
@@ -78,11 +96,18 @@ export function Work() {
     setTouchStartX(null);
   };
 
+  // 5-Card Coverflow Algorithm matching Richard Miculob's reference
   const getPositionStyle = (index: number) => {
-    const diff = (index - activeIndex + total) % total;
+    let diff = (index - activeIndex + total) % total;
+    if (diff > total / 2) {
+      diff -= total;
+    }
 
-    // Center
-    if (diff === 0) {
+    const isCenter = diff === 0;
+    const absDiff = Math.abs(diff);
+    const direction = isCenter ? 0 : diff / absDiff;
+
+    if (isCenter) {
       return {
         transform: "translate(-50%, -50%) scale(1)",
         zIndex: 5,
@@ -90,30 +115,18 @@ export function Work() {
         pointerEvents: "auto" as const,
       };
     }
-    // Near Right
-    if (diff === 1) {
-      return {
-        transform: "translate(calc(-50% + 220px), -50%) scale(0.74)",
-        zIndex: 4,
-        opacity: 0.85,
-        pointerEvents: "auto" as const,
-      };
-    }
-    // Near Left
-    if (diff === 2) {
-      return {
-        transform: "translate(calc(-50% - 220px), -50%) scale(0.74)",
-        zIndex: 4,
-        opacity: 0.85,
-        pointerEvents: "auto" as const,
-      };
-    }
+
+    // Near cards (offset 200px), Far cards (offset 330px)
+    const translateX = direction * (200 + (absDiff - 1) * 130);
+    const scale = Math.max(0.55, 1 - 0.28 * absDiff);
+    const opacity = absDiff <= 2 ? Math.max(0, 0.85 - (absDiff - 1) * 0.55) : 0;
+    const zIndex = 5 - absDiff;
 
     return {
-      transform: "translate(-50%, -50%) scale(0.4)",
-      zIndex: 1,
-      opacity: 0,
-      pointerEvents: "none" as const,
+      transform: `translate(calc(-50% + ${translateX}px), -50%) scale(${scale})`,
+      zIndex,
+      opacity,
+      pointerEvents: absDiff <= 2 ? ("auto" as const) : ("none" as const),
     };
   };
 

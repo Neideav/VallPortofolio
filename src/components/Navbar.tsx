@@ -1,20 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { Sun, Moon, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return true;
+  });
   const [coffeeCount, setCoffeeCount] = useState(24);
 
   useEffect(() => {
-    // Check initial dark mode
-    if (typeof window !== "undefined") {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    }
-
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
     };
@@ -56,13 +57,23 @@ export function Navbar() {
       document.documentElement.style.setProperty("--vt-r", `${endRadius}px`);
       document.documentElement.classList.add("vt-disable-anim", "vt-wipe-active");
 
-      const transition = (document as any).startViewTransition(() => {
-        applyTheme();
-      });
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+      };
 
-      transition.finished.finally(() => {
-        document.documentElement.classList.remove("vt-disable-anim", "vt-wipe-active");
-      });
+      if (doc.startViewTransition) {
+        const transition = doc.startViewTransition(() => {
+          flushSync(() => {
+            applyTheme();
+          });
+        });
+
+        transition.finished.finally(() => {
+          document.documentElement.classList.remove("vt-disable-anim", "vt-wipe-active");
+        });
+      } else {
+        applyTheme();
+      }
     } else {
       applyTheme();
     }
