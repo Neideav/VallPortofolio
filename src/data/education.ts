@@ -8,16 +8,16 @@ export interface Education {
 }
 
 export const educationData: Education = {
-  institution: "Computer Science & Engineering Studies",
-  degreeOrProgram: "Informatics / Software Engineering",
-  period: "2022 — 2026",
-  fieldOfInterest: "Cloud Infrastructure, Distributed Systems & Backend Security",
+  institution: "SMKS PGRI 3 Malang",
+  degreeOrProgram: "Teknik Komputer dan Jaringan",
+  period: "2024 — 2027",
+  fieldOfInterest: "Computer & Network Engineering, Cloud Infrastructure & Security",
   technicalFocus: [
-    "Cloud Computing & Virtualization",
-    "Computer Networks & Subnet Architecture",
-    "Database Management Systems & Relational Theory",
-    "Software Engineering & Automated CI/CD Practices",
-    "Information Security & Cryptographic Foundations"
+    "Computer Networks, Subnetting & Routing (MikroTik / Cisco)",
+    "Linux Server Administration & Virtualization",
+    "Cloud Computing Infrastructure & Virtual Networks",
+    "Information Security & Defensive Network Hardening",
+    "Automation & Automated Systems Administration"
   ],
-  description: "Focused academic progression emphasizing systems-level computing, server-side design, distributed data stores, and defensive cybersecurity methodologies."
+  description: "Focused academic progression emphasizing computer networks, routing switching, server-side infrastructure, cloud systems, and defensive cybersecurity methodologies."
 };

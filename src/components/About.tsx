@@ -1,212 +1,197 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
-import { Code2, FlaskConical, Rocket } from "lucide-react";
-import { Reveal } from "./Reveal";
-import { FadeInTitle } from "./FadeInTitle";
+import { motion } from "framer-motion";
+import { personalInfo } from "@/data/personal";
 
 export function About() {
-  const traits = [
-    { label: "TRAIT", value: "Problem Solver" },
-    { label: "TRAIT", value: "Organized" },
-    { label: "TRAIT", value: "Continuous Learner" },
-    { label: "TRAIT", value: "Security-First" },
-    { label: "TRAIT", value: "High Availability" },
-  ];
-
-  const [topIndex, setTopIndex] = useState(0);
-
-  const cycleCard = () => {
-    setTopIndex((prev) => (prev + 1) % traits.length);
-  };
-
-  const getCardStyle = (index: number) => {
-    const diff = (index - topIndex + traits.length) % traits.length;
-    switch (diff) {
-      case 0:
-        return {
-          transform: "translate(0px, 0px) rotate(-3deg) scale(1)",
-          opacity: 1,
-          zIndex: 30,
-        };
-      case 1:
-        return {
-          transform: "translate(6px, 6px) rotate(3deg) scale(0.96)",
-          opacity: 0.82,
-          zIndex: 20,
-        };
-      case 2:
-        return {
-          transform: "translate(-4px, 12px) rotate(-4deg) scale(0.92)",
-          opacity: 0.55,
-          zIndex: 10,
-        };
-      default:
-        return {
-          transform: "translate(10px, 8px) rotate(5deg) scale(0.85)",
-          opacity: 0,
-          zIndex: 5,
-        };
-    }
-  };
-
   return (
-    <section id="about" className="section scroll-mt-28">
-      <Reveal delay={0}>
-        <div className="section-label">ABOUT ME</div>
-        <FadeInTitle text="Problem Solver. Systems Engineer." />
-      </Reveal>
+    <section
+      id="about"
+      className="w-full max-w-7xl mx-auto py-20 md:py-32 cursor-default overflow-hidden scroll-mt-24 border-t border-[var(--line)]"
+    >
+      {/* Section Header: Discover / About Me (Exact match to RyHar) */}
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto px-6 md:px-12 mb-14 md:mb-20 w-full text-left"
+      >
+        <h2 className="text-sm font-bold tracking-[0.2em] text-[var(--muted)] uppercase mb-3">
+          Discover
+        </h2>
+        <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-[var(--text)] tracking-tighter">
+          About Me
+        </h3>
+      </motion.div>
 
-      <Reveal delay={100}>
-        <div className="about-profile-card">
-          {/* Profile Header */}
-          <div className="about-profile-header">
-            <div className="about-profile-image-wrapper">
-              <div className="relative w-28 h-28 rounded-full overflow-hidden border border-[var(--line)] shadow-md bg-[var(--surface-2)]">
-                <Image
-                  src="/images/nauval-portrait.png"
-                  alt="Muhammad Bahruddin Nauvaldy Maulana"
-                  fill
-                  unoptimized
-                  sizes="112px"
-                  className="object-cover object-[48%_12%] scale-130"
-                  priority
-                />
-              </div>
+      {/* Main Grid: 12 columns */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 px-6 md:px-12 items-center">
+        {/* Left Column (lg:col-span-5): Image Card with DEV. Watermark */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="lg:col-span-5 flex flex-col items-center justify-center relative"
+        >
+          <div className="w-full max-w-[340px] sm:max-w-[380px] lg:max-w-[440px] relative">
+            {/* Card Frame */}
+            <div className="relative z-10 p-2 bg-[var(--surface)] border border-[var(--line)] rounded-3xl shadow-2xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.25)] hover:-translate-y-1">
+              <Image
+                src="/images/nauval-portrait.png"
+                alt={personalInfo.name}
+                fill
+                unoptimized
+                sizes="(max-width: 1024px) 100vw, 440px"
+                className="object-cover object-[48%_14%] transition-all duration-700 scale-100 group-hover:scale-105"
+                priority
+              />
+              {/* Subtle gradient overlay at bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/90 via-transparent to-transparent opacity-60 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl pointer-events-none" />
             </div>
 
-            <div className="about-profile-info">
-              <div className="about-profile-name">
-                <span>MUHAMMAD BAHRUDDIN NAUVALDY MAULANA</span>
-                <svg
-                  className="w-5 h-5 text-blue-500 flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-label="Verified"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
+            {/* DEV. Watermark behind image */}
+            <div className="absolute -bottom-8 -left-8 text-8xl lg:text-9xl font-black text-[var(--muted)]/10 select-none pointer-events-none tracking-tighter mix-blend-multiply dark:mix-blend-screen z-0">
+              DEV.
+            </div>
+          </div>
+        </motion.div>
 
-              <div className="about-profile-stats">
-                <div className="about-stat-item">
-                  <span className="about-stat-label">PROJECTS</span>
-                  <span className="about-stat-value">10+</span>
-                </div>
-                <div className="about-stat-item">
-                  <span className="about-stat-label">CERTIFICATES</span>
-                  <span className="about-stat-value">5+</span>
-                </div>
-                <div className="about-stat-item">
-                  <span className="about-stat-label">SPECIALIZATION</span>
-                  <span className="about-stat-value">CLOUD &amp; DEVOPS</span>
-                </div>
-              </div>
+        {/* Right Column (lg:col-span-7): Structured Content */}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="lg:col-span-7 flex flex-col justify-center"
+        >
+          {/* Top 2-Column: Who Am I & My Approach */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14">
+            {/* Column 1: Who Am I */}
+            <div className="flex flex-col">
+              <h4 className="text-lg md:text-xl font-bold text-[var(--text)] mb-4 flex items-center border-b border-[var(--line)] pb-4">
+                Who Am I
+              </h4>
+              <p className="text-base text-[var(--muted)] leading-relaxed font-medium">
+                Saya seorang Cloud Engineer &amp; Backend Developer yang berpengalaman dalam merancang dan mengembangkan arsitektur sistem menggunakan AWS, Docker, Kubernetes, Linux, Laravel, Node.js, dan MySQL. Saya terampil dalam membangun REST APIs, otomasi CI/CD pipelines, dan sistem infrastruktur server yang aman dan skalabel.
+              </p>
+            </div>
 
-              <div className="about-description">
-                <p>
-                  I am a developer focused on cloud infrastructure, backend engineering, and automated
-                  DevOps delivery pipelines. I enjoy turning complex system requirements into reliable,
-                  predictable, and scalable software solutions—specializing in AWS deployments, container
-                  orchestration with Docker, and robust backend architectures with Laravel and Node.js.
-                </p>
-                <p>
-                  Throughout my technical journey, I have built database-driven applications, established
-                  zero-downtime CI/CD workflows with Jenkins and Nginx, and actively competed in national
-                  cybersecurity Capture the Flag (CTF) competitions, emphasizing defensive hardening and
-                  network isolation.
-                </p>
-                <p>
-                  Want to know more about my experience?{" "}
-                  <a
-                    href="#contact"
-                    className="font-semibold text-[var(--text)] underline underline-offset-4 hover:opacity-75 transition-opacity"
-                  >
-                    Download my resume
-                  </a>
-                  .
-                </p>
-              </div>
+            {/* Column 2: My Approach */}
+            <div className="flex flex-col">
+              <h4 className="text-lg md:text-xl font-bold text-[var(--text)] mb-4 flex items-center border-b border-[var(--line)] pb-4">
+                My Approach
+              </h4>
+              <p className="text-base text-[var(--muted)] leading-relaxed font-medium">
+                Saya berkomitmen untuk memberikan solusi yang efisien, mudah dikelola, dan skalabel melalui praktik terbaik rekayasa perangkat lunak dan keandalan sistem cloud (best engineering practices &amp; high availability).
+              </p>
             </div>
           </div>
 
-          {/* Bottom Row: Currently Strip & Interactive Card Stack */}
-          <div className="about-bottom-row">
-            {/* Left: Currently Strip */}
-            <div className="currently-strip">
-              <div className="currently-strip-label">CURRENTLY</div>
-              <div className="currently-strip-items">
-                <div className="currently-item">
-                  <span className="currently-icon">
-                    <Code2 className="w-4 h-4 text-[var(--text)]" />
-                  </span>
-                  <div className="currently-text">
-                    <div className="currently-item-label">Building</div>
-                    <div className="currently-item-detail">
-                      Web &amp; Cloud Infrastructure
-                    </div>
-                  </div>
-                </div>
+          {/* Middle & Bottom: Personal Details Section */}
+          <div className="mt-14 md:mt-18">
+            <h4 className="text-lg md:text-xl font-bold text-[var(--text)] mb-8 border-b border-[var(--line)] pb-4 border-l-4 border-l-[var(--text)] dark:border-l-emerald-500 pl-4">
+              Personal Details
+            </h4>
 
-                <div className="currently-item">
-                  <span className="currently-icon">
-                    <FlaskConical className="w-4 h-4 text-[var(--text)]" />
-                  </span>
-                  <div className="currently-text">
-                    <div className="currently-item-label">Exploring</div>
-                    <div className="currently-item-detail">
-                      Linux Security &amp; CTF Defense
-                    </div>
-                  </div>
-                </div>
+            {/* 2-Column Key-Value Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-10">
+              {/* 1. Name */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  Name
+                </span>
+                <span className="text-base font-semibold text-[var(--text)]">
+                  {personalInfo.name}
+                </span>
+              </div>
 
-                <div className="currently-item">
-                  <span className="currently-icon">
-                    <Rocket className="w-4 h-4 text-[var(--text)]" />
-                  </span>
-                  <div className="currently-text">
-                    <div className="currently-item-label">Learning</div>
-                    <div className="currently-item-detail">
-                      Distributed Systems &amp; K8s
-                    </div>
-                  </div>
-                </div>
+              {/* 2. Place of Birth */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  Place of Birth
+                </span>
+                <span className="text-base font-semibold text-[var(--text)]">
+                  {personalInfo.placeOfBirth}
+                </span>
+              </div>
+
+              {/* 3. Role */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  Role
+                </span>
+                <span className="text-base font-semibold text-[var(--text)]">
+                  Cloud &amp; DevOps Engineer
+                </span>
+              </div>
+
+              {/* 4. GPA */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  GPA
+                </span>
+                <span className="text-base font-semibold text-[var(--text)]">
+                  {personalInfo.gpa}
+                </span>
+              </div>
+
+              {/* 5. Email */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  Email
+                </span>
+                <a
+                  href={`mailto:${personalInfo.email}`}
+                  className="text-base font-semibold text-[var(--text)] hover:text-emerald-500 transition-colors underline decoration-[var(--muted)]/30 underline-offset-4"
+                >
+                  {personalInfo.email}
+                </a>
+              </div>
+
+              {/* 6. Education */}
+              <div className="flex flex-col p-2.5 -m-2.5 rounded-xl transition-colors duration-300 hover:bg-[var(--surface-2)]">
+                <span className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
+                  Education
+                </span>
+                <span className="text-base font-semibold text-[var(--text)]">
+                  {personalInfo.education}
+                </span>
               </div>
             </div>
+          </div>
+        </motion.div>
+      </div>
 
-            {/* Right: Interactive Card Stack */}
-            <div className="flex flex-col items-center">
-              <div
-                className="card-stack"
-                onClick={cycleCard}
-                title="Click to cycle traits"
-              >
-                {traits.map((trait, index) => {
-                  const style = getCardStyle(index);
-                  return (
-                    <div
-                      key={trait.value}
-                      className="card-stack-card"
-                      style={style}
-                    >
-                      <div className="card-stack-label">{trait.label}</div>
-                      <div className="card-stack-value">{trait.value}</div>
-                    </div>
-                  );
-                })}
-              </div>
-              <span className="font-mono text-[10px] text-[var(--muted)] opacity-70 mt-2">
-                Tap to flip traits
-              </span>
-            </div>
+      {/* Marquee Strip below About Section (Exact match to RyHar) */}
+      <div className="mt-20 md:mt-28 pb-4 border-t border-[var(--line)] pt-12 overflow-hidden select-none">
+        {/* Track 1: Hello I'm Nauval */}
+        <div className="relative overflow-hidden w-full whitespace-nowrap mb-3">
+          <div className="flex w-max animate-[marquee_25s_linear_infinite]">
+            <span className="shrink font-black tracking-tighter text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[var(--text)] opacity-10 uppercase pr-8">
+              Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;
+            </span>
+            <span className="shrink font-black tracking-tighter text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[var(--text)] opacity-10 uppercase pr-8">
+              Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;Hello I&apos;m Nauval&nbsp;&nbsp;•&nbsp;&nbsp;
+            </span>
           </div>
         </div>
-      </Reveal>
+
+        {/* Track 2: Cloud & DevOps Engineer */}
+        <div className="relative overflow-hidden w-full whitespace-nowrap">
+          <div className="flex w-max animate-[marquee_30s_linear_infinite_reverse]">
+            <span className="shrink font-black tracking-tighter text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[var(--text)] opacity-10 uppercase pr-8">
+              Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;
+            </span>
+            <span className="shrink font-black tracking-tighter text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[var(--text)] opacity-10 uppercase pr-8">
+              Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;Cloud &amp; DevOps Engineer&nbsp;&nbsp;•&nbsp;&nbsp;
+            </span>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

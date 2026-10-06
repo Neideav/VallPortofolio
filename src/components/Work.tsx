@@ -45,22 +45,22 @@ const workProjects: WorkProject[] = [
     tags: ["React 18", "Vite", "Tailwind CSS", "SSE Streaming", "AI Intelligence", "FastAPI"],
   },
   {
-    id: "cloudops",
-    title: "Cloud Deployment Infrastructure — AWS, Docker & CI/CD Pipelines",
+    id: "project-shyeund",
+    title: "ProjectShyeunD — Native Android Mobile Application",
     description:
-      "Infrastruktur deployment cloud berbasis AWS dengan orkestrasi multi-container Docker Compose, pipeline Jenkins otomatis, reverse proxy Nginx, dan sistem monitoring zero-downtime.",
+      "Aplikasi mobile Android native yang dikembangkan menggunakan bahasa Kotlin dengan modern lifecycle components dan arsitektur modular terstruktur.",
     image: "/images/projects/cloudops.png",
-    link: "https://github.com/Neideav/cloud-deployment-infra",
-    tags: ["AWS", "Docker", "Jenkins", "Nginx", "Linux", "CI/CD"],
+    link: "https://github.com/Neideav/ProjectShyeunD",
+    tags: ["Kotlin", "Android", "Mobile", "Gradle", "Clean Architecture"],
   },
   {
-    id: "ctf-platform",
-    title: "CTF Training Platform — Isolated Container Sandbox & Cyber Defense",
+    id: "vallonation",
+    title: "vallonation — Reactive Web Application & Creative Platform",
     description:
-      "Platform latihan Capture the Flag (CTF) dengan sandbox container Docker terisolasi dinamis untuk pengujian penetrasi etis, sistem scoring real-time SSE, dan keamanan Linux tervaluasi.",
+      "Platform web modern yang dibangun dengan ekosistem TypeScript untuk menghadirkan antarmuka dinamis dan performa rendering tinggi.",
     image: "/images/projects/ctf.png",
-    link: "https://github.com/Neideav/ctf-platform",
-    tags: ["Next.js", "TypeScript", "Docker", "Cybersecurity", "SSE", "Linux"],
+    link: "https://github.com/Neideav/vallonation",
+    tags: ["TypeScript", "React", "Next.js", "Tailwind CSS", "Web App"],
   },
 ];
 

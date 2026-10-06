@@ -6,6 +6,9 @@ export interface PersonalInfo {
   bio: string;
   shortBio: string;
   email: string;
+  placeOfBirth: string;
+  gpa: string;
+  education: string;
   github: string;
   linkedin: string;
   location: string;
@@ -32,6 +35,9 @@ export const personalInfo: PersonalInfo = {
   bio: "Muhammad Bahruddin Nauvaldy Maulana is a developer focused on building scalable applications, cloud infrastructure, backend systems, and reliable deployment workflows. Dedicated to security best practices, high availability, and automated CI/CD delivery.",
   shortBio: "I build reliable backend systems, cloud infrastructure, and automated delivery pipelines with a security-first mindset.",
   email: "nvaldymaulana@gmail.com",
+  placeOfBirth: "Batu, Indonesia",
+  gpa: "N/A",
+  education: "SMKS PGRI 3 Malang",
   github: "https://github.com/Neideav",
   linkedin: "https://linkedin.com/in/nvaldymaulana",
   location: "Indonesia (Available for Remote / Hybrid)",
