@@ -2,7 +2,9 @@
 
 import { useSyncExternalStore, useCallback, useEffect } from "react";
 
-let currentCount = 24;
+const INITIAL_COUNT = 24;
+let currentCount = INITIAL_COUNT;
+let isHydrated = false;
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -30,11 +32,13 @@ function subscribe(listener: () => void) {
 }
 
 function getSnapshot() {
-  return currentCount;
+  // During hydration, snapshot MUST strictly match server snapshot (INITIAL_COUNT).
+  // Once hydrated on client, return the actual live count.
+  return isHydrated ? currentCount : INITIAL_COUNT;
 }
 
 function getServerSnapshot() {
-  return 24;
+  return INITIAL_COUNT;
 }
 
 let hasFetched = false;
@@ -43,7 +47,13 @@ export function useCoffeeCount() {
   const count = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    // 1. Cross-tab synchronization via storage events
+    // 1. Mark client as hydrated and notify store to reveal live count
+    if (!isHydrated) {
+      isHydrated = true;
+      notify();
+    }
+
+    // 2. Cross-tab synchronization via storage events
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "nauval_coffee_count" && e.newValue) {
         const parsed = parseInt(e.newValue, 10);
@@ -54,11 +64,11 @@ export function useCoffeeCount() {
     };
     window.addEventListener("storage", handleStorage);
 
-    // 2. Fetch authoritative count from server once
+    // 3. Fetch authoritative count from server once
     if (!hasFetched) {
       hasFetched = true;
 
-      // Fast sync from local cache right after hydration
+      // Quick read from localStorage cache
       try {
         const saved = localStorage.getItem("nauval_coffee_count");
         if (saved) {
@@ -85,7 +95,7 @@ export function useCoffeeCount() {
           }
         })
         .catch(() => {
-          // offline, already loaded from localStorage
+          // offline, fallback already in place
         });
     }
 

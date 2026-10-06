@@ -47,6 +47,17 @@ export function Navbar() {
   const { count: coffeeCount, increment: incrementCoffee } = useCoffeeCount();
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("theme");
+      if (saved === "light") {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
     };
