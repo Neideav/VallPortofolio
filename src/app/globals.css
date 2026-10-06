@@ -112,6 +112,17 @@ body:before {
   letter-spacing: -0.02em;
 }
 
+.fade-in-title {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-in-title.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .section-desc {
   font-size: 14px;
   line-height: 1.6;

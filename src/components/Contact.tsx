@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Mail, ExternalLink, X, Minus, CheckCircle2 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./Icons";
+import { Reveal } from "./Reveal";
 
 export function Contact() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,93 +33,110 @@ export function Contact() {
       <div className="contact-grid">
         {/* Left Side */}
         <div className="contact-left">
-          <div className="contact-eyebrow">GET IN TOUCH</div>
-          <h2 className="contact-headline">
-            LET&apos;S<br />
-            <span className="contact-headline-accent text-[#10b981]">WORK</span><br />
-            TOGETHER
-          </h2>
-          <p className="contact-description">
-            Looking for the next problem worth solving.
-          </p>
-          <p className="contact-secondary">
-            I&apos;m open to opportunities where I can contribute to cloud engineering, backend architecture,
-            DevOps automation, and high-reliability systems.
-          </p>
-
-          <a
-            href="mailto:nvaldymaulana@gmail.com"
-            className="contact-resume-btn"
-          >
-            DOWNLOAD RESUME &rarr;
-          </a>
+          <Reveal delay={0}>
+            <div className="contact-eyebrow">GET IN TOUCH</div>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2 className="contact-headline">
+              LET&apos;S<br />
+              <span className="contact-headline-accent text-[#10b981]">WORK</span><br />
+              TOGETHER
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p className="contact-description">
+              Looking for the next problem worth solving.
+            </p>
+          </Reveal>
+          <Reveal delay={300}>
+            <p className="contact-secondary">
+              I&apos;m open to opportunities where I can contribute to cloud engineering, backend architecture,
+              DevOps automation, and high-reliability systems.
+            </p>
+          </Reveal>
+          <Reveal delay={400}>
+            <a
+              href="mailto:nvaldymaulana@gmail.com"
+              className="contact-resume-btn"
+            >
+              DOWNLOAD RESUME &rarr;
+            </a>
+          </Reveal>
         </div>
 
         {/* Right Side */}
         <div className="contact-right">
           <div className="contact-cards">
             {/* 01 EMAIL */}
-            <a
-              href="mailto:nvaldymaulana@gmail.com"
-              className="contact-card"
-            >
-              <div className="contact-card-icon">
-                <Mail className="w-5 h-5 text-zinc-300" />
-              </div>
-              <div className="contact-card-info">
-                <div className="contact-card-label">EMAIL</div>
-                <div className="contact-card-value">nvaldymaulana@gmail.com</div>
-              </div>
-              <span className="contact-card-number">01</span>
-            </a>
+            <Reveal delay={200}>
+              <a
+                href="mailto:nvaldymaulana@gmail.com"
+                className="contact-card"
+              >
+                <div className="contact-card-icon">
+                  <Mail className="w-5 h-5 text-zinc-300" />
+                </div>
+                <div className="contact-card-info">
+                  <div className="contact-card-label">EMAIL</div>
+                  <div className="contact-card-value">nvaldymaulana@gmail.com</div>
+                </div>
+                <span className="contact-card-number">01</span>
+              </a>
+            </Reveal>
 
             {/* 02 GITHUB */}
-            <a
-              href="https://github.com/Neideav"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="contact-card"
-            >
-              <div className="contact-card-icon">
-                <GithubIcon className="w-5 h-5 text-zinc-300" />
-              </div>
-              <div className="contact-card-info">
-                <div className="contact-card-label">GITHUB</div>
-                <div className="contact-card-value">github.com/Neideav</div>
-              </div>
-              <span className="contact-card-number">02</span>
-              <ExternalLink className="contact-card-arrow w-4 h-4" />
-            </a>
+            <Reveal delay={280}>
+              <a
+                href="https://github.com/Neideav"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-card"
+              >
+                <div className="contact-card-icon">
+                  <GithubIcon className="w-5 h-5 text-zinc-300" />
+                </div>
+                <div className="contact-card-info">
+                  <div className="contact-card-label">GITHUB</div>
+                  <div className="contact-card-value">github.com/Neideav</div>
+                </div>
+                <span className="contact-card-number">02</span>
+                <ExternalLink className="contact-card-arrow w-4 h-4" />
+              </a>
+            </Reveal>
 
             {/* 03 LINKEDIN */}
-            <a
-              href="https://linkedin.com/in/nvaldymaulana"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="contact-card"
-            >
-              <div className="contact-card-icon">
-                <LinkedinIcon className="w-5 h-5 text-zinc-300" />
-              </div>
-              <div className="contact-card-info">
-                <div className="contact-card-label">LINKEDIN</div>
-                <div className="contact-card-value">linkedin.com/in/nvaldymaulana</div>
-              </div>
-              <span className="contact-card-number">03</span>
-              <ExternalLink className="contact-card-arrow w-4 h-4" />
-            </a>
+            <Reveal delay={360}>
+              <a
+                href="https://linkedin.com/in/nvaldymaulana"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-card"
+              >
+                <div className="contact-card-icon">
+                  <LinkedinIcon className="w-5 h-5 text-zinc-300" />
+                </div>
+                <div className="contact-card-info">
+                  <div className="contact-card-label">LINKEDIN</div>
+                  <div className="contact-card-value">linkedin.com/in/nvaldymaulana</div>
+                </div>
+                <span className="contact-card-number">03</span>
+                <ExternalLink className="contact-card-arrow w-4 h-4" />
+              </a>
+            </Reveal>
           </div>
 
           {/* Big CTA button */}
-          <button
-            onClick={() => {
-              setModalOpen(true);
-              setMinimized(false);
-            }}
-            className="contact-cta"
-          >
-            SEND ME A MESSAGE &rarr;
-          </button>
+          <Reveal delay={440}>
+            <button
+              onClick={() => {
+                setModalOpen(true);
+                setMinimized(false);
+              }}
+              className="contact-cta"
+            >
+              SEND ME A MESSAGE &rarr;
+            </button>
+          </Reveal>
         </div>
       </div>
 

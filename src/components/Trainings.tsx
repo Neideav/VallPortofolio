@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
+import { Reveal } from "./Reveal";
+import { FadeInTitle } from "./FadeInTitle";
 
 interface TrainingEntry {
   id: string;
@@ -87,12 +89,14 @@ export function Trainings() {
 
   return (
     <section id="trainings" className="section">
-      <div className="section-label">Growth &amp; Experience</div>
-      <h2 className="section-title">Trainings &amp; Experience</h2>
-      <p className="section-desc">
-        A collection of technical milestones, cybersecurity competitions, and engineering projects
-        that shaped my technical and collaborative skills.
-      </p>
+      <Reveal delay={0}>
+        <div className="section-label">Growth &amp; Experience</div>
+        <FadeInTitle text="Trainings &amp; Experience" />
+        <p className="section-desc">
+          A collection of technical milestones, cybersecurity competitions, and engineering projects
+          that shaped my technical and collaborative skills.
+        </p>
+      </Reveal>
 
       <div className="experience-list">
         {trainingData.map((entry, index) => {
@@ -100,66 +104,67 @@ export function Trainings() {
           const currentTop = stackIndices[entry.id] || 0;
 
           return (
-            <div
-              key={entry.id}
-              className={`experience-card ${isReverse ? "experience-card-reverse" : ""}`}
-            >
-              {/* Text Side */}
-              <div className="experience-text">
-                <div className="experience-header">
-                  <div className="experience-date">{entry.date}</div>
-                  <h3 className="experience-title">{entry.title}</h3>
-                </div>
-
-                <div className="experience-org">{entry.org}</div>
-                <p className="experience-desc">{entry.desc}</p>
-
-                <div className="mt-3">
-                  <a
-                    href={entry.certificateUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="experience-certificate"
-                  >
-                    <span>{entry.certificateName}</span>
-                    <ExternalLink className="w-3.5 h-3.5 ml-1.5 inline" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Interactive Image Stack Side */}
+            <Reveal key={entry.id} delay={100 + index * 60}>
               <div
-                className="experience-image-stack group"
-                onClick={() => cycleImage(entry.id, entry.images.length)}
-                title="Tap image to view next screenshot"
+                className={`experience-card ${isReverse ? "experience-card-reverse" : ""}`}
               >
-                {entry.images.map((imgSrc, imgIndex) => {
-                  const style = getImageStyle(imgIndex, currentTop, entry.images.length);
-                  return (
-                    <div
-                      key={imgIndex}
-                      className="stacked-image"
-                      style={style}
-                    >
-                      <Image
-                        src={imgSrc}
-                        alt={`${entry.title} screenshot`}
-                        fill
-                        unoptimized
-                        className="object-cover rounded-xl"
-                        sizes="(max-width: 768px) 100vw, 500px"
-                      />
-                    </div>
-                  );
-                })}
+                {/* Text Side */}
+                <div className="experience-text">
+                  <div className="experience-header">
+                    <div className="experience-date">{entry.date}</div>
+                    <h3 className="experience-title">{entry.title}</h3>
+                  </div>
 
-                {/* Mobile & Desktop Tap Indicator Badge */}
-                <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10 text-[11px] font-mono pointer-events-none">
-                  <span>{currentTop + 1}/{entry.images.length}</span>
-                  <span className="opacity-70 text-[10px]">· Tap to flip</span>
+                  <div className="experience-org">{entry.org}</div>
+                  <p className="experience-desc">{entry.desc}</p>
+
+                  <div className="mt-3">
+                    <a
+                      href={entry.certificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="experience-certificate"
+                    >
+                      <span>{entry.certificateName}</span>
+                      <ExternalLink className="w-3.5 h-3.5 ml-1.5 inline" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Interactive Image Stack Side */}
+                <div
+                  className="experience-image-stack group"
+                  onClick={() => cycleImage(entry.id, entry.images.length)}
+                  title="Tap image to view next screenshot"
+                >
+                  {entry.images.map((imgSrc, imgIndex) => {
+                    const style = getImageStyle(imgIndex, currentTop, entry.images.length);
+                    return (
+                      <div
+                        key={imgIndex}
+                        className="stacked-image"
+                        style={style}
+                      >
+                        <Image
+                          src={imgSrc}
+                          alt={`${entry.title} screenshot`}
+                          fill
+                          unoptimized
+                          className="object-cover rounded-xl"
+                          sizes="(max-width: 768px) 100vw, 500px"
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* Mobile & Desktop Tap Indicator Badge */}
+                  <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10 text-[11px] font-mono pointer-events-none">
+                    <span>{currentTop + 1}/{entry.images.length}</span>
+                    <span className="opacity-70 text-[10px]">· Tap to flip</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           );
         })}
       </div>

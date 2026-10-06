@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ExternalLink, ArrowRight } from "lucide-react";
+import { Reveal } from "./Reveal";
+import { FadeInTitle } from "./FadeInTitle";
 
 interface WorkProject {
   id: string;
@@ -120,146 +122,154 @@ export function Work() {
   return (
     <section id="work" className="section">
       {/* Header */}
-      <div className="work-header">
-        <div>
-          <div className="section-label">Selected Work</div>
-          <h2 className="section-title">Work Gallery</h2>
-          <p className="section-desc">
-            A collection of cloud systems, digital projects, and technical work I&apos;ve built.
-          </p>
+      <Reveal delay={0}>
+        <div className="work-header">
+          <div>
+            <div className="section-label">Selected Work</div>
+            <FadeInTitle text="Work Gallery" />
+            <p className="section-desc">
+              A collection of cloud systems, digital projects, and technical work I&apos;ve built.
+            </p>
+          </div>
+          <a
+            href="https://github.com/Neideav"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="work-album-btn-top"
+          >
+            <span>View More Projects</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
-        <a
-          href="https://github.com/Neideav"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="work-album-btn-top"
-        >
-          <span>View More Projects</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
-      </div>
+      </Reveal>
 
       {/* Desktop 3D Album Coverflow */}
-      <div className="work-album hidden md:flex">
-        <div className="work-album-inner">
-          {workProjects.map((project, index) => {
-            const isCenter = index === activeIndex;
-            return (
-              <div
-                key={project.id}
-                onClick={() => setActiveIndex(index)}
-                className={`work-album-item ${isCenter ? "work-album-item-center" : ""}`}
-                style={getPositionStyle(index)}
-              >
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    priority={isCenter}
-                    unoptimized
-                    className="work-album-img"
-                    sizes="400px"
-                  />
+      <Reveal delay={100}>
+        <div className="work-album hidden md:flex">
+          <div className="work-album-inner">
+            {workProjects.map((project, index) => {
+              const isCenter = index === activeIndex;
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => setActiveIndex(index)}
+                  className={`work-album-item ${isCenter ? "work-album-item-center" : ""}`}
+                  style={getPositionStyle(index)}
+                >
+                  <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      fill
+                      priority={isCenter}
+                      unoptimized
+                      className="work-album-img"
+                      sizes="400px"
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* Mobile Polished Carousel View */}
-      <div
-        className="md:hidden my-6 px-1"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="relative w-full max-w-[360px] mx-auto">
-          {/* Main Card Image with smooth transition */}
-          <div
-            onClick={handleNext}
-            className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)] shadow-xl cursor-pointer select-none active:scale-[0.98] transition-transform"
-          >
-            <Image
-              src={activeProject.image}
-              alt={activeProject.title}
-              fill
-              unoptimized
-              priority
-              className="object-cover object-top"
-              sizes="(max-width: 768px) 100vw, 360px"
-            />
-            {/* Project Index Overlay Badge */}
-            <div className="absolute top-3 right-3 font-mono text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/10">
-              0{activeIndex + 1} / 0{total}
-            </div>
-          </div>
-
-          {/* Navigation Controls: Arrows and Dots */}
-          <div className="flex items-center justify-between mt-4 px-2">
-            <button
-              onClick={handlePrev}
-              className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
-              aria-label="Previous project"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-
-            {/* Pagination Dots */}
-            <div className="flex items-center gap-2">
-              {workProjects.map((p, idx) => (
-                <button
-                  key={p.id}
-                  onClick={() => setActiveIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === activeIndex
-                      ? "w-6 bg-[var(--text)]"
-                      : "w-2 bg-[var(--line)] hover:bg-[var(--muted)]"
-                  }`}
-                  aria-label={`Go to project ${idx + 1}`}
-                />
-              ))}
-            </div>
-
-            <button
+      <Reveal delay={150}>
+        <div
+          className="md:hidden my-6 px-1"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="relative w-full max-w-[360px] mx-auto">
+            {/* Main Card Image with smooth transition */}
+            <div
               onClick={handleNext}
-              className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
-              aria-label="Next project"
+              className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden border border-[var(--line)] bg-[var(--surface-2)] shadow-xl cursor-pointer select-none active:scale-[0.98] transition-transform"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
+              <Image
+                src={activeProject.image}
+                alt={activeProject.title}
+                fill
+                unoptimized
+                priority
+                className="object-cover object-top"
+                sizes="(max-width: 768px) 100vw, 360px"
+              />
+              {/* Project Index Overlay Badge */}
+              <div className="absolute top-3 right-3 font-mono text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/10">
+                0{activeIndex + 1} / 0{total}
+              </div>
+            </div>
+
+            {/* Navigation Controls: Arrows and Dots */}
+            <div className="flex items-center justify-between mt-4 px-2">
+              <button
+                onClick={handlePrev}
+                className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
+                aria-label="Previous project"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+
+              {/* Pagination Dots */}
+              <div className="flex items-center gap-2">
+                {workProjects.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setActiveIndex(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      idx === activeIndex
+                        ? "w-6 bg-[var(--text)]"
+                        : "w-2 bg-[var(--line)] hover:bg-[var(--muted)]"
+                    }`}
+                    aria-label={`Go to project ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={handleNext}
+                className="p-2 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text)] active:scale-90 transition-all shadow-sm"
+                aria-label="Next project"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* Active Work Info */}
-      <div className="work-info">
-        <h3 className="work-info-title">{activeProject.title}</h3>
-        <p className="work-info-desc">{activeProject.description}</p>
-        <div className="flex flex-wrap justify-center gap-1.5 mb-5 px-2">
-          {activeProject.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
-            >
-              {tag}
-            </span>
-          ))}
+      <Reveal delay={200}>
+        <div className="work-info">
+          <h3 className="work-info-title">{activeProject.title}</h3>
+          <p className="work-info-desc">{activeProject.description}</p>
+          <div className="flex flex-wrap justify-center gap-1.5 mb-5 px-2">
+            {activeProject.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <a
+            href={activeProject.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="work-info-link"
+          >
+            <span>View Project</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </a>
         </div>
-        <a
-          href={activeProject.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="work-info-link"
-        >
-          <span>View Project</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </a>
-      </div>
+      </Reveal>
     </section>
   );
 }
