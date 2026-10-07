@@ -7,127 +7,27 @@ import { Trophy, ExternalLink, ShieldCheck, GraduationCap, Languages, X } from "
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
 
-interface AwardItem {
-  id: string;
-  title: string;
-  link: string;
-  icon: "cap" | "trophy" | "shield" | "languages";
-}
-
-interface AwardPhoto {
-  id: string;
-  src: string;
-  alt: string;
-  badge: string;
-  orientation: "vertical" | "landscape";
-}
-
-const photoColumns: AwardPhoto[][] = [
-  // Column 1: Vertical then Landscape
-  [
-    {
-      id: "award-solo",
-      src: "/images/awards/photo-award-solo.jpg",
-      alt: "Academic and Competition Awardee",
-      badge: "Competition Winner",
-      orientation: "vertical",
-    },
-    {
-      id: "grad-friends",
-      src: "/images/awards/photo-grad-friends.jpg",
-      alt: "Bachelor of Informatics Graduation with Colleagues",
-      badge: "Bachelor with Honors",
-      orientation: "landscape",
-    },
-  ],
-  // Column 2: Landscape then Vertical
-  [
-    {
-      id: "booth-showcase",
-      src: "/images/awards/photo-booth.jpg",
-      alt: "Project Showcase & Kiosk Exhibition",
-      badge: "Project Showcase",
-      orientation: "landscape",
-    },
-    {
-      id: "grad-selfie",
-      src: "/images/awards/photo-grad-selfie.jpg",
-      alt: "Graduation Day Celebration",
-      badge: "Academic Honors",
-      orientation: "vertical",
-    },
-  ],
-  // Column 3: Vertical then Landscape
-  [
-    {
-      id: "grad-family",
-      src: "/images/awards/photo-grad-family.jpg",
-      alt: "Graduation Day with Family",
-      badge: "Family & Honors",
-      orientation: "vertical",
-    },
-    {
-      id: "stage-ceremony",
-      src: "/images/awards/photo-stage.jpg",
-      alt: "National Award Stage Ceremony",
-      badge: "National Stage",
-      orientation: "landscape",
-    },
-  ],
-  // Column 4: Landscape then Vertical (including newly added JHIC photos)
-  [
-    {
-      id: "jhic-team",
-      src: "/images/awards/photo-jhic-team.jpg",
-      alt: "Top 30 Nasional Jagoan Hosting Infra Competition Team",
-      badge: "Top 30 Nasional // JHIC",
-      orientation: "landscape",
-    },
-    {
-      id: "jhic-participants",
-      src: "/images/awards/photo-jhic-participants.jpg",
-      alt: "Competition Finalists ID Circle",
-      badge: "Finalist Circle",
-      orientation: "vertical",
-    },
-  ],
-];
-
-const awardsList: AwardItem[] = [
-  {
-    id: "deans-lister",
-    title: "Dean's Lister",
-    link: "https://github.com/Neideav",
-    icon: "cap",
-  },
-  {
-    id: "jhic-top30",
-    title: "Top 30 Nasional — Jagoan Hosting Infra Competition",
-    link: "https://drive.google.com/file/d/1h10-ihrs3HlE0CYKEYV1HAmIz0HE3F2B/view?usp=sharing",
-    icon: "trophy",
-  },
-  {
-    id: "confluent-certified",
-    title: "Confluent Certified Data Streaming Engineer",
-    link: "https://certificates.confluent.io/ca9e0ec3-3477-4e96-a728-6b7a780215f5#acc.6g2t0FeD",
-    icon: "shield",
-  },
-  {
-    id: "efset-english",
-    title: "EF SET English Certificate — C2 Proficient (91/100)",
-    link: "https://cert.efset.org/vukNhe",
-    icon: "languages",
-  },
-  {
-    id: "hacktiv8-ai-productivity",
-    title: "AI Productivity & AI API Integration — Hacktiv8",
-    link: "https://certificate-and-transcript.s3.ap-southeast-1.amazonaws.com/documents/8b859741-ab44-4af6-bd27-e583ad965899/1790742859761-19281362-efe5-4360-95e8-a6f6713a0076.pdf",
-    icon: "shield",
-  },
-];
+import { 
+  AwardItem, 
+  AwardPhoto, 
+  defaultAwardsList, 
+  defaultPhotoColumns 
+} from "@/data/awards";
+import { fetchAwardsData } from "@/lib/awards";
 
 export function Awards() {
   const [selectedPhoto, setSelectedPhoto] = useState<AwardPhoto | null>(null);
+  const [awards, setAwards] = useState<AwardItem[]>(defaultAwardsList);
+  const [photos, setPhotos] = useState<AwardPhoto[][]>(defaultPhotoColumns);
+
+  useEffect(() => {
+    fetchAwardsData().then((data) => {
+      if (data) {
+        if (data.awards && data.awards.length > 0) setAwards(data.awards);
+        if (data.photos && data.photos.length > 0) setPhotos(data.photos);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -172,7 +72,7 @@ export function Awards() {
             {/* Left Side: Photo Collage with alternating vertical and landscape photos */}
             <div className="lg:col-span-7 xl:col-span-7">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                {photoColumns.map((col, colIndex) => (
+                {photos.map((col, colIndex) => (
                   <div key={colIndex} className="flex flex-col gap-2.5 sm:gap-3">
                     {col.map((photo) => (
                       <div
@@ -201,7 +101,7 @@ export function Awards() {
 
             {/* Right Side: Awards Cards List Column */}
             <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-3">
-              {awardsList.map((item) => (
+              {awards.map((item) => (
                 <a
                   key={item.id}
                   href={item.link}

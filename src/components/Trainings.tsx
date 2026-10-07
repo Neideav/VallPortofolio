@@ -1,66 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
-
-interface TrainingEntry {
-  id: string;
-  title: string;
-  date: string;
-  org: string;
-  desc: string;
-  certificateName: string;
-  certificateUrl: string;
-  images: string[];
-}
-
-const trainingData: TrainingEntry[] = [
-  {
-    id: "cloud-devops",
-    title: "Cloud & DevOps Infrastructure Engineering",
-    date: "2026 — Present",
-    org: "Infrastructure & CI/CD Development",
-    desc: "Architected multi-container production environments deployed on AWS with Docker Compose, automated Jenkins pipelines, and Nginx reverse proxy configurations. Set up automated systemd watchdog monitors, log aggregation, and zero-downtime rolling upgrades.",
-    certificateName: "IBM DevOps and Software Engineering",
-    certificateUrl: "https://www.credly.com/organizations/ibm",
-    images: ["/images/projects/cloudops.png", "/images/projects/shopcart.png", "/images/projects/ctf.png"],
-  },
-  {
-    id: "ctf-competitions",
-    title: "National Cybersecurity CTF Competitions",
-    date: "2026",
-    org: "Competitive Cyber Defense & Ethical Hacking",
-    desc: "Competed in rigorous 9-hour Capture the Flag (CTF) national competitions involving hands-on vulnerability exploitation, reverse engineering, web penetration analysis, and dynamic containerized sandbox defense.",
-    certificateName: "Competition Finalist Certificate",
-    certificateUrl: "https://github.com/Neideav",
-    images: ["/images/projects/ctf.png", "/images/projects/cloudops.png", "/images/projects/shopcart.png"],
-  },
-  {
-    id: "backend-systems",
-    title: "Full-Stack & Backend Systems Architecture",
-    date: "2025 — 2026",
-    org: "Database-Driven Applications & REST APIs",
-    desc: "Developed modular server-side applications using Laravel (PHP) and Node.js. Designed normalized relational database schemas across MySQL, MariaDB, and PostgreSQL, implementing JWT authentication, RBAC authorization, and secure transaction workflows.",
-    certificateName: "IBM Cloud Computing Fundamentals",
-    certificateUrl: "https://www.credly.com/organizations/ibm",
-    images: ["/images/projects/shopcart.png", "/images/projects/ctf.png", "/images/projects/cloudops.png"],
-  },
-];
+import { TrainingEntry, defaultTrainingData } from "@/data/trainings";
+import { fetchTrainingsData } from "@/lib/trainings";
 
 export function Trainings() {
+  const [trainings, setTrainings] = useState<TrainingEntry[]>(defaultTrainingData);
   const [stackIndices, setStackIndices] = useState<Record<string, number>>({
     "cloud-devops": 0,
     "ctf-competitions": 0,
     "backend-systems": 0,
   });
 
+  useEffect(() => {
+    fetchTrainingsData().then((data) => {
+      if (data && data.length > 0) setTrainings(data);
+    });
+  }, []);
+
   const cycleImage = (id: string, total: number) => {
     setStackIndices((prev) => ({
       ...prev,
-      [id]: (prev[id] + 1) % total,
+      [id]: ((prev[id] || 0) + 1) % total,
     }));
   };
 
@@ -99,7 +64,7 @@ export function Trainings() {
       </Reveal>
 
       <div className="experience-list">
-        {trainingData.map((entry, index) => {
+        {trainings.map((entry, index) => {
           const isReverse = index % 2 !== 0;
           const currentTop = stackIndices[entry.id] || 0;
 
@@ -132,37 +97,42 @@ export function Trainings() {
                 </div>
 
                 {/* Interactive Image Stack Side */}
-                <div
-                  className="experience-image-stack group"
-                  onClick={() => cycleImage(entry.id, entry.images.length)}
-                  title="Tap image to view next screenshot"
-                >
-                  {entry.images.map((imgSrc, imgIndex) => {
-                    const style = getImageStyle(imgIndex, currentTop, entry.images.length);
-                    return (
-                      <div
-                        key={imgIndex}
-                        className="stacked-image"
-                        style={style}
-                      >
-                        <Image
-                          src={imgSrc}
-                          alt={`${entry.title} screenshot`}
-                          fill
-                          unoptimized
-                          className="object-cover rounded-xl"
-                          sizes="(max-width: 768px) 100vw, 500px"
-                        />
-                      </div>
-                    );
-                  })}
+                {(() => {
+                  const imgs = entry.images && entry.images.length > 0 ? entry.images : ["/images/projects/cloudops.png"];
+                  return (
+                    <div
+                      className="experience-image-stack group"
+                      onClick={() => cycleImage(entry.id, imgs.length)}
+                      title="Tap image to view next screenshot"
+                    >
+                      {imgs.map((imgSrc, imgIndex) => {
+                        const style = getImageStyle(imgIndex, currentTop, imgs.length);
+                        return (
+                          <div
+                            key={imgIndex}
+                            className="stacked-image"
+                            style={style}
+                          >
+                            <Image
+                              src={imgSrc}
+                              alt={`${entry.title} screenshot`}
+                              fill
+                              unoptimized
+                              className="object-cover rounded-xl"
+                              sizes="(max-width: 768px) 100vw, 500px"
+                            />
+                          </div>
+                        );
+                      })}
 
-                  {/* Mobile & Desktop Tap Indicator Badge */}
-                  <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10 text-[11px] font-mono pointer-events-none">
-                    <span>{currentTop + 1}/{entry.images.length}</span>
-                    <span className="opacity-70 text-[10px]">· Tap to flip</span>
-                  </div>
-                </div>
+                      {/* Mobile & Desktop Tap Indicator Badge */}
+                      <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 text-white backdrop-blur-md border border-white/10 text-[11px] font-mono pointer-events-none">
+                        <span>{currentTop + 1}/{imgs.length}</span>
+                        <span className="opacity-70 text-[10px]">· Tap to flip</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </Reveal>
           );

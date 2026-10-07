@@ -29,15 +29,28 @@ import {
   Globe,
   Upload,
   ImageIcon,
-  Link2
+  Link2,
+  Trophy,
+  GraduationCap,
+  ShieldCheck,
+  Languages,
+  Award,
+  BookOpen
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
 import { projects as fallbackProjects } from "@/data/projects";
 import { personalInfo as fallbackPersonal } from "@/data/personal";
+import { 
+  AwardItem, 
+  AwardPhoto, 
+  defaultAwardsList, 
+  defaultPhotoColumns 
+} from "@/data/awards";
+import { TrainingEntry, defaultTrainingData } from "@/data/trainings";
 import { optimizeImageFile } from "@/lib/image-utils";
 
-type TabType = "projects" | "profile" | "messages";
+type TabType = "projects" | "profile" | "awards" | "trainings" | "messages";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -105,6 +118,22 @@ export default function AdminDashboardPage() {
 
   const [messagesList, setMessagesList] = useState<ContactMessageRow[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // Awards & Collage States
+  const [awardsList, setAwardsList] = useState<AwardItem[]>(defaultAwardsList);
+  const [awardPhotos, setAwardPhotos] = useState<AwardPhoto[][]>(defaultPhotoColumns);
+  const [editingAward, setEditingAward] = useState<Partial<AwardItem> | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<{ colIndex: number; photoIndex: number; photo: AwardPhoto } | null>(null);
+  const [isSavingAwards, setIsSavingAwards] = useState(false);
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Trainings States
+  const [trainingsList, setTrainingsList] = useState<TrainingEntry[]>(defaultTrainingData);
+  const [editingTraining, setEditingTraining] = useState<Partial<TrainingEntry> | null>(null);
+  const [trainingImgInputs, setTrainingImgInputs] = useState<string[]>(["", "", ""]);
+  const [isSavingTrainings, setIsSavingTrainings] = useState(false);
+  const trainingFileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTrainingImgSlot, setActiveTrainingImgSlot] = useState<number>(0);
 
   // Project Modal State (Add or Edit)
   const [editingProject, setEditingProject] = useState<Partial<ProjectRow> | null>(null);
@@ -258,6 +287,15 @@ export default function AdminDashboardPage() {
           currently_exploring: currently.exploring || "",
           currently_learning: currently.learning || "",
         });
+
+        // Populate dynamic Awards & Trainings if saved
+        const customAwards = (currently as Record<string, unknown>).awards as AwardItem[] | undefined;
+        const customPhotos = (currently as Record<string, unknown>).award_photos as AwardPhoto[][] | undefined;
+        const customTrainings = (currently as Record<string, unknown>).trainings as TrainingEntry[] | undefined;
+
+        if (customAwards && customAwards.length > 0) setAwardsList(customAwards);
+        if (customPhotos && customPhotos.length > 0) setAwardPhotos(customPhotos);
+        if (customTrainings && customTrainings.length > 0) setTrainingsList(customTrainings);
       }
     } catch (err) {
       console.error("Fetch profile error:", err);
@@ -527,6 +565,242 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // ================================================================
+  // AWARDS & COLLAGE HANDLERS
+  // ================================================================
+  const handleSaveAwards = async (newAwards?: AwardItem[], newPhotos?: AwardPhoto[][]) => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      showToast("error", "Supabase client tidak tersedia.");
+      return;
+    }
+
+    setIsSavingAwards(true);
+    try {
+      const listToSave = newAwards || awardsList;
+      const photosToSave = newPhotos || awardPhotos;
+
+      const { data: currentInfo } = await supabase
+        .from("personal_info")
+        .select("currently")
+        .eq("id", "default")
+        .single();
+
+      const currJson = ((currentInfo?.currently as Record<string, unknown>) || {});
+      const updatedCurrently = {
+        ...currJson,
+        awards: listToSave,
+        award_photos: photosToSave,
+      };
+
+      const { error } = await supabase
+        .from("personal_info")
+        .update({
+          currently: updatedCurrently as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", "default");
+
+      if (error) {
+        showToast("error", `Gagal menyimpan: ${error.message}`);
+      } else {
+        showToast("success", "Data Awards & Kolase Foto berhasil disimpan ke Supabase!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
+      showToast("error", msg);
+    } finally {
+      setIsSavingAwards(false);
+    }
+  };
+
+  const handleDeleteAward = (id: string, title: string) => {
+    if (!confirm(`Hapus penghargaan "${title}"?`)) return;
+    const nextList = awardsList.filter((a) => a.id !== id);
+    setAwardsList(nextList);
+    handleSaveAwards(nextList);
+  };
+
+  const handleSaveAwardModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAward || !editingAward.title) return;
+
+    let nextList: AwardItem[];
+    if (editingAward.id && awardsList.some((a) => a.id === editingAward.id)) {
+      nextList = awardsList.map((a) => (a.id === editingAward.id ? (editingAward as AwardItem) : a));
+    } else {
+      const newItem: AwardItem = {
+        id: editingAward.id || `award-${Date.now()}`,
+        title: editingAward.title,
+        link: editingAward.link || "https://github.com/Neideav",
+        icon: editingAward.icon || "trophy",
+      };
+      nextList = [...awardsList, newItem];
+    }
+
+    setAwardsList(nextList);
+    setEditingAward(null);
+    handleSaveAwards(nextList);
+  };
+
+  const handleCollagePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingPhoto) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Harap pilih file gambar.");
+      return;
+    }
+
+    try {
+      const dataUrl = await optimizeImageFile(file, 900, 0.85);
+      const { colIndex, photoIndex } = editingPhoto;
+      const nextCols = awardPhotos.map((col, cIdx) =>
+        cIdx === colIndex
+          ? col.map((p, pIdx) => (pIdx === photoIndex ? { ...p, src: dataUrl } : p))
+          : col
+      );
+      setAwardPhotos(nextCols);
+      setEditingPhoto((prev) => (prev ? { ...prev, photo: { ...prev.photo, src: dataUrl } } : null));
+      showToast("success", "Foto kolase berhasil diunggah!");
+      handleSaveAwards(undefined, nextCols);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Gagal memproses gambar kolase.");
+    } finally {
+      if (photoFileInputRef.current) photoFileInputRef.current.value = "";
+    }
+  };
+
+  const handleSavePhotoModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPhoto) return;
+
+    const { colIndex, photoIndex, photo } = editingPhoto;
+    const nextCols = awardPhotos.map((col, cIdx) =>
+      cIdx === colIndex
+        ? col.map((p, pIdx) => (pIdx === photoIndex ? photo : p))
+        : col
+    );
+
+    setAwardPhotos(nextCols);
+    setEditingPhoto(null);
+    handleSaveAwards(undefined, nextCols);
+  };
+
+  // ================================================================
+  // TRAININGS HANDLERS
+  // ================================================================
+  const handleSaveTrainings = async (newTrainings?: TrainingEntry[]) => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      showToast("error", "Supabase client tidak tersedia.");
+      return;
+    }
+
+    setIsSavingTrainings(true);
+    try {
+      const listToSave = newTrainings || trainingsList;
+
+      const { data: currentInfo } = await supabase
+        .from("personal_info")
+        .select("currently")
+        .eq("id", "default")
+        .single();
+
+      const currJson = ((currentInfo?.currently as Record<string, unknown>) || {});
+      const updatedCurrently = {
+        ...currJson,
+        trainings: listToSave,
+      };
+
+      const { error } = await supabase
+        .from("personal_info")
+        .update({
+          currently: updatedCurrently as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", "default");
+
+      if (error) {
+        showToast("error", `Gagal menyimpan: ${error.message}`);
+      } else {
+        showToast("success", "Data Trainings & Experience berhasil disimpan ke Supabase!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
+      showToast("error", msg);
+    } finally {
+      setIsSavingTrainings(false);
+    }
+  };
+
+  const handleDeleteTraining = (id: string, title: string) => {
+    if (!confirm(`Hapus pelatihan "${title}"?`)) return;
+    const nextList = trainingsList.filter((t) => t.id !== id);
+    setTrainingsList(nextList);
+    handleSaveTrainings(nextList);
+  };
+
+  const handleSaveTrainingModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTraining || !editingTraining.title) return;
+
+    const validImages = trainingImgInputs.filter(Boolean);
+    const finalImages = validImages.length > 0 ? validImages : ["/images/projects/cloudops.png"];
+
+    let nextList: TrainingEntry[];
+    if (editingTraining.id && trainingsList.some((t) => t.id === editingTraining.id)) {
+      nextList = trainingsList.map((t) =>
+        t.id === editingTraining.id
+          ? {
+              ...(editingTraining as TrainingEntry),
+              images: finalImages,
+            }
+          : t
+      );
+    } else {
+      const newEntry: TrainingEntry = {
+        id: editingTraining.id || `training-${Date.now()}`,
+        title: editingTraining.title,
+        date: editingTraining.date || "2026",
+        org: editingTraining.org || "Engineering Milestone",
+        desc: editingTraining.desc || "",
+        certificateName: editingTraining.certificateName || "Sertifikat Pelatihan",
+        certificateUrl: editingTraining.certificateUrl || "https://github.com/Neideav",
+        images: finalImages,
+      };
+      nextList = [...trainingsList, newEntry];
+    }
+
+    setTrainingsList(nextList);
+    setEditingTraining(null);
+    handleSaveTrainings(nextList);
+  };
+
+  const handleTrainingFlipperImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Harap pilih file gambar.");
+      return;
+    }
+
+    try {
+      const dataUrl = await optimizeImageFile(file, 1000, 0.85);
+      const nextInputs = [...trainingImgInputs];
+      nextInputs[activeTrainingImgSlot] = dataUrl;
+      setTrainingImgInputs(nextInputs);
+      showToast("success", `Gambar ke-${activeTrainingImgSlot + 1} berhasil diunggah!`);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Gagal memproses gambar pelatihan.");
+    } finally {
+      if (trainingFileInputRef.current) trainingFileInputRef.current.value = "";
+    }
+  };
+
   // Mark Message as Read
   const handleToggleMessageStatus = async (msg: ContactMessageRow) => {
     const supabase = getSupabaseBrowserClient();
@@ -649,6 +923,30 @@ export default function AdminDashboardPage() {
           >
             <User className="w-4 h-4" />
             <span>Profil & Data Diri</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("awards")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              activeTab === "awards"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            <span>Awards & Prestasi ({awardsList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("trainings")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              activeTab === "trainings"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Trainings & Experience ({trainingsList.length})</span>
           </button>
 
           <button
@@ -1333,6 +1631,366 @@ export default function AdminDashboardPage() {
             )}
           </div>
         )}
+
+        {/* ============================================================== */}
+        {/* TAB 4: AWARDS & ACHIEVEMENTS + PHOTO COLLAGE */}
+        {/* ============================================================== */}
+        {activeTab === "awards" && (
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-zinc-900/40 border border-zinc-800/80 p-5 rounded-2xl">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-emerald-400" />
+                  <span>Awards, Prestasi & Kolase Foto</span>
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
+                  Bagian ini mengatur daftar pencapaian di sebelah kanan dan 8 foto kolase (4 kolom) di sebelah kiri pada section Recognition.
+                  Data tersimpan secara otomatis di kolom <code className="text-emerald-400">currently.awards</code> dan <code className="text-emerald-400">currently.award_photos</code>.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEditingAward({ title: "", link: "", icon: "trophy" })}
+                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wide shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Penghargaan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveAwards()}
+                  disabled={isSavingAwards}
+                  className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs border border-zinc-700 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingAwards ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Simpan Semua</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* SECTION 1: AWARDS LIST */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Award className="w-4 h-4 text-emerald-400" />
+                  <span>Daftar Penghargaan & Sertifikasi ({awardsList.length})</span>
+                </h3>
+                <span className="text-xs text-zinc-400">Tampil di sisi kanan section Awards</span>
+              </div>
+
+              {awardsList.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-2xl">
+                  Belum ada penghargaan. Klik &ldquo;Tambah Penghargaan&rdquo; untuk menambahkan.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {awardsList.map((award, idx) => (
+                    <div
+                      key={award.id || idx}
+                      className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between gap-3 hover:border-zinc-700 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center shrink-0">
+                          {award.icon === "cap" && <GraduationCap className="w-5 h-5 text-emerald-400" />}
+                          {award.icon === "trophy" && <Trophy className="w-5 h-5 text-amber-400" />}
+                          {award.icon === "shield" && <ShieldCheck className="w-5 h-5 text-teal-400" />}
+                          {award.icon === "languages" && <Languages className="w-5 h-5 text-cyan-400" />}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-white truncate">{award.title}</h4>
+                          <a
+                            href={award.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-zinc-400 hover:text-emerald-400 flex items-center gap-1 mt-0.5 truncate transition-colors"
+                          >
+                            <span className="truncate">{award.link}</span>
+                            <ArrowUpRight className="w-3 h-3 shrink-0" />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setEditingAward({ ...award })}
+                          className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                          title="Edit Penghargaan"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAward(award.id, award.title)}
+                          className="p-2 rounded-lg bg-red-950/40 hover:bg-red-900/50 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer"
+                          title="Hapus Penghargaan"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 2: PHOTO COLLAGE */}
+            <div className="space-y-4 pt-4 border-t border-zinc-800/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-zinc-800">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-emerald-400" />
+                    <span>Galeri Kolase Foto (4 Kolom × 2 Foto)</span>
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Tampil sebagai animasi bergerak di sisi kiri section Awards. Klik &ldquo;Edit Foto &amp; Badge&rdquo; untuk upload dari HP/laptop atau ganti label.
+                  </p>
+                </div>
+                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-1 rounded-full self-start sm:self-auto">
+                  Total 8 Foto Aktif
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {awardPhotos.map((column, colIdx) => (
+                  <div
+                    key={colIdx}
+                    className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-3.5 space-y-3.5 flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
+                      <span className="text-xs font-bold text-zinc-300">Kolom #{colIdx + 1}</span>
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
+                        {colIdx % 2 === 0 ? "Normal" : "Reverse"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {column.map((photo, photoIdx) => (
+                        <div
+                          key={photo.id || photoIdx}
+                          className="bg-zinc-950/70 border border-zinc-800/80 rounded-xl p-2.5 space-y-2 hover:border-zinc-700 transition-all"
+                        >
+                          <div className="relative w-full h-32 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-800/60 group">
+                            {photo.src ? (
+                              <Image
+                                src={photo.src}
+                                alt={photo.badge || "Award Photo"}
+                                fill
+                                unoptimized
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs">
+                                Tanpa Foto
+                              </div>
+                            )}
+                            <div className="absolute top-1.5 left-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-semibold text-emerald-300 border border-emerald-500/20">
+                              {photo.badge || "Photo"}
+                            </div>
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-400 capitalize">
+                              {photo.orientation}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingPhoto({
+                                colIndex: colIdx,
+                                photoIndex: photoIdx,
+                                photo: { ...photo },
+                              })
+                            }
+                            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-zinc-800 hover:bg-emerald-500/20 hover:text-emerald-300 text-zinc-300 text-xs font-medium border border-zinc-700/60 hover:border-emerald-500/30 transition-all cursor-pointer"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            <span>Edit Foto &amp; Badge</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* TAB 5: TRAININGS & EXPERIENCE */}
+        {/* ============================================================== */}
+        {activeTab === "trainings" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-zinc-900/40 border border-zinc-800/80 p-5 rounded-2xl">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-400" />
+                  <span>Trainings &amp; Experience (Milestones)</span>
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
+                  Bagian ini menampilkan kartu milestone teknis di section Trainings &amp; Experience. Setiap milestone memiliki 3 gambar flipper interaktif yang berputar saat diklik.
+                  Tersimpan di Supabase di kolom <code className="text-emerald-400">currently.trainings</code>.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTraining({
+                      id: `training-${Date.now()}`,
+                      title: "",
+                      date: "2026 — Present",
+                      org: "",
+                      desc: "",
+                      certificateName: "Sertifikat Pelatihan",
+                      certificateUrl: "https://github.com/Neideav",
+                    });
+                    setTrainingImgInputs(["", "", ""]);
+                  }}
+                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wide shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Pelatihan Baru</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveTrainings()}
+                  disabled={isSavingTrainings}
+                  className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs border border-zinc-700 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingTrainings ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Trainings List */}
+            {trainingsList.length === 0 ? (
+              <div className="p-12 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-2xl">
+                Belum ada data pelatihan. Klik &ldquo;Tambah Pelatihan Baru&rdquo; untuk memulai.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {trainingsList.map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-4 hover:border-zinc-700 transition-all"
+                  >
+                    {/* Top Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800/60">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/20">
+                            {item.date}
+                          </span>
+                          <span className="text-xs text-zinc-400">· {item.org}</span>
+                        </div>
+                        <h3 className="text-base font-bold text-white">{item.title}</h3>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTraining({ ...item });
+                            setTrainingImgInputs(
+                              item.images && item.images.length > 0
+                                ? [...item.images, "", "", ""].slice(0, 3)
+                                : ["", "", ""]
+                            );
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-white transition-colors cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Edit Pelatihan</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTraining(item.id, item.title)}
+                          className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/50 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer"
+                          title="Hapus Pelatihan"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Description & Certificate */}
+                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                      {item.desc}
+                    </p>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-[11px] text-zinc-500">Sertifikat:</span>
+                      <a
+                        href={item.certificateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/30 border border-emerald-500/30 px-3 py-1 rounded-lg hover:bg-emerald-950/50 transition-colors"
+                      >
+                        <span>{item.certificateName}</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    {/* 3 Images Flipper Preview */}
+                    <div>
+                      <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
+                        3 Gambar Flipper (Tampil Bergantian saat Diklik):
+                      </span>
+                      <div className="grid grid-cols-3 gap-3">
+                        {(item.images || []).slice(0, 3).map((imgUrl, imgIdx) => (
+                          <div
+                            key={imgIdx}
+                            className="relative h-24 sm:h-28 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800"
+                          >
+                            {imgUrl ? (
+                              <Image
+                                src={imgUrl}
+                                alt={`Flipper ${imgIdx + 1}`}
+                                fill
+                                unoptimized
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[10px]">
+                                Slot {imgIdx + 1} Kosong
+                              </div>
+                            )}
+                            <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-300">
+                              {imgIdx + 1}/3
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ============================================================== */}
@@ -1528,6 +2186,472 @@ export default function AdminDashboardPage() {
                   ) : (
                     <span>Simpan Proyek</span>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden file input for Photo Collage upload */}
+      <input
+        type="file"
+        ref={photoFileInputRef}
+        onChange={handleCollagePhotoUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* Hidden file input for Trainings Flipper upload */}
+      <input
+        type="file"
+        ref={trainingFileInputRef}
+        onChange={handleTrainingFlipperImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* ============================================================== */}
+      {/* MODAL: ADD / EDIT AWARD */}
+      {/* ============================================================== */}
+      {editingAward && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            <button
+              onClick={() => setEditingAward(null)}
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-1">
+              {editingAward.id ? "Edit Penghargaan" : "Tambah Penghargaan Baru"}
+            </h3>
+            <p className="text-xs text-zinc-400 mb-6">
+              Data akan disimpan ke kolom <code className="text-emerald-400">currently.awards</code> Supabase.
+            </p>
+
+            <form onSubmit={handleSaveAwardModal} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                  Judul Penghargaan / Sertifikasi
+                </label>
+                <input
+                  type="text"
+                  value={editingAward.title || ""}
+                  onChange={(e) => setEditingAward({ ...editingAward, title: e.target.value })}
+                  placeholder="Misal: Dean's Lister, Top 30 Nasional"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                  Link Sertifikat / Bukti Kredensial (URL)
+                </label>
+                <input
+                  type="url"
+                  value={editingAward.link || ""}
+                  onChange={(e) => setEditingAward({ ...editingAward, link: e.target.value })}
+                  placeholder="https://..."
+                  required
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">
+                  Pilih Ikon Tampilan
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {[
+                    { key: "trophy", label: "Trophy", icon: Trophy, color: "text-amber-400" },
+                    { key: "cap", label: "Toga", icon: GraduationCap, color: "text-emerald-400" },
+                    { key: "shield", label: "Perisai", icon: ShieldCheck, color: "text-teal-400" },
+                    { key: "languages", label: "Bahasa", icon: Languages, color: "text-cyan-400" },
+                  ].map((item) => {
+                    const IconComp = item.icon;
+                    const isSelected = (editingAward.icon || "trophy") === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() =>
+                          setEditingAward({
+                            ...editingAward,
+                            icon: item.key as AwardItem["icon"],
+                          })
+                        }
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-emerald-500/20 border-emerald-500 text-white shadow-md shadow-emerald-500/10"
+                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                        }`}
+                      >
+                        <IconComp className={`w-5 h-5 ${item.color}`} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingAward(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-colors cursor-pointer"
+                >
+                  Simpan Penghargaan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: EDIT COLLAGE PHOTO */}
+      {/* ============================================================== */}
+      {editingPhoto && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            <button
+              onClick={() => setEditingPhoto(null)}
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-1">
+              Edit Foto Kolase (Kolom #{editingPhoto.colIndex + 1}, Foto #{editingPhoto.photoIndex + 1})
+            </h3>
+            <p className="text-xs text-zinc-400 mb-5">
+              Ganti gambar langsung dari perangkat Anda atau masukkan link gambar.
+            </p>
+
+            <form onSubmit={handleSavePhotoModal} className="space-y-4">
+              {/* Photo Preview */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">Pratinjau Foto</label>
+                <div className="relative w-full h-44 rounded-xl overflow-hidden bg-black/60 border border-zinc-800 flex items-center justify-center">
+                  {editingPhoto.photo.src ? (
+                    <Image
+                      src={editingPhoto.photo.src}
+                      alt={editingPhoto.photo.badge || "Preview"}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-zinc-600">Belum ada foto</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Upload Button */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => photoFileInputRef.current?.click()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold border border-zinc-700 transition-colors cursor-pointer"
+                >
+                  <Upload className="w-4 h-4 text-emerald-400" />
+                  <span>Unggah Foto dari Perangkat (HP / Laptop)</span>
+                </button>
+              </div>
+
+              {/* Manual URL Input */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                  Atau Masukkan URL Gambar Manual
+                </label>
+                <input
+                  type="text"
+                  value={editingPhoto.photo.src || ""}
+                  onChange={(e) =>
+                    setEditingPhoto({
+                      ...editingPhoto,
+                      photo: { ...editingPhoto.photo, src: e.target.value },
+                    })
+                  }
+                  placeholder="/images/awards/photo.jpg atau https://..."
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Badge Text */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                  Label Badge Foto
+                </label>
+                <input
+                  type="text"
+                  value={editingPhoto.photo.badge || ""}
+                  onChange={(e) =>
+                    setEditingPhoto({
+                      ...editingPhoto,
+                      photo: { ...editingPhoto.photo, badge: e.target.value },
+                    })
+                  }
+                  placeholder="Misal: Dean's Lister, Competition Winner"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Orientation */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                  Orientasi Tampilan
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: "vertical", label: "Tegak (Portrait)" },
+                    { key: "landscape", label: "Melebar (Landscape)" },
+                  ].map((ori) => (
+                    <button
+                      key={ori.key}
+                      type="button"
+                      onClick={() =>
+                        setEditingPhoto({
+                          ...editingPhoto,
+                          photo: {
+                            ...editingPhoto.photo,
+                            orientation: ori.key as "vertical" | "landscape",
+                          },
+                        })
+                      }
+                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        editingPhoto.photo.orientation === ori.key
+                          ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
+                          : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {ori.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingPhoto(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-colors cursor-pointer"
+                >
+                  Simpan Foto
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: ADD / EDIT TRAINING */}
+      {/* ============================================================== */}
+      {editingTraining && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8">
+            <button
+              onClick={() => setEditingTraining(null)}
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-1">
+              {editingTraining.id && trainingsList.some((t) => t.id === editingTraining.id)
+                ? "Edit Training & Experience"
+                : "Tambah Pelatihan Baru"}
+            </h3>
+            <p className="text-xs text-zinc-400 mb-6">
+              Milestone teknis dengan 3 gambar flipper interaktif yang berputar saat kartu diklik.
+            </p>
+
+            <form onSubmit={handleSaveTrainingModal} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                    Periode / Tahun
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTraining.date || ""}
+                    onChange={(e) => setEditingTraining({ ...editingTraining, date: e.target.value })}
+                    placeholder="2026 — Present atau 2025"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                    Sub-Judul / Penyelenggara
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTraining.org || ""}
+                    onChange={(e) => setEditingTraining({ ...editingTraining, org: e.target.value })}
+                    placeholder="Infrastructure & CI/CD Development"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                  Judul Pelatihan / Milestone
+                </label>
+                <input
+                  type="text"
+                  value={editingTraining.title || ""}
+                  onChange={(e) => setEditingTraining({ ...editingTraining, title: e.target.value })}
+                  placeholder="Cloud & DevOps Infrastructure Engineering"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                  Deskripsi Pengalaman
+                </label>
+                <textarea
+                  rows={3}
+                  value={editingTraining.desc || ""}
+                  onChange={(e) => setEditingTraining({ ...editingTraining, desc: e.target.value })}
+                  placeholder="Tuliskan ringkasan peran, teknologi, dan pencapaian selama kegiatan..."
+                  required
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                    Nama Badge Sertifikat
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTraining.certificateName || ""}
+                    onChange={(e) =>
+                      setEditingTraining({ ...editingTraining, certificateName: e.target.value })
+                    }
+                    placeholder="IBM DevOps and Software Engineering"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                    Link Sertifikat (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={editingTraining.certificateUrl || ""}
+                    onChange={(e) =>
+                      setEditingTraining({ ...editingTraining, certificateUrl: e.target.value })
+                    }
+                    placeholder="https://..."
+                    required
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* 3 FLIPPER IMAGES EDITOR */}
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">
+                  3 Slot Gambar Card Flipper (Berganti saat Kartu Diklik)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[0, 1, 2].map((slotIdx) => {
+                    const currentImg = trainingImgInputs[slotIdx] || "";
+                    return (
+                      <div
+                        key={slotIdx}
+                        className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-zinc-300">
+                            Slot #{slotIdx + 1} {slotIdx === 0 ? "(Default)" : `(Flip ${slotIdx})`}
+                          </span>
+                          <span className="text-[10px] font-mono text-emerald-400">
+                            {slotIdx + 1}/3
+                          </span>
+                        </div>
+
+                        <div className="relative w-full h-24 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                          {currentImg ? (
+                            <Image
+                              src={currentImg}
+                              alt={`Slot ${slotIdx + 1}`}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-zinc-600">Belum ada</span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTrainingImgSlot(slotIdx);
+                            trainingFileInputRef.current?.click();
+                          }}
+                          className="w-full py-1.5 px-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-[11px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <Upload className="w-3 h-3 text-emerald-400" />
+                          <span>Pilih Gambar</span>
+                        </button>
+
+                        <input
+                          type="text"
+                          value={currentImg}
+                          onChange={(e) => {
+                            const next = [...trainingImgInputs];
+                            next[slotIdx] = e.target.value;
+                            setTrainingImgInputs(next);
+                          }}
+                          placeholder="URL manual..."
+                          className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingTraining(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-colors cursor-pointer"
+                >
+                  Simpan Pelatihan
                 </button>
               </div>
             </form>
