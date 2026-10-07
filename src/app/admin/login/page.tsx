@@ -77,7 +77,9 @@ export default function AdminLoginPage() {
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          setErrorMessage("Email atau password salah. Akses ditolak.");
+          setErrorMessage(
+            "Email atau password tidak cocok, atau akun belum dikonfirmasi di Supabase. Pastikan di Supabase Auth status akun sudah 'Confirmed' (Centang 'Auto Confirm User' saat membuat akun di Supabase Dashboard)."
+          );
         } else {
           setErrorMessage(error.message);
         }
