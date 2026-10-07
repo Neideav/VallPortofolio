@@ -13,6 +13,9 @@ import { Navbar } from "@/components/Navbar";
 import { CoffeeButton } from "@/components/CoffeeButton";
 import { Reveal } from "@/components/Reveal";
 import { FadeInTitle } from "@/components/FadeInTitle";
+import { AnimatePresence } from "framer-motion";
+import { Preloader } from "@/components/Preloader";
+import { markIntroAsSeen } from "@/lib/introState";
 
 interface ArchiveProject {
   num: string;
@@ -194,6 +197,11 @@ const digitalProjects: DigitalProject[] = [
 
 export default function WorkPage() {
   const [showTopBtn, setShowTopBtn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    markIntroAsSeen();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -208,7 +216,18 @@ export default function WorkPage() {
   };
 
   return (
-    <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400">
+    <>
+      {/* Smooth Shutter Transition on Page Enter */}
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <Preloader
+            transitionOnly={true}
+            onComplete={() => setIsLoading(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400">
       {/* Background SVG curved topographic lines */}
       <BackgroundLines />
 
@@ -398,6 +417,7 @@ export default function WorkPage() {
           <ArrowUp className="w-4 h-4" />
         </button>
       )}
-    </div>
+      </div>
+    </>
   );
 }

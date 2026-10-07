@@ -14,14 +14,24 @@ import { Awards } from "@/components/Awards";
 import { Trainings } from "@/components/Trainings";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
+import { checkHasSeenIntro, markIntroAsSeen } from "@/lib/introState";
 
 export default function Home() {
+  const [transitionOnly, setTransitionOnly] = useState(() => checkHasSeenIntro());
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!transitionOnly && checkHasSeenIntro()) {
+      setTransitionOnly(true);
+    }
+  }, [transitionOnly]);
 
   useEffect(() => {
     if (isLoading) {
       document.body.style.overflow = "hidden";
-      window.scrollTo(0, 0);
+      if (typeof window !== "undefined" && !window.location.hash) {
+        window.scrollTo(0, 0);
+      }
     } else {
       document.body.style.overflow = "auto";
     }
@@ -30,11 +40,30 @@ export default function Home() {
     };
   }, [isLoading]);
 
+  const handleComplete = () => {
+    setIsLoading(false);
+    markIntroAsSeen();
+    if (typeof window !== "undefined" && window.location.hash) {
+      setTimeout(() => {
+        const id = window.location.hash.replace("#", "");
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 50);
+    }
+  };
+
   return (
     <>
       {/* Animated Greeting & Staggered Curtain Preloader */}
       <AnimatePresence mode="wait">
-        {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
+        {isLoading && (
+          <Preloader
+            transitionOnly={transitionOnly}
+            onComplete={handleComplete}
+          />
+        )}
       </AnimatePresence>
 
       <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400">

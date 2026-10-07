@@ -16,12 +16,21 @@ const words = [
 
 interface PreloaderProps {
   onComplete: () => void;
+  transitionOnly?: boolean;
 }
 
-export function Preloader({ onComplete }: PreloaderProps) {
+export function Preloader({ onComplete, transitionOnly = false }: PreloaderProps) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (transitionOnly) {
+      // For page transition, skip words completely and trigger slide-up exit after brief pause
+      const timer = setTimeout(() => {
+        onComplete();
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+
     // Last word ("Halo"): pause for 600ms before exit animation
     if (index === words.length - 1) {
       const timer = setTimeout(() => {
@@ -36,7 +45,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
     }, index === 0 ? 1000 : 180);
 
     return () => clearTimeout(timer);
-  }, [index, onComplete]);
+  }, [index, onComplete, transitionOnly]);
 
   // Curtain columns slide up sequentially with staggered delay
   const slideUp: Variants = {
@@ -71,28 +80,30 @@ export function Preloader({ onComplete }: PreloaderProps) {
         ))}
       </div>
 
-      {/* Greeting text in center */}
-      <motion.div
-        variants={{
-          initial: { opacity: 1 },
-          exit: {
-            opacity: 0,
-            y: -50,
-            transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] as const },
-          },
-        }}
-        initial="initial"
-        exit="exit"
-        className="relative z-10 flex items-center text-white text-[40px] md:text-[56px] font-medium tracking-tight select-none"
-      >
-        <motion.span
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full mr-5 md:mr-7"
-        />
-        <p>{words[index]}</p>
-      </motion.div>
+      {/* Greeting text in center (omitted during transitionOnly) */}
+      {!transitionOnly && (
+        <motion.div
+          variants={{
+            initial: { opacity: 1 },
+            exit: {
+              opacity: 0,
+              y: -50,
+              transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] as const },
+            },
+          }}
+          initial="initial"
+          exit="exit"
+          className="relative z-10 flex items-center text-white text-[40px] md:text-[56px] font-medium tracking-tight select-none"
+        >
+          <motion.span
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full mr-5 md:mr-7"
+          />
+          <p>{words[index]}</p>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
