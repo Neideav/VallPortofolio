@@ -1,17 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, ExternalLink, X, Minus, CheckCircle2 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./Icons";
 import { Reveal } from "./Reveal";
+import { personalInfo as fallbackPersonal, PersonalInfo } from "@/data/personal";
+import { fetchPersonalInfo } from "@/lib/personal";
 
 export function Contact() {
+  const [personal, setPersonal] = useState<PersonalInfo>(fallbackPersonal);
   const [modalOpen, setModalOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [formState, setFormState] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPersonalInfo().then((data) => {
+      if (data) setPersonal(data);
+    });
+  }, []);
+
+  const resumeHref = (personal.resumeUrl?.trim() || fallbackPersonal.resumeUrl || "#contact");
+  const isResumeExternal =
+    resumeHref.startsWith("http://") ||
+    resumeHref.startsWith("https://") ||
+    resumeHref.endsWith(".pdf");
+
+  const email = personal.email || fallbackPersonal.email;
+  const github = personal.github || fallbackPersonal.github;
+  const linkedin = personal.linkedin || fallbackPersonal.linkedin;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +93,9 @@ export function Contact() {
           </Reveal>
           <Reveal delay={400}>
             <a
-              href="mailto:nvaldymaulana@gmail.com"
+              href={resumeHref}
+              target={isResumeExternal ? "_blank" : undefined}
+              rel={isResumeExternal ? "noopener noreferrer" : undefined}
               className="contact-resume-btn"
             >
               DOWNLOAD RESUME &rarr;
@@ -88,7 +109,7 @@ export function Contact() {
             {/* 01 EMAIL */}
             <Reveal delay={200}>
               <a
-                href="mailto:nvaldymaulana@gmail.com"
+                href={`mailto:${email}`}
                 className="contact-card"
               >
                 <div className="contact-card-icon">
@@ -96,7 +117,7 @@ export function Contact() {
                 </div>
                 <div className="contact-card-info">
                   <div className="contact-card-label">EMAIL</div>
-                  <div className="contact-card-value">nvaldymaulana@gmail.com</div>
+                  <div className="contact-card-value">{email}</div>
                 </div>
                 <span className="contact-card-number">01</span>
               </a>
@@ -105,7 +126,7 @@ export function Contact() {
             {/* 02 GITHUB */}
             <Reveal delay={280}>
               <a
-                href="https://github.com/Neideav"
+                href={github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="contact-card"
@@ -115,7 +136,9 @@ export function Contact() {
                 </div>
                 <div className="contact-card-info">
                   <div className="contact-card-label">GITHUB</div>
-                  <div className="contact-card-value">github.com/Neideav</div>
+                  <div className="contact-card-value">
+                    {github.replace(/^https?:\/\//, "")}
+                  </div>
                 </div>
                 <span className="contact-card-number">02</span>
                 <ExternalLink className="contact-card-arrow w-4 h-4" />
@@ -125,7 +148,7 @@ export function Contact() {
             {/* 03 LINKEDIN */}
             <Reveal delay={360}>
               <a
-                href="https://linkedin.com/in/nvaldymaulana"
+                href={linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="contact-card"
@@ -135,7 +158,9 @@ export function Contact() {
                 </div>
                 <div className="contact-card-info">
                   <div className="contact-card-label">LINKEDIN</div>
-                  <div className="contact-card-value">linkedin.com/in/nvaldymaulana</div>
+                  <div className="contact-card-value">
+                    {linkedin.replace(/^https?:\/\//, "")}
+                  </div>
                 </div>
                 <span className="contact-card-number">03</span>
                 <ExternalLink className="contact-card-arrow w-4 h-4" />
