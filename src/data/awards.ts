@@ -5,12 +5,14 @@ export interface AwardItem {
   icon: "cap" | "trophy" | "shield" | "languages";
 }
 
+export type PhotoOrientation = "portrait" | "landscape" | "square" | "vertical";
+
 export interface AwardPhoto {
   id: string;
   src: string;
   alt: string;
   badge: string;
-  orientation: "vertical" | "landscape";
+  orientation: PhotoOrientation;
 }
 
 export const defaultAwardsList: AwardItem[] = [
@@ -46,73 +48,69 @@ export const defaultAwardsList: AwardItem[] = [
   },
 ];
 
-export const defaultPhotoColumns: AwardPhoto[][] = [
-  // Column 1: Vertical then Landscape
-  [
-    {
-      id: "award-solo",
-      src: "/images/awards/photo-award-solo.jpg",
-      alt: "Academic and Competition Awardee",
-      badge: "Competition Winner",
-      orientation: "vertical",
-    },
-    {
-      id: "grad-friends",
-      src: "/images/awards/photo-grad-friends.jpg",
-      alt: "Bachelor of Informatics Graduation with Colleagues",
-      badge: "Bachelor with Honors",
-      orientation: "landscape",
-    },
-  ],
-  // Column 2: Landscape then Vertical
-  [
-    {
-      id: "booth-showcase",
-      src: "/images/awards/photo-booth.jpg",
-      alt: "Project Showcase & Kiosk Exhibition",
-      badge: "Project Showcase",
-      orientation: "landscape",
-    },
-    {
-      id: "grad-selfie",
-      src: "/images/awards/photo-grad-selfie.jpg",
-      alt: "Graduation Day Celebration",
-      badge: "Academic Honors",
-      orientation: "vertical",
-    },
-  ],
-  // Column 3: Vertical then Landscape
-  [
-    {
-      id: "grad-family",
-      src: "/images/awards/photo-grad-family.jpg",
-      alt: "Graduation Day with Family",
-      badge: "Family & Honors",
-      orientation: "vertical",
-    },
-    {
-      id: "stage-ceremony",
-      src: "/images/awards/photo-stage.jpg",
-      alt: "National Award Stage Ceremony",
-      badge: "National Stage",
-      orientation: "landscape",
-    },
-  ],
-  // Column 4: Landscape then Vertical
-  [
-    {
-      id: "jhic-team",
-      src: "/images/awards/photo-jhic-team.jpg",
-      alt: "Top 30 Nasional Jagoan Hosting Infra Competition Team",
-      badge: "Top 30 Nasional // JHIC",
-      orientation: "landscape",
-    },
-    {
-      id: "jhic-participants",
-      src: "/images/awards/photo-jhic-participants.jpg",
-      alt: "Competition Finalists ID Circle",
-      badge: "Finalist Circle",
-      orientation: "vertical",
-    },
-  ],
+// Curated 6 default photos with 3 layout formats: landscape (persegi panjang), square (kotak), portrait (tegak)
+export const defaultAwardPhotosList: AwardPhoto[] = [
+  {
+    id: "award-solo",
+    src: "/images/awards/photo-award-solo.jpg",
+    alt: "Academic and Competition Awardee",
+    badge: "Competition Winner",
+    orientation: "portrait",
+  },
+  {
+    id: "booth-showcase",
+    src: "/images/awards/photo-booth.jpg",
+    alt: "Project Showcase & Kiosk Exhibition",
+    badge: "Project Showcase",
+    orientation: "landscape",
+  },
+  {
+    id: "grad-selfie",
+    src: "/images/awards/photo-grad-selfie.jpg",
+    alt: "Graduation Day Celebration",
+    badge: "Academic Honors",
+    orientation: "square",
+  },
+  {
+    id: "grad-friends",
+    src: "/images/awards/photo-grad-friends.jpg",
+    alt: "Bachelor of Informatics Graduation with Colleagues",
+    badge: "Bachelor with Honors",
+    orientation: "landscape",
+  },
+  {
+    id: "grad-family",
+    src: "/images/awards/photo-grad-family.jpg",
+    alt: "Graduation Day with Family",
+    badge: "Family & Honors",
+    orientation: "portrait",
+  },
+  {
+    id: "jhic-team",
+    src: "/images/awards/photo-jhic-team.jpg",
+    alt: "Top 30 Nasional Jagoan Hosting Infra Competition Team",
+    badge: "Top 30 Nasional // JHIC",
+    orientation: "square",
+  },
 ];
+
+export function normalizeAwardPhotos(raw: unknown): AwardPhoto[] {
+  if (Array.isArray(raw)) {
+    if (raw.length > 0 && Array.isArray(raw[0])) {
+      // Flatten 2D array from earlier legacy schema
+      const flat = (raw as AwardPhoto[][]).flat().filter((p) => p && typeof p === "object" && p.src);
+      if (flat.length > 0) return flat.slice(0, 6);
+    } else if (raw.length > 0) {
+      const list = (raw as AwardPhoto[]).filter((p) => p && typeof p === "object" && p.src);
+      if (list.length > 0) return list.slice(0, 6);
+    }
+  }
+  return defaultAwardPhotosList;
+}
+
+export const defaultPhotoColumns: AwardPhoto[][] = [
+  [defaultAwardPhotosList[0], defaultAwardPhotosList[1]],
+  [defaultAwardPhotosList[2], defaultAwardPhotosList[3]],
+  [defaultAwardPhotosList[4], defaultAwardPhotosList[5]],
+];
+

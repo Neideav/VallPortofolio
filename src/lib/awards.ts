@@ -2,12 +2,13 @@ import {
   AwardItem, 
   AwardPhoto, 
   defaultAwardsList, 
-  defaultPhotoColumns 
+  defaultAwardPhotosList,
+  normalizeAwardPhotos 
 } from "@/data/awards";
 
 export interface AwardsPayload {
   awards: AwardItem[];
-  photos: AwardPhoto[][];
+  photos: AwardPhoto[];
 }
 
 export async function fetchAwardsData(): Promise<AwardsPayload> {
@@ -16,14 +17,15 @@ export async function fetchAwardsData(): Promise<AwardsPayload> {
       next: { revalidate: 60 },
     });
     if (!res.ok) {
-      return { awards: defaultAwardsList, photos: defaultPhotoColumns };
+      return { awards: defaultAwardsList, photos: defaultAwardPhotosList };
     }
     const json = await res.json();
     return {
       awards: json.awards || defaultAwardsList,
-      photos: json.photos || defaultPhotoColumns,
+      photos: normalizeAwardPhotos(json.photos),
     };
   } catch {
-    return { awards: defaultAwardsList, photos: defaultPhotoColumns };
+    return { awards: defaultAwardsList, photos: defaultAwardPhotosList };
   }
 }
+

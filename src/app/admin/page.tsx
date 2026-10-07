@@ -52,7 +52,8 @@ import {
   AwardItem, 
   AwardPhoto, 
   defaultAwardsList, 
-  defaultPhotoColumns 
+  defaultAwardPhotosList,
+  normalizeAwardPhotos 
 } from "@/data/awards";
 import { TrainingEntry, defaultTrainingData } from "@/data/trainings";
 import { optimizeImageFile } from "@/lib/image-utils";
@@ -145,11 +146,11 @@ export default function AdminDashboardPage() {
   const [messagesList, setMessagesList] = useState<ContactMessageRow[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-  // Awards & Collage States
+  // Awards & Collage States (Max 6 Photos)
   const [awardsList, setAwardsList] = useState<AwardItem[]>(defaultAwardsList);
-  const [awardPhotos, setAwardPhotos] = useState<AwardPhoto[][]>(defaultPhotoColumns);
+  const [awardPhotos, setAwardPhotos] = useState<AwardPhoto[]>(defaultAwardPhotosList);
   const [editingAward, setEditingAward] = useState<Partial<AwardItem> | null>(null);
-  const [editingPhoto, setEditingPhoto] = useState<{ colIndex: number; photoIndex: number; photo: AwardPhoto } | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<{ index: number; photo: AwardPhoto; isNew?: boolean } | null>(null);
   const [isSavingAwards, setIsSavingAwards] = useState(false);
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -340,11 +341,11 @@ export default function AdminDashboardPage() {
 
         // Populate dynamic Awards & Trainings if saved
         const customAwards = (currently as Record<string, unknown>).awards as AwardItem[] | undefined;
-        const customPhotos = (currently as Record<string, unknown>).award_photos as AwardPhoto[][] | undefined;
+        const customPhotos = (currently as Record<string, unknown>).award_photos;
         const customTrainings = (currently as Record<string, unknown>).trainings as TrainingEntry[] | undefined;
 
         if (customAwards && customAwards.length > 0) setAwardsList(customAwards);
-        if (customPhotos && customPhotos.length > 0) setAwardPhotos(customPhotos);
+        if (customPhotos) setAwardPhotos(normalizeAwardPhotos(customPhotos));
         if (customTrainings && customTrainings.length > 0) setTrainingsList(customTrainings);
       }
     } catch (err) {
@@ -752,7 +753,7 @@ export default function AdminDashboardPage() {
   // ================================================================
   // AWARDS & COLLAGE HANDLERS
   // ================================================================
-  const handleSaveAwards = async (newAwards?: AwardItem[], newPhotos?: AwardPhoto[][]) => {
+  const handleSaveAwards = async (newAwards?: AwardItem[], newPhotos?: AwardPhoto[]) => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       showToast("error", "Supabase client tidak tersedia.");
@@ -762,7 +763,7 @@ export default function AdminDashboardPage() {
     setIsSavingAwards(true);
     try {
       const listToSave = newAwards || awardsList;
-      const photosToSave = newPhotos || awardPhotos;
+      const photosToSave = (newPhotos || awardPhotos).slice(0, 6);
 
       const { data: currentInfo } = await supabase
         .from("personal_info")
@@ -827,27 +828,69 @@ export default function AdminDashboardPage() {
     handleSaveAwards(nextList);
   };
 
+  // Open add photo modal (Max 6)
+  const handleAddCollagePhoto = () => {
+    if (awardPhotos.length >= 6) {
+      showToast("error", "Maksimal 6 foto kolase telah tercapai. Hapus salah satu foto terlebih dahulu.");
+      return;
+    }
+    setEditingPhoto({
+      index: awardPhotos.length,
+      isNew: true,
+      photo: {
+        id: `photo-${Date.now()}`,
+        src: "",
+        alt: "Achievement & Milestone",
+        badge: "Milestone",
+        orientation: "landscape",
+      },
+    });
+  };
+
+  // Delete photo from collage
+  const handleDeleteCollagePhoto = (index: number) => {
+    const target = awardPhotos[index];
+    if (!confirm(`Hapus foto #${index + 1} "${target?.badge || "Foto"}" dari kolase?`)) return;
+
+    const nextList = awardPhotos.filter((_, i) => i !== index);
+    setAwardPhotos(nextList);
+    handleSaveAwards(undefined, nextList);
+    showToast("success", "Foto berhasil dihapus dari kolase.");
+  };
+
+  // Quick upload file directly for a specific card
+  const handleCardQuickUpload = async (index: number, file: File) => {
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Harap pilih file gambar (PNG, JPG, WEBP).");
+      return;
+    }
+
+    try {
+      const dataUrl = await optimizeImageFile(file, 960, 0.85);
+      const nextList = awardPhotos.map((p, i) => (i === index ? { ...p, src: dataUrl } : p));
+      setAwardPhotos(nextList);
+      await handleSaveAwards(undefined, nextList);
+      showToast("success", `Foto #${index + 1} berhasil diperbarui dan disimpan!`);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Gagal memproses gambar.");
+    }
+  };
+
+  // Upload photo file for the active editingPhoto modal
   const handleCollagePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingPhoto) return;
 
     if (!file.type.startsWith("image/")) {
-      showToast("error", "Harap pilih file gambar.");
+      showToast("error", "Harap pilih file gambar (PNG, JPG, WEBP).");
       return;
     }
 
     try {
-      const dataUrl = await optimizeImageFile(file, 900, 0.85);
-      const { colIndex, photoIndex } = editingPhoto;
-      const nextCols = awardPhotos.map((col, cIdx) =>
-        cIdx === colIndex
-          ? col.map((p, pIdx) => (pIdx === photoIndex ? { ...p, src: dataUrl } : p))
-          : col
-      );
-      setAwardPhotos(nextCols);
+      const dataUrl = await optimizeImageFile(file, 960, 0.85);
       setEditingPhoto((prev) => (prev ? { ...prev, photo: { ...prev.photo, src: dataUrl } } : null));
-      showToast("success", "Foto kolase berhasil diunggah!");
-      handleSaveAwards(undefined, nextCols);
+      showToast("success", "Foto berhasil diproses! Klik 'Simpan' untuk menerapkan.");
     } catch (err) {
       console.error(err);
       showToast("error", "Gagal memproses gambar kolase.");
@@ -856,20 +899,49 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Save / Add photo from modal
   const handleSavePhotoModal = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingPhoto) return;
+    if (!editingPhoto || !editingPhoto.photo) return;
 
-    const { colIndex, photoIndex, photo } = editingPhoto;
-    const nextCols = awardPhotos.map((col, cIdx) =>
-      cIdx === colIndex
-        ? col.map((p, pIdx) => (pIdx === photoIndex ? photo : p))
-        : col
-    );
+    const { index, photo, isNew } = editingPhoto;
+    if (!photo.src || !photo.src.trim()) {
+      showToast("error", "Harap unggah atau masukkan link gambar.");
+      return;
+    }
 
-    setAwardPhotos(nextCols);
+    let nextList: AwardPhoto[];
+    if (isNew) {
+      if (awardPhotos.length >= 6) {
+        showToast("error", "Maksimal 6 foto pada layout kolase.");
+        return;
+      }
+      const newPhotoItem: AwardPhoto = {
+        id: photo.id || `photo-${Date.now()}`,
+        src: photo.src.trim(),
+        alt: photo.alt?.trim() || "Milestone Photo",
+        badge: photo.badge?.trim() || "Milestone",
+        orientation: photo.orientation || "landscape",
+      };
+      nextList = [...awardPhotos, newPhotoItem];
+    } else {
+      nextList = awardPhotos.map((p, i) =>
+        i === index
+          ? {
+              ...photo,
+              src: photo.src.trim(),
+              alt: photo.alt?.trim() || "",
+              badge: photo.badge?.trim() || "Milestone",
+              orientation: photo.orientation || "landscape",
+            }
+          : p
+      );
+    }
+
+    setAwardPhotos(nextList);
     setEditingPhoto(null);
-    handleSaveAwards(undefined, nextCols);
+    handleSaveAwards(undefined, nextList);
+    showToast("success", isNew ? "Foto baru berhasil ditambahkan ke kolase!" : "Foto kolase berhasil diperbarui!");
   };
 
   // ================================================================
@@ -1983,97 +2055,184 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* 8-PHOTO COLLAGE SECTION */}
+            {/* PHOTO COLLAGE SECTION (MAX 6 PHOTOS: PERSEGI PANJANG, KOTAK, PORTRAIT) */}
             <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <div className="flex items-center justify-between pb-4 border-b border-[var(--line)]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[var(--line)]">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
                     <Camera className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[var(--text)]">Galeri 8 Foto Kolase (Sisi Kiri)</h3>
-                    <p className="text-xs text-[var(--muted)] font-mono">4 Kolom x 2 Foto vertikal dan landscape.</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-[var(--text)]">Galeri Foto Kolase (Sisi Kiri)</h3>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        {awardPhotos.length} / 6 Foto
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
+                      Maksimal 6 Foto • Format: Persegi Panjang (16:10), Kotak (1:1), Portrait (3:4).
+                    </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    if (confirm("Reset penghargaan & foto kolase ke default?")) {
-                      setAwardsList(defaultAwardsList);
-                      setAwardPhotos(defaultPhotoColumns);
-                      handleSaveAwards(defaultAwardsList, defaultPhotoColumns);
-                    }
-                  }}
-                  className="text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] hover:underline cursor-pointer"
-                >
-                  Reset Default
-                </button>
+
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleAddCollagePhoto}
+                    disabled={awardPhotos.length >= 6}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      awardPhotos.length >= 6
+                        ? "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)] cursor-not-allowed opacity-60"
+                        : "bg-[var(--text)] text-[var(--surface)] hover:opacity-90 shadow-sm"
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Tambah Foto</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("Reset penghargaan & foto kolase ke default 6 foto?")) {
+                        setAwardsList(defaultAwardsList);
+                        setAwardPhotos(defaultAwardPhotosList);
+                        handleSaveAwards(defaultAwardsList, defaultAwardPhotosList);
+                      }
+                    }}
+                    className="text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] hover:underline cursor-pointer px-2 py-1"
+                  >
+                    Reset Default
+                  </button>
+                </div>
               </div>
 
-              {/* 4 Columns Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {awardPhotos.map((col, colIndex) => (
-                  <div key={colIndex} className="bg-[var(--surface-2)] border border-[var(--line)] rounded-2xl p-4 space-y-3.5">
-                    <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
-                      <span className="font-mono text-xs font-bold text-[var(--text)]">
-                        Kolom #{colIndex + 1}
-                      </span>
-                      <span className="text-[10px] font-mono text-[var(--muted)]">2 Foto</span>
-                    </div>
+              {/* Grid of Collage Photo Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
+                {awardPhotos.map((photo, index) => {
+                  const isLandscape = photo.orientation === "landscape";
+                  const isSquare = photo.orientation === "square";
+                  const aspectClass = isLandscape
+                    ? "aspect-[16/10]"
+                    : isSquare
+                    ? "aspect-square"
+                    : "aspect-[3/4]";
+                  const formatName = isLandscape
+                    ? "Persegi Panjang"
+                    : isSquare
+                    ? "Kotak (1:1)"
+                    : "Portrait (3:4)";
+                  const formatBadgeColor = isLandscape
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                    : isSquare
+                    ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30"
+                    : "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30";
 
-                    {col.map((photo, photoIndex) => (
-                      <div
-                        key={photo.id}
-                        className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-3 space-y-2.5 shadow-sm"
-                      >
-                        <div className="relative w-full h-32 rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--line)]">
+                  return (
+                    <div
+                      key={photo.id || index}
+                      className="bg-[var(--surface-2)] border border-[var(--line)] rounded-2xl p-4 flex flex-col justify-between hover:border-[var(--text)]/40 transition-all shadow-sm group"
+                    >
+                      <div className="space-y-3">
+                        {/* Dynamic Aspect Ratio Preview Thumbnail */}
+                        <div
+                          className={`relative w-full ${aspectClass} max-h-56 rounded-xl overflow-hidden bg-[var(--surface)] border border-[var(--line)] shadow-inner`}
+                        >
                           {photo.src ? (
                             <Image
                               src={photo.src}
                               alt={photo.badge}
                               fill
                               unoptimized
-                              className="object-cover"
+                              className="object-cover transition-transform group-hover:scale-103 duration-300"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[var(--muted)] text-[10px] font-mono">
-                              Kosong
+                            <div className="w-full h-full flex flex-col items-center justify-center text-[var(--muted)] text-[11px] font-mono">
+                              <ImageIcon className="w-5 h-5 mb-1 opacity-40" />
+                              <span>Kosong</span>
                             </div>
                           )}
-                          <div className="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded-full text-[9px] font-mono text-white backdrop-blur-sm border border-white/10">
-                            {photo.orientation}
+
+                          {/* Index Badge */}
+                          <div className="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold text-white backdrop-blur-sm border border-white/10 shadow-sm">
+                            #{index + 1}
+                          </div>
+
+                          {/* Shape / Orientation Badge */}
+                          <div
+                            className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold uppercase tracking-wider backdrop-blur-sm border shadow-sm ${formatBadgeColor}`}
+                          >
+                            {formatName}
                           </div>
                         </div>
 
+                        {/* Text Info */}
                         <div>
-                          <div className="text-xs font-bold text-[var(--text)] truncate">{photo.badge}</div>
-                          <div className="text-[10px] text-[var(--muted)] font-mono truncate">{photo.alt}</div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingPhoto({ colIndex, photoIndex, photo });
-                              photoFileInputRef.current?.click();
-                            }}
-                            className="flex-1 py-1 px-2 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] flex items-center justify-center gap-1 cursor-pointer transition-all"
-                          >
-                            <Upload className="w-3 h-3" />
-                            <span>Upload</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingPhoto({ colIndex, photoIndex, photo })}
-                            className="p-1 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] cursor-pointer transition-all"
-                            title="Edit URL &amp; Badge"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                          </button>
+                          <div className="text-xs font-bold text-[var(--text)] truncate">
+                            {photo.badge || "Tanpa Judul Badge"}
+                          </div>
+                          <div className="text-[10px] text-[var(--muted)] font-mono truncate mt-0.5">
+                            {photo.alt || "Tanpa deskripsi"}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ))}
+
+                      {/* Action Buttons: Upload, Edit, Delete */}
+                      <div className="flex items-center gap-1.5 pt-3 mt-3 border-t border-[var(--line)]">
+                        <label className="flex-1 py-1.5 px-2.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] flex items-center justify-center gap-1 cursor-pointer transition-all shadow-sm">
+                          <Upload className="w-3 h-3 text-emerald-500" />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/jpg"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleCardQuickUpload(index, file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingPhoto({ index, photo, isNew: false })}
+                          className="p-1.5 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] cursor-pointer transition-all shadow-sm"
+                          title="Edit Info & Orientasi"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCollagePhoto(index)}
+                          className="p-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-500 cursor-pointer transition-all shadow-sm"
+                          title="Hapus Foto"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Interactive Add Slot Button Card if less than 6 photos */}
+                {awardPhotos.length < 6 && (
+                  <button
+                    type="button"
+                    onClick={handleAddCollagePhoto}
+                    className="border-2 border-dashed border-[var(--line)] hover:border-[var(--text)]/60 bg-[var(--surface)] hover:bg-[var(--surface-2)] rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] group-hover:scale-110 flex items-center justify-center mb-3 text-[var(--text)] transition-transform shadow-sm">
+                      <Plus className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-[var(--text)]">
+                      Tambah Foto Kolase
+                    </span>
+                    <span className="text-[11px] font-mono text-[var(--muted)] mt-1">
+                      Tersisa slot {6 - awardPhotos.length} foto lagi (Maksimal 6)
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -2673,7 +2832,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ============================================================== */}
-      {/* MODAL: EDIT COLLAGE PHOTO */}
+      {/* MODAL: ADD / EDIT COLLAGE PHOTO */}
       {/* ============================================================== */}
       {editingPhoto && (
         <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
@@ -2688,10 +2847,12 @@ export default function AdminDashboardPage() {
             <div className="mb-6">
               <div className="section-label mb-1">// COLLAGE FRAME EDITOR</div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
-                Edit Foto Kolase (Kolom #{editingPhoto.colIndex + 1}, Foto #{editingPhoto.photoIndex + 1})
+                {editingPhoto.isNew
+                  ? "Tambah Foto Kolase Baru"
+                  : `Edit Foto Kolase (#${editingPhoto.index + 1})`}
               </h3>
               <p className="text-xs text-[var(--muted)] mt-1">
-                Ganti gambar langsung dari file perangkat Anda atau masukkan link gambar.
+                Pilih format layout foto (persegi panjang, kotak, portrait) dan unggah gambar Anda.
               </p>
             </div>
 
@@ -2700,7 +2861,15 @@ export default function AdminDashboardPage() {
                 <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                   Pratinjau Foto
                 </label>
-                <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center">
+                <div
+                  className={`relative w-full ${
+                    editingPhoto.photo.orientation === "landscape"
+                      ? "aspect-[16/10] max-h-52"
+                      : editingPhoto.photo.orientation === "square"
+                      ? "aspect-square max-h-56"
+                      : "aspect-[3/4] max-h-64"
+                  } mx-auto rounded-2xl overflow-hidden bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center transition-all duration-300 shadow-inner`}
+                >
                   {editingPhoto.photo.src ? (
                     <Image
                       src={editingPhoto.photo.src}
@@ -2710,7 +2879,10 @@ export default function AdminDashboardPage() {
                       className="object-cover"
                     />
                   ) : (
-                    <span className="text-xs font-mono text-[var(--muted)]">Belum ada foto</span>
+                    <div className="flex flex-col items-center gap-1.5 text-[var(--muted)] text-xs font-mono">
+                      <ImageIcon className="w-6 h-6 opacity-40" />
+                      <span>Belum ada gambar</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -2719,9 +2891,9 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => photoFileInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--text)] text-xs font-mono uppercase tracking-wider font-semibold border border-[var(--line)] hover:border-[var(--text)] transition-all cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--text)] text-xs font-mono uppercase tracking-wider font-semibold border border-[var(--line)] hover:border-[var(--text)] transition-all cursor-pointer shadow-sm"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 text-emerald-500" />
                   <span>Unggah Foto dari Perangkat</span>
                 </button>
               </div>
@@ -2757,7 +2929,7 @@ export default function AdminDashboardPage() {
                       photo: { ...editingPhoto.photo, badge: e.target.value },
                     })
                   }
-                  placeholder="Misal: Dean's Lister, Competition Winner"
+                  placeholder="Misal: Competition Winner, Dean's Lister"
                   required
                   className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-medium transition-colors"
                 />
@@ -2765,34 +2937,61 @@ export default function AdminDashboardPage() {
 
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
-                  Orientasi Tampilan
+                  Keterangan / Deskripsi Foto (Alt Text)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={editingPhoto.photo.alt || ""}
+                  onChange={(e) =>
+                    setEditingPhoto({
+                      ...editingPhoto,
+                      photo: { ...editingPhoto.photo, alt: e.target.value },
+                    })
+                  }
+                  placeholder="Misal: Academic Honors & Competition Stage Ceremony"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors"
+                />
+              </div>
+
+              {/* 3 Orientations / Shapes: Persegi Panjang, Kotak, Portrait */}
+              <div>
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
+                  Format Bentuk &amp; Orientasi Foto
+                </label>
+                <div className="grid grid-cols-3 gap-2">
                   {[
-                    { key: "vertical", label: "Tegak (Portrait)" },
-                    { key: "landscape", label: "Melebar (Landscape)" },
-                  ].map((ori) => (
-                    <button
-                      key={ori.key}
-                      type="button"
-                      onClick={() =>
-                        setEditingPhoto({
-                          ...editingPhoto,
-                          photo: {
-                            ...editingPhoto.photo,
-                            orientation: ori.key as "vertical" | "landscape",
-                          },
-                        })
-                      }
-                      className={`py-2 px-3 rounded-xl border text-xs font-mono uppercase tracking-wider font-semibold transition-all cursor-pointer ${
-                        editingPhoto.photo.orientation === ori.key
-                          ? "bg-[var(--text)] text-[var(--surface)] border-[var(--text)] shadow-sm"
-                          : "bg-[var(--surface-2)] border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)]"
-                      }`}
-                    >
-                      {ori.label}
-                    </button>
-                  ))}
+                    { key: "landscape", label: "Persegi Panjang", desc: "16:10" },
+                    { key: "square", label: "Kotak", desc: "1:1" },
+                    { key: "portrait", label: "Portrait", desc: "3:4" },
+                  ].map((ori) => {
+                    const isSelected =
+                      editingPhoto.photo.orientation === ori.key ||
+                      (ori.key === "portrait" && editingPhoto.photo.orientation === "vertical");
+
+                    return (
+                      <button
+                        key={ori.key}
+                        type="button"
+                        onClick={() =>
+                          setEditingPhoto({
+                            ...editingPhoto,
+                            photo: {
+                              ...editingPhoto.photo,
+                              orientation: ori.key as any,
+                            },
+                          })
+                        }
+                        className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                          isSelected
+                            ? "bg-[var(--text)] text-[var(--surface)] border-[var(--text)] shadow-sm font-bold"
+                            : "bg-[var(--surface-2)] border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)]"
+                        }`}
+                      >
+                        <span className="text-xs leading-tight">{ori.label}</span>
+                        <span className="text-[10px] font-mono opacity-75">{ori.desc}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -2808,7 +3007,7 @@ export default function AdminDashboardPage() {
                   type="submit"
                   className="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                 >
-                  Simpan Foto
+                  {editingPhoto.isNew ? "Tambah Foto" : "Simpan Foto"}
                 </button>
               </div>
             </form>

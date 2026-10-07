@@ -11,14 +11,14 @@ import {
   AwardItem, 
   AwardPhoto, 
   defaultAwardsList, 
-  defaultPhotoColumns 
+  defaultAwardPhotosList 
 } from "@/data/awards";
 import { fetchAwardsData } from "@/lib/awards";
 
 export function Awards() {
   const [selectedPhoto, setSelectedPhoto] = useState<AwardPhoto | null>(null);
   const [awards, setAwards] = useState<AwardItem[]>(defaultAwardsList);
-  const [photos, setPhotos] = useState<AwardPhoto[][]>(defaultPhotoColumns);
+  const [photos, setPhotos] = useState<AwardPhoto[]>(defaultAwardPhotosList);
 
   useEffect(() => {
     fetchAwardsData().then((data) => {
@@ -69,33 +69,53 @@ export function Awards() {
 
         <Reveal delay={100}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-center">
-            {/* Left Side: Photo Collage with alternating vertical and landscape photos */}
+            {/* Left Side: Photo Collage (Maksimal 6 Foto dengan Format Persegi Panjang, Kotak, Portrait) */}
             <div className="lg:col-span-7 xl:col-span-7">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                {photos.map((col, colIndex) => (
-                  <div key={colIndex} className="flex flex-col gap-2.5 sm:gap-3">
-                    {col.map((photo) => (
-                      <div
-                        key={photo.id}
-                        onClick={() => setSelectedPhoto(photo)}
-                        className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-black/60 border border-white/[0.08] hover:border-white/20 bg-zinc-900 group ${
-                          photo.orientation === "vertical"
-                            ? "h-[200px] sm:h-[220px]"
-                            : "h-[135px] sm:h-[150px]"
-                        }`}
-                      >
-                        <Image
-                          src={photo.src}
-                          alt={photo.alt}
-                          fill
-                          unoptimized
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 35vw, 18vw"
-                          className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                        />
+              <div className="columns-2 sm:columns-3 gap-3 space-y-3">
+                {photos.slice(0, 6).map((photo, index) => {
+                  const isLandscape = photo.orientation === "landscape";
+                  const isSquare = photo.orientation === "square";
+                  const aspectClass = isLandscape
+                    ? "aspect-[16/10]"
+                    : isSquare
+                    ? "aspect-square"
+                    : "aspect-[3/4]";
+                  const formatBadge = isLandscape ? "Landscape" : isSquare ? "Kotak" : "Portrait";
+
+                  return (
+                    <div
+                      key={photo.id || index}
+                      onClick={() => setSelectedPhoto(photo)}
+                      className={`relative break-inside-avoid rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-black/70 border border-white/[0.08] hover:border-white/20 bg-zinc-900 group ${aspectClass}`}
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        fill
+                        unoptimized
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 35vw, 22vw"
+                        className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {/* Hover overlay with badge & caption */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 pointer-events-none">
+                        <span className="font-mono text-[10px] font-bold text-emerald-400 uppercase tracking-wider line-clamp-1">
+                          {photo.badge}
+                        </span>
+                        {photo.alt && (
+                          <span className="text-[11px] text-zinc-300 line-clamp-1 mt-0.5">
+                            {photo.alt}
+                          </span>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ))}
+                      {/* Top badge */}
+                      <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-black/70 text-white backdrop-blur-md border border-white/10">
+                          {formatBadge}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { 
   defaultAwardsList, 
-  defaultPhotoColumns, 
-  AwardItem, 
-  AwardPhoto 
+  defaultAwardPhotosList, 
+  normalizeAwardPhotos,
+  AwardItem 
 } from "@/data/awards";
 
 export async function GET() {
@@ -21,17 +21,17 @@ export async function GET() {
       if (!error && data && data.currently) {
         const currently = data.currently as Record<string, unknown>;
         const customAwards = currently.awards as AwardItem[] | undefined;
-        const customPhotos = currently.award_photos as AwardPhoto[][] | undefined;
+        const customPhotos = currently.award_photos;
 
         return NextResponse.json(
           {
             source: "supabase",
             awards: customAwards && customAwards.length > 0 ? customAwards : defaultAwardsList,
-            photos: customPhotos && customPhotos.length > 0 ? customPhotos : defaultPhotoColumns,
+            photos: normalizeAwardPhotos(customPhotos),
           },
           {
             headers: {
-              "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+              "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
             },
           }
         );
@@ -45,12 +45,13 @@ export async function GET() {
     {
       source: "static",
       awards: defaultAwardsList,
-      photos: defaultPhotoColumns,
+      photos: defaultAwardPhotosList,
     },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
       },
     }
   );
 }
+
