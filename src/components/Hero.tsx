@@ -39,7 +39,7 @@ export function Hero() {
       <div className="profile-wrap">
         <div className="profile-image-container">
           <Image
-            src="/images/nauval-portrait.png"
+            src={info.avatarUrl || "/images/nauval-portrait.png"}
             alt={info.name}
             fill
             priority

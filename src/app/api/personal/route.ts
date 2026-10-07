@@ -25,6 +25,14 @@ export async function GET() {
           placeOfBirth: data.place_of_birth,
           gpa: data.gpa,
           education: data.education,
+          approach:
+            ((data as Record<string, unknown>).my_approach as string) ||
+            ((data.currently as Record<string, unknown>)?.approach as string) ||
+            fallbackPersonal.approach,
+          avatarUrl:
+            ((data as Record<string, unknown>).avatar_url as string) ||
+            ((data.currently as Record<string, unknown>)?.avatar_url as string) ||
+            fallbackPersonal.avatarUrl,
           github: data.github,
           linkedin: data.linkedin,
           location: data.location,

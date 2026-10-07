@@ -127,6 +127,8 @@ export type Database = {
           place_of_birth: string;
           gpa: string;
           education: string;
+          my_approach?: string | null;
+          avatar_url?: string | null;
           github: string;
           linkedin: string;
           location: string;
@@ -149,6 +151,8 @@ export type Database = {
           place_of_birth?: string;
           gpa?: string;
           education?: string;
+          my_approach?: string | null;
+          avatar_url?: string | null;
           github: string;
           linkedin: string;
           location: string;
@@ -171,6 +175,8 @@ export type Database = {
           place_of_birth?: string;
           gpa?: string;
           education?: string;
+          my_approach?: string | null;
+          avatar_url?: string | null;
           github?: string;
           linkedin?: string;
           location?: string;

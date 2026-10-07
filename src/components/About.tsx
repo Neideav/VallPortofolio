@@ -47,7 +47,7 @@ export function About() {
                 {/* Card Frame */}
                 <div className="relative z-10 p-2.5 bg-[var(--surface)] border border-[var(--line)] rounded-3xl shadow-2xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.25)] hover:-translate-y-1">
                   <Image
-                    src="/images/nauval-portrait.png"
+                    src={personal.avatarUrl || "/images/nauval-portrait.png"}
                     alt={personal.name}
                     fill
                     unoptimized
@@ -92,7 +92,7 @@ export function About() {
                     My Approach
                   </h4>
                   <p className="text-sm md:text-[14.5px] text-[var(--muted)] leading-relaxed font-medium">
-                    Saya berkomitmen untuk memberikan solusi yang efisien, mudah dikelola, dan skalabel melalui praktik terbaik rekayasa perangkat lunak dan keandalan sistem cloud (best engineering practices &amp; high availability).
+                    {personal.approach || defaultPersonal.approach}
                   </p>
                 </div>
               </div>

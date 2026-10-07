@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   FolderGit2, 
   User, 
@@ -21,7 +22,11 @@ import {
   Sparkles,
   ArrowUpRight,
   Shield,
-  Layers
+  Layers,
+  Camera,
+  RefreshCw,
+  FileText,
+  Globe
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
@@ -50,7 +55,12 @@ export default function AdminDashboardPage() {
     roles: string;
     short_bio: string;
     bio: string;
+    my_approach: string;
+    avatar_url: string;
     email: string;
+    place_of_birth: string;
+    gpa: string;
+    education: string;
     github: string;
     linkedin: string;
     location: string;
@@ -67,7 +77,12 @@ export default function AdminDashboardPage() {
     roles: fallbackPersonal.roles.join(", "),
     short_bio: fallbackPersonal.shortBio,
     bio: fallbackPersonal.bio,
+    my_approach: fallbackPersonal.approach,
+    avatar_url: fallbackPersonal.avatarUrl,
     email: fallbackPersonal.email,
+    place_of_birth: fallbackPersonal.placeOfBirth,
+    gpa: fallbackPersonal.gpa,
+    education: fallbackPersonal.education,
     github: fallbackPersonal.github,
     linkedin: fallbackPersonal.linkedin,
     location: fallbackPersonal.location,
@@ -197,21 +212,41 @@ export default function AdminDashboardPage() {
         .single();
 
       if (!error && data) {
-        const currently = (data.currently as { building?: string; exploring?: string; learning?: string }) || {};
+        const currently =
+          (data.currently as {
+            building?: string;
+            exploring?: string;
+            learning?: string;
+            approach?: string;
+            avatar_url?: string;
+          }) || {};
+        const rowAny = data as Record<string, unknown>;
+
         setPersonalData({
-          name: data.name,
-          nickname: data.nickname,
-          title: data.title,
-          roles: Array.isArray(data.roles) ? data.roles.join(", ") : "",
-          short_bio: data.short_bio,
-          bio: data.bio,
-          email: data.email,
+          name: data.name || fallbackPersonal.name,
+          nickname: data.nickname || fallbackPersonal.nickname,
+          title: data.title || fallbackPersonal.title,
+          roles: Array.isArray(data.roles) ? data.roles.join(", ") : fallbackPersonal.roles.join(", "),
+          short_bio: data.short_bio || fallbackPersonal.shortBio,
+          bio: data.bio || fallbackPersonal.bio,
+          my_approach:
+            (rowAny.my_approach as string) ||
+            currently.approach ||
+            fallbackPersonal.approach,
+          avatar_url:
+            (rowAny.avatar_url as string) ||
+            currently.avatar_url ||
+            fallbackPersonal.avatarUrl,
+          email: data.email || fallbackPersonal.email,
+          place_of_birth: data.place_of_birth || fallbackPersonal.placeOfBirth,
+          gpa: data.gpa || fallbackPersonal.gpa,
+          education: data.education || fallbackPersonal.education,
           github: data.github || fallbackPersonal.github,
           linkedin: data.linkedin || fallbackPersonal.linkedin,
-          location: data.location,
-          availability: data.availability,
-          status: data.status,
-          resume_url: data.resume_url,
+          location: data.location || fallbackPersonal.location,
+          availability: data.availability || fallbackPersonal.availability,
+          status: data.status || fallbackPersonal.status,
+          resume_url: data.resume_url || fallbackPersonal.resumeUrl,
           currently_building: currently.building || "",
           currently_exploring: currently.exploring || "",
           currently_learning: currently.learning || "",
@@ -393,6 +428,9 @@ export default function AdminDashboardPage() {
         short_bio: personalData.short_bio,
         bio: personalData.bio,
         email: personalData.email,
+        place_of_birth: personalData.place_of_birth,
+        gpa: personalData.gpa,
+        education: personalData.education,
         github: personalData.github,
         linkedin: personalData.linkedin,
         location: personalData.location,
@@ -403,6 +441,8 @@ export default function AdminDashboardPage() {
           building: personalData.currently_building,
           exploring: personalData.currently_exploring,
           learning: personalData.currently_learning,
+          approach: personalData.my_approach,
+          avatar_url: personalData.avatar_url,
         },
         updated_at: new Date().toISOString(),
       };
@@ -666,138 +706,356 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 2: PROFILE & BIO */}
+        {/* TAB 2: PROFILE & ABOUT ME */}
         {/* ============================================================== */}
         {activeTab === "profile" && (
-          <div className="max-w-4xl bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 sm:p-8">
-            <div className="mb-6">
-              <h2 className="text-base font-bold text-white">Kelola Profil & Hero Information</h2>
-              <p className="text-xs text-zinc-400 mt-1">
-                Data ini tersimpan di Supabase PostgreSQL <code className="text-emerald-400">personal_info</code>.
-                Perubahan akan langsung mengupdate teks hero, bio, headline, dan status ketersediaan.
-              </p>
+          <div className="max-w-5xl bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 sm:p-8 space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <User className="w-5 h-5 text-emerald-400" />
+                  <span>Kelola About Me & Data Portofolio</span>
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Semua perubahan langsung tersimpan ke Supabase PostgreSQL <code className="text-emerald-400">personal_info</code> dan langsung tampil di website utama.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchProfile}
+                disabled={isLoadingProfile}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors cursor-pointer w-fit"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? "animate-spin" : ""}`} />
+                <span>Muat Ulang Data</span>
+              </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSaveProfile} className="space-y-8">
+              {/* SECTION A: ABOUT ME (PHOTO, WHO AM I, MY APPROACH) */}
+              <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-6">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-800/60">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Bagian About Me (Foto & Narasi)</h3>
+                    <p className="text-[11px] text-zinc-400">Tampilan foto portrait, bio &ldquo;Who Am I&rdquo;, dan &ldquo;My Approach&rdquo;.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* Photo Preview & URL (4 cols) */}
+                  <div className="lg:col-span-4 flex flex-col items-center">
+                    <div className="w-full max-w-[220px] aspect-[4/5] relative rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl mb-3 group">
+                      <Image
+                        src={personalData.avatar_url || "/images/nauval-portrait.png"}
+                        alt={personalData.name || "Portrait Preview"}
+                        fill
+                        unoptimized
+                        className="object-cover object-[48%_14%]"
+                        onError={(e) => {
+                          // Fallback to default image on error
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/images/nauval-portrait.png";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
+                        <span className="text-[10px] font-mono font-bold text-zinc-300 bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm">
+                          Live Preview Card
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-full space-y-2">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        URL Foto Portrait
+                      </label>
+                      <input
+                        type="text"
+                        value={personalData.avatar_url}
+                        onChange={(e) => setPersonalData({ ...personalData, avatar_url: e.target.value })}
+                        placeholder="/images/nauval-portrait.png atau https://..."
+                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPersonalData({ ...personalData, avatar_url: "/images/nauval-portrait.png" })
+                        }
+                        className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors underline cursor-pointer"
+                      >
+                        Reset ke foto default (/images/nauval-portrait.png)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Narration Texts (8 cols) */}
+                  <div className="lg:col-span-8 space-y-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-300 mb-1.5 flex items-center justify-between">
+                        <span>Who Am I (Deskripsi Diri)</span>
+                        <span className="text-[10px] text-zinc-500 font-normal">Kolom kiri About Me</span>
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={personalData.bio}
+                        onChange={(e) => setPersonalData({ ...personalData, bio: e.target.value })}
+                        placeholder="Deskripsi spesialisasi dan latar belakang kamu..."
+                        className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none leading-relaxed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-300 mb-1.5 flex items-center justify-between">
+                        <span>My Approach (Pendekatan Saya)</span>
+                        <span className="text-[10px] text-zinc-500 font-normal">Kolom kanan About Me</span>
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={personalData.my_approach}
+                        onChange={(e) => setPersonalData({ ...personalData, my_approach: e.target.value })}
+                        placeholder="Prinsip rekayasa, keandalan sistem, standar kualitas..."
+                        className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION B: PERSONAL DETAILS (THE 6 SPECIFIC FIELDS) */}
+              <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-5">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-800/60">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Personal Details (Tabel 6 Rincian)</h3>
+                    <p className="text-[11px] text-zinc-400">Data ini muncul pada kartu rincian di bawah narasi About Me.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* 1. Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      1. Name (Nama Lengkap)
+                    </label>
+                    <input
+                      type="text"
+                      value={personalData.name}
+                      onChange={(e) => setPersonalData({ ...personalData, name: e.target.value })}
+                      required
+                      placeholder="Muhammad Bahruddin Nauvaldy Maulana"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* 2. Place of Birth */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      2. Place of Birth (Tempat Lahir)
+                    </label>
+                    <input
+                      type="text"
+                      value={personalData.place_of_birth}
+                      onChange={(e) => setPersonalData({ ...personalData, place_of_birth: e.target.value })}
+                      placeholder="Batu, Indonesia"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* 3. Role */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      3. Role (Jabatan / Peran)
+                    </label>
+                    <input
+                      type="text"
+                      value={personalData.title}
+                      onChange={(e) => setPersonalData({ ...personalData, title: e.target.value })}
+                      placeholder="Cloud Engineer · Backend Developer · DevOps Engineer"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* 4. GPA */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      4. GPA (Nilai / IPK)
+                    </label>
+                    <input
+                      type="text"
+                      value={personalData.gpa}
+                      onChange={(e) => setPersonalData({ ...personalData, gpa: e.target.value })}
+                      placeholder="N/A atau 3.90"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* 5. Email */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      5. Email Kontak
+                    </label>
+                    <input
+                      type="email"
+                      value={personalData.email}
+                      onChange={(e) => setPersonalData({ ...personalData, email: e.target.value })}
+                      required
+                      placeholder="nvaldymaulana@gmail.com"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* 6. Education */}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider text-[11px]">
+                      6. Education (Pendidikan)
+                    </label>
+                    <input
+                      type="text"
+                      value={personalData.education}
+                      onChange={(e) => setPersonalData({ ...personalData, education: e.target.value })}
+                      placeholder="SMKS PGRI 3 Malang"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION C: HERO HEADLINE & STATUS PUBLIK */}
+              <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-5">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-800/60">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Hero Section & Status Portofolio</h3>
+                    <p className="text-[11px] text-zinc-400">Teks pembuka hero, badge status kerja, dan ketersediaan.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Nama Panggilan (Hero Marquee)</label>
+                    <input
+                      type="text"
+                      value={personalData.nickname}
+                      onChange={(e) => setPersonalData({ ...personalData, nickname: e.target.value })}
+                      placeholder="Nauval"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Roles (Pisahkan dengan koma)</label>
+                    <input
+                      type="text"
+                      value={personalData.roles}
+                      onChange={(e) => setPersonalData({ ...personalData, roles: e.target.value })}
+                      placeholder="Cloud Engineer, Backend Developer, DevOps Engineer"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Nama Lengkap</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                    Short Statement (Hero Headline Quote)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={personalData.short_bio}
+                    onChange={(e) => setPersonalData({ ...personalData, short_bio: e.target.value })}
+                    placeholder="I build reliable backend systems, cloud infrastructure..."
+                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Status Ketersediaan</label>
+                    <input
+                      type="text"
+                      value={personalData.availability}
+                      onChange={(e) => setPersonalData({ ...personalData, availability: e.target.value })}
+                      placeholder="Open to Opportunities"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Status Badge Hero</label>
+                    <input
+                      type="text"
+                      value={personalData.status}
+                      onChange={(e) => setPersonalData({ ...personalData, status: e.target.value })}
+                      placeholder="System Active & Deploying"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Lokasi Domisili</label>
+                    <input
+                      type="text"
+                      value={personalData.location}
+                      onChange={(e) => setPersonalData({ ...personalData, location: e.target.value })}
+                      placeholder="Indonesia (Remote / Hybrid)"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Link Resume / CV</label>
                   <input
                     type="text"
-                    value={personalData.name}
-                    onChange={(e) => setPersonalData({ ...personalData, name: e.target.value })}
-                    required
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Nama Panggilan</label>
-                  <input
-                    type="text"
-                    value={personalData.nickname}
-                    onChange={(e) => setPersonalData({ ...personalData, nickname: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    value={personalData.resume_url}
+                    onChange={(e) => setPersonalData({ ...personalData, resume_url: e.target.value })}
+                    placeholder="#contact atau URL Google Drive CV"
+                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Headline Title / Jabatan
-                </label>
-                <input
-                  type="text"
-                  value={personalData.title}
-                  onChange={(e) => setPersonalData({ ...personalData, title: e.target.value })}
-                  placeholder="Cloud Engineer · Backend Developer · DevOps Engineer"
-                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Roles (Pisahkan dengan koma)
-                </label>
-                <input
-                  type="text"
-                  value={personalData.roles}
-                  onChange={(e) => setPersonalData({ ...personalData, roles: e.target.value })}
-                  placeholder="Cloud Engineer, Backend Developer, DevOps Engineer"
-                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Short Statement (Muncul di Hero)
-                </label>
-                <textarea
-                  rows={2}
-                  value={personalData.short_bio}
-                  onChange={(e) => setPersonalData({ ...personalData, short_bio: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Bio Lengkap (Muncul di About Me)
-                </label>
-                <textarea
-                  rows={4}
-                  value={personalData.bio}
-                  onChange={(e) => setPersonalData({ ...personalData, bio: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Email Kontak</label>
-                  <input
-                    type="email"
-                    value={personalData.email}
-                    onChange={(e) => setPersonalData({ ...personalData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
+              {/* SECTION D: SOCIAL & CURRENTLY */}
+              <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-5">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-800/60">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Sosial Media & Aktivitas Terkini (Currently)</h3>
+                    <p className="text-[11px] text-zinc-400">Tautan profil luar dan aktivitas belajar / riset saat ini.</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Lokasi</label>
-                  <input
-                    type="text"
-                    value={personalData.location}
-                    onChange={(e) => setPersonalData({ ...personalData, location: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Status Ketersediaan</label>
-                  <input
-                    type="text"
-                    value={personalData.availability}
-                    onChange={(e) => setPersonalData({ ...personalData, availability: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={personalData.github}
+                      onChange={(e) => setPersonalData({ ...personalData, github: e.target.value })}
+                      placeholder="https://github.com/Neideav"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">LinkedIn URL</label>
+                    <input
+                      type="url"
+                      value={personalData.linkedin}
+                      onChange={(e) => setPersonalData({ ...personalData, linkedin: e.target.value })}
+                      placeholder="https://linkedin.com/in/nvaldymaulana"
+                      className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs sm:text-sm text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Status Badge (Hero)</label>
-                  <input
-                    type="text"
-                    value={personalData.status}
-                    onChange={(e) => setPersonalData({ ...personalData, status: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
-                </div>
-              </div>
 
-              <div className="border-t border-zinc-800/80 pt-4 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                  Currently (Aktivitas Terkini)
-                </h3>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                   <div>
                     <label className="block text-xs text-zinc-400 mb-1">Building</label>
                     <input
@@ -806,7 +1064,7 @@ export default function AdminDashboardPage() {
                       onChange={(e) =>
                         setPersonalData({ ...personalData, currently_building: e.target.value })
                       }
-                      className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -817,7 +1075,7 @@ export default function AdminDashboardPage() {
                       onChange={(e) =>
                         setPersonalData({ ...personalData, currently_exploring: e.target.value })
                       }
-                      className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -828,17 +1086,18 @@ export default function AdminDashboardPage() {
                       onChange={(e) =>
                         setPersonalData({ ...personalData, currently_learning: e.target.value })
                       }
-                      className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="w-full px-3.5 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4">
+              {/* SAVE BUTTON */}
+              <div className="pt-2 sticky bottom-4 z-20">
                 <button
                   type="submit"
                   disabled={isSavingProfile}
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-6 py-2.5 rounded-xl text-xs tracking-wide shadow-md shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-8 py-3.5 rounded-xl text-xs sm:text-sm tracking-wide shadow-xl shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSavingProfile ? (
                     <>
@@ -848,7 +1107,7 @@ export default function AdminDashboardPage() {
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      <span>Simpan Perubahan Profil</span>
+                      <span>Simpan Perubahan About Me & Profil</span>
                     </>
                   )}
                 </button>

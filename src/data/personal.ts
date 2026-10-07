@@ -9,6 +9,8 @@ export interface PersonalInfo {
   placeOfBirth: string;
   gpa: string;
   education: string;
+  approach: string;
+  avatarUrl: string;
   github: string;
   linkedin: string;
   location: string;
@@ -38,6 +40,8 @@ export const personalInfo: PersonalInfo = {
   placeOfBirth: "Batu, Indonesia",
   gpa: "N/A",
   education: "SMKS PGRI 3 Malang",
+  approach: "Saya berkomitmen untuk memberikan solusi yang efisien, mudah dikelola, dan skalabel melalui praktik terbaik rekayasa perangkat lunak dan keandalan sistem cloud (best engineering practices & high availability).",
+  avatarUrl: "/images/nauval-portrait.png",
   github: "https://github.com/Neideav",
   linkedin: "https://linkedin.com/in/nvaldymaulana",
   location: "Indonesia (Available for Remote / Hybrid)",
