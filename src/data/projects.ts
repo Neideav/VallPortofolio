@@ -120,5 +120,80 @@ export const projects: Project[] = [
       "Version controlled repository with clean git commits and documentation"
     ],
     bannerGradient: "from-teal-950/40 via-slate-900/60 to-zinc-950/80"
+  },
+  {
+    id: "vallonation",
+    number: "05",
+    title: "Vallonation Cloud Replicator",
+    category: "Fullstack Web and Cloud",
+    description: "Aplikasi web Cloud Replicator komprehensif yang dirancang untuk monitoring dan tempat kontainer multi-user.",
+    detailedDescription: "Aplikasi web Cloud Replicator komprehensif yang dirancang untuk monitoring dan tempat kontainer multi-user.",
+    technologies: ["TypeScript", "Odin", "Dart", "MariaDB"],
+    githubUrl: "https://github.com/Neideav/vallonation",
+    liveUrl: "https://vallonation.vercel.app",
+    featured: true,
+    imageUrl: "/images/projects/ctf.png",
+    image: "/images/projects/ctf.png",
+    metrics: [
+      { label: "Architecture", value: "Cloud Replicator" },
+      { label: "Container", value: "Multi-tenant" },
+      { label: "Database", value: "MariaDB" }
+    ],
+    architecturePoints: [
+      "Real-time container status replication and performance metrics",
+      "Multi-tenant isolation and automated deployment workflows",
+      "High performance runtime communication and storage synchronization"
+    ],
+    bannerGradient: "from-emerald-950/40 via-slate-900/60 to-zinc-950/80"
   }
 ];
+
+export const DEFAULT_PROJECT_IMAGES: Record<string, string> = {
+  "fintrack-pro": "/images/projects/fintrack-pro.png",
+  "shopcart": "/images/projects/shopcart.png",
+  "kumo-ai": "/images/projects/kumo-ai.png",
+  "project-shyeund": "/images/projects/cloudops.png",
+  "vallonation": "/images/projects/ctf.png",
+};
+
+export function extractProjectCoverImage(
+  proj: {
+    id?: string;
+    image_url?: string | null;
+    imageUrl?: string | null;
+    image?: string | null;
+    metrics?: unknown;
+  } | null | undefined,
+  mirrorMap?: Record<string, string>
+): string {
+  if (!proj) return "/images/projects/fintrack-pro.png";
+
+  // 1. Direct explicit image_url or imageUrl or image
+  const direct = proj.image_url || proj.imageUrl || proj.image;
+  if (direct && typeof direct === "string" && direct.trim().length > 0) {
+    return direct.trim();
+  }
+
+  // 2. Metrics JSONB array checking __cover_image__ or cover_image
+  if (Array.isArray(proj.metrics)) {
+    const coverMetric = (proj.metrics as Array<{ label?: string; value?: string }>).find(
+      (m) => m && (m.label === "__cover_image__" || m.label === "cover_image")
+    );
+    if (coverMetric?.value && typeof coverMetric.value === "string" && coverMetric.value.trim().length > 0) {
+      return coverMetric.value.trim();
+    }
+  }
+
+  // 3. From mirrored projectImages map (stored in personal_info.currently.project_images)
+  if (proj.id && mirrorMap && mirrorMap[proj.id] && typeof mirrorMap[proj.id] === "string" && mirrorMap[proj.id].trim().length > 0) {
+    return mirrorMap[proj.id].trim();
+  }
+
+  // 4. Default project image by ID
+  if (proj.id && DEFAULT_PROJECT_IMAGES[proj.id]) {
+    return DEFAULT_PROJECT_IMAGES[proj.id];
+  }
+
+  return "";
+}
+

@@ -42,7 +42,11 @@ import {
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
-import { projects as fallbackProjects } from "@/data/projects";
+import { 
+  projects as fallbackProjects, 
+  DEFAULT_PROJECT_IMAGES, 
+  extractProjectCoverImage 
+} from "@/data/projects";
 import { personalInfo as fallbackPersonal } from "@/data/personal";
 import { 
   AwardItem, 
@@ -200,6 +204,21 @@ export default function AdminDashboardPage() {
 
     setIsLoadingProjects(true);
     try {
+      // 1. Fetch mirror of project_images from personal_info if available
+      let projectImagesMirror: Record<string, string> = {};
+      try {
+        const { data: prof } = await supabase
+          .from("personal_info")
+          .select("currently")
+          .eq("id", "default")
+          .single();
+        if (prof?.currently && typeof prof.currently === "object") {
+          projectImagesMirror = (prof.currently as Record<string, any>).project_images || {};
+        }
+      } catch {
+        // ignore mirror fetch error
+      }
+
       const { data, error } = await supabase
         .from("projects")
         .select("*")
@@ -223,13 +242,18 @@ export default function AdminDashboardPage() {
           architecture_points: p.architecturePoints || null,
           banner_gradient: p.bannerGradient || null,
           sort_order: idx + 1,
-          image_url: p.imageUrl || p.image || `/images/projects/${p.id}.png`,
+          image_url: extractProjectCoverImage(p, projectImagesMirror),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
         setProjectsList(mappedFallback);
       } else if (data && data.length > 0) {
-        setProjectsList(data);
+        // Map Supabase rows and resolve cover image from direct column, metrics JSONB, mirror, or defaults
+        const mappedData: ProjectRow[] = data.map((p: any) => ({
+          ...p,
+          image_url: extractProjectCoverImage(p, projectImagesMirror),
+        }));
+        setProjectsList(mappedData);
       } else {
         // Table is empty, provide static projects as template
         const mappedFallback: ProjectRow[] = fallbackProjects.map((p, idx) => ({
@@ -247,7 +271,7 @@ export default function AdminDashboardPage() {
           architecture_points: p.architecturePoints || null,
           banner_gradient: p.bannerGradient || null,
           sort_order: idx + 1,
-          image_url: p.imageUrl || p.image || `/images/projects/${p.id}.png`,
+          image_url: extractProjectCoverImage(p, projectImagesMirror),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
@@ -409,7 +433,7 @@ export default function AdminDashboardPage() {
       }
 
       if (!uploadedUrl) {
-        uploadedUrl = await optimizeImageFile(file, 1200, 0.85);
+        uploadedUrl = await optimizeImageFile(file, 960, 0.82);
       }
 
       setEditingProject((prev) => (prev ? { ...prev, image_url: uploadedUrl! } : null));
@@ -453,7 +477,7 @@ export default function AdminDashboardPage() {
     setTechInput("");
   };
 
-  // Save Project (Insert or Update)
+  // Save Project (Insert or Update with Multi-Layer Persistence)
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProject || !editingProject.title || !editingProject.id) {
@@ -475,6 +499,19 @@ export default function AdminDashboardPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
+      const coverImageUrl = (editingProject.image_url || "").trim();
+
+      // Clean existing metrics and embed __cover_image__ so it persists in the projects table JSONB column
+      let metricsArr: Array<{ label: string; value: string }> = [];
+      if (Array.isArray(editingProject.metrics)) {
+        metricsArr = (editingProject.metrics as Array<{ label: string; value: string }>).filter(
+          (m) => m && m.label !== "__cover_image__" && m.label !== "cover_image"
+        );
+      }
+      if (coverImageUrl) {
+        metricsArr.push({ label: "__cover_image__", value: coverImageUrl });
+      }
+
       const payload: any = {
         id: editingProject.id,
         number: editingProject.number || "01",
@@ -489,13 +526,16 @@ export default function AdminDashboardPage() {
         banner_gradient:
           editingProject.banner_gradient || "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
         sort_order: Number(editingProject.sort_order) || 1,
-        image_url: editingProject.image_url || null,
+        metrics: metricsArr,
+        image_url: coverImageUrl || null,
         updated_at: new Date().toISOString(),
       };
 
+      // 1. Primary save to projects table
       let { error } = await supabase.from("projects").upsert(payload);
 
-      // If remote Supabase schema doesn't have image_url column yet, fallback without crashing
+      // If remote Supabase schema doesn't have image_url column yet, fallback without image_url column
+      // Notice: metricsArr STILL contains __cover_image__, so the image is safely saved in the table!
       if (error && (error.message?.includes("image_url") || (error as any).code === "42703")) {
         const fallbackPayload = { ...payload };
         delete fallbackPayload.image_url;
@@ -506,11 +546,39 @@ export default function AdminDashboardPage() {
       if (error) {
         console.error("Upsert project error:", error);
         showToast("error", `Gagal menyimpan: ${error.message}`);
-      } else {
-        showToast("success", "Proyek berhasil disimpan ke Supabase!");
-        setEditingProject(null);
-        fetchProjects();
+        return;
       }
+
+      // 2. Mirror into personal_info.currently.project_images for ultra-reliable redundancy
+      try {
+        const { data: prof } = await supabase
+          .from("personal_info")
+          .select("currently")
+          .eq("id", "default")
+          .single();
+        if (prof) {
+          const curr = (prof.currently as Record<string, any>) || {};
+          const pImgs = { ...(curr.project_images || {}) };
+          if (coverImageUrl) {
+            pImgs[editingProject.id] = coverImageUrl;
+          } else {
+            delete pImgs[editingProject.id];
+          }
+          await supabase
+            .from("personal_info")
+            .update({
+              currently: { ...curr, project_images: pImgs },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", "default");
+        }
+      } catch (mirrorErr) {
+        console.warn("Mirror project image to personal_info warning:", mirrorErr);
+      }
+
+      showToast("success", "Proyek & foto cover berhasil disimpan ke Supabase!");
+      setEditingProject(null);
+      await fetchProjects();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       showToast("error", msg);
@@ -531,8 +599,31 @@ export default function AdminDashboardPage() {
       if (error) {
         showToast("error", `Gagal menghapus: ${error.message}`);
       } else {
+        // Also clean up from mirror in personal_info
+        try {
+          const { data: prof } = await supabase
+            .from("personal_info")
+            .select("currently")
+            .eq("id", "default")
+            .single();
+          if (prof) {
+            const curr = (prof.currently as Record<string, any>) || {};
+            if (curr.project_images && curr.project_images[id]) {
+              const pImgs = { ...curr.project_images };
+              delete pImgs[id];
+              await supabase
+                .from("personal_info")
+                .update({
+                  currently: { ...curr, project_images: pImgs },
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", "default");
+            }
+          }
+        } catch {}
+
         showToast("success", `Proyek "${title}" berhasil dihapus.`);
-        fetchProjects();
+        await fetchProjects();
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
