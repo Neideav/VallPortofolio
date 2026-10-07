@@ -56,7 +56,7 @@ export function Trainings() {
     <section id="trainings" className="section">
       <Reveal delay={0}>
         <div className="section-label">Growth &amp; Experience</div>
-        <FadeInTitle text="Trainings &amp; Experience" />
+        <FadeInTitle text="Trainings & Experience" />
         <p className="section-desc">
           A collection of technical milestones, cybersecurity competitions, and engineering projects
           that shaped my technical and collaborative skills.

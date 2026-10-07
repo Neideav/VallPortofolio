@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { personalInfo as defaultPersonal } from "@/data/personal";
 import { fetchPersonalInfo } from "@/lib/personal";
+import { FadeInTitle } from "./FadeInTitle";
 
 export function About() {
   const [personal, setPersonal] = useState(defaultPersonal);
@@ -30,7 +31,7 @@ export function About() {
             className="w-full text-left mb-8 md:mb-10"
           >
             <div className="section-label">Discover</div>
-            <h3 className="section-title">About Me</h3>
+            <FadeInTitle text="About Me" as="h3" />
           </motion.div>
 
           {/* Main Grid: 12 columns */}
