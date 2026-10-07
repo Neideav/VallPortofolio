@@ -25,14 +25,12 @@ export function FadeInTitle({
   className = "",
   as: Component = "h2",
   speed = 45,
-  delay = 140,
+  delay = 100,
   ...props
 }: FadeInTitleProps) {
   const cleanText = decodeEntities(text);
   const [displayedCount, setDisplayedCount] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
-  const [cursorVisible, setCursorVisible] = useState(false);
-  const [cursorFading, setCursorFading] = useState(false);
   const ref = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -52,11 +50,10 @@ export function FadeInTitle({
       ([entry]) => {
         if (entry.isIntersecting) {
           setHasStarted(true);
-          setCursorVisible(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.1 }
     );
 
     observer.observe(el);
@@ -65,38 +62,26 @@ export function FadeInTitle({
 
   useEffect(() => {
     if (!hasStarted) return;
-    if (displayedCount >= cleanText.length) return;
 
-    let charIndex = 0;
-    let timer: NodeJS.Timeout | null = null;
-    let fadeTimer: NodeJS.Timeout | null = null;
-    let removeTimer: NodeJS.Timeout | null = null;
+    let currentIndex = 0;
+    let intervalId: NodeJS.Timeout | null = null;
 
-    const startTimer = setTimeout(() => {
-      timer = setInterval(() => {
-        charIndex += 1;
-        setDisplayedCount(charIndex);
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        currentIndex += 1;
+        setDisplayedCount(currentIndex);
 
-        if (charIndex >= cleanText.length) {
-          if (timer) clearInterval(timer);
-          // Keep cursor blinking for 1.4s after typing finishes, then fade out
-          fadeTimer = setTimeout(() => {
-            setCursorFading(true);
-            removeTimer = setTimeout(() => {
-              setCursorVisible(false);
-            }, 500);
-          }, 1400);
+        if (currentIndex >= cleanText.length) {
+          if (intervalId) clearInterval(intervalId);
         }
       }, speed);
     }, delay);
 
     return () => {
-      clearTimeout(startTimer);
-      if (timer) clearInterval(timer);
-      if (fadeTimer) clearTimeout(fadeTimer);
-      if (removeTimer) clearTimeout(removeTimer);
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [hasStarted, cleanText, speed, delay, displayedCount]);
+  }, [hasStarted, cleanText, speed, delay]);
 
   const displayedText = cleanText.slice(0, displayedCount);
 
@@ -104,17 +89,16 @@ export function FadeInTitle({
     <Component
       ref={ref}
       aria-label={cleanText}
-      className={`section-title relative inline-block min-h-[1.15em] ${className}`}
+      className={`section-title relative inline-flex items-center flex-wrap ${className}`}
       {...props}
     >
-      <span className="inline-block whitespace-pre-line">
+      <span className="whitespace-pre-line">
         {hasStarted ? displayedText : "\u00A0"}
       </span>
-      {cursorVisible && (
+      {/* Blinking typewriter caret matching screenshot */}
+      {hasStarted && (
         <span
-          className={`typewriter-cursor transition-opacity duration-500 ${
-            cursorFading ? "opacity-0" : "opacity-100"
-          }`}
+          className="typewriter-cursor"
           aria-hidden="true"
         />
       )}

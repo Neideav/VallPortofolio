@@ -147,12 +147,12 @@ body:before {
 .typewriter-cursor {
   display: inline-block;
   width: 3px;
-  height: 0.8em;
-  background-color: var(--accent, #10b981);
+  height: 0.88em;
+  background-color: currentColor;
   margin-left: 6px;
-  vertical-align: baseline;
-  animation: typewriter-cursor-blink 0.8s infinite;
+  vertical-align: -0.06em;
   border-radius: 1px;
+  animation: typewriter-cursor-blink 0.9s infinite;
 }
 
 .section-desc {
