@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Trophy, ExternalLink, ShieldCheck, GraduationCap, Languages } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Trophy, ExternalLink, ShieldCheck, GraduationCap, Languages, X } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
 
@@ -12,6 +13,85 @@ interface AwardItem {
   link: string;
   icon: "cap" | "trophy" | "shield" | "languages";
 }
+
+interface AwardPhoto {
+  id: string;
+  src: string;
+  alt: string;
+  badge: string;
+  orientation: "vertical" | "landscape";
+}
+
+const photoColumns: AwardPhoto[][] = [
+  // Column 1: Vertical then Landscape
+  [
+    {
+      id: "award-solo",
+      src: "/images/awards/photo-award-solo.jpg",
+      alt: "Academic and Competition Awardee",
+      badge: "Competition Winner",
+      orientation: "vertical",
+    },
+    {
+      id: "grad-friends",
+      src: "/images/awards/photo-grad-friends.jpg",
+      alt: "Bachelor of Informatics Graduation with Colleagues",
+      badge: "Bachelor with Honors",
+      orientation: "landscape",
+    },
+  ],
+  // Column 2: Landscape then Vertical
+  [
+    {
+      id: "booth-showcase",
+      src: "/images/awards/photo-booth.jpg",
+      alt: "Project Showcase & Kiosk Exhibition",
+      badge: "Project Showcase",
+      orientation: "landscape",
+    },
+    {
+      id: "grad-selfie",
+      src: "/images/awards/photo-grad-selfie.jpg",
+      alt: "Graduation Day Celebration",
+      badge: "Academic Honors",
+      orientation: "vertical",
+    },
+  ],
+  // Column 3: Vertical then Landscape
+  [
+    {
+      id: "grad-family",
+      src: "/images/awards/photo-grad-family.jpg",
+      alt: "Graduation Day with Family",
+      badge: "Family & Honors",
+      orientation: "vertical",
+    },
+    {
+      id: "stage-ceremony",
+      src: "/images/awards/photo-stage.jpg",
+      alt: "National Award Stage Ceremony",
+      badge: "National Stage",
+      orientation: "landscape",
+    },
+  ],
+  // Column 4: Landscape then Vertical (incorporating newly added JHIC photos)
+  [
+    {
+      id: "jhic-team",
+      src: "/images/awards/photo-jhic-team.jpg",
+      alt: "Top 30 Nasional Jagoan Hosting Infra Competition Team",
+      badge: "Top 30 Nasional // JHIC",
+      orientation: "landscape",
+    },
+    {
+      id: "jhic-participants",
+      src: "/images/awards/photo-jhic-participants.jpg",
+      alt: "Competition Finalists ID Circle",
+      badge: "Finalist Circle",
+      orientation: "vertical",
+    },
+  ],
+];
 
 const awardsList: AwardItem[] = [
   {
@@ -47,6 +127,22 @@ const awardsList: AwardItem[] = [
 ];
 
 export function Awards() {
+  const [selectedPhoto, setSelectedPhoto] = useState<AwardPhoto | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedPhoto(null);
+    };
+    if (selectedPhoto) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPhoto]);
+
   const getIcon = (type: AwardItem["icon"]) => {
     switch (type) {
       case "cap":
@@ -71,90 +167,106 @@ export function Awards() {
           </p>
         </Reveal>
 
+        {/* Mosaic Photo Gallery: Interlocking Landscape and Vertical Layout */}
         <Reveal delay={100}>
-          <div className="awards-layout">
-            {/* Left: Asymmetrical Staggered Photo Collage */}
-            <div className="collage-container">
-              {/* Column 1 */}
-              <div className="collage-column">
-                <div className="collage-item h-[200px] lg:h-[220px]">
-                  <Image
-                    src="/images/awards/jhic-cert.jpg"
-                    alt="Sertifikat Top 30 Nasional Jagoan Hosting Infra Competition 2025"
-                    fill
-                    unoptimized
-                    sizes="(max-width: 768px) 50vw, 320px"
-                    className="object-cover object-center"
-                  />
-                  <div className="collage-overlay" />
-                  <span className="collage-badge">Top 30 Nasional // JHIC 2025</span>
-                </div>
-
-                <div className="collage-item h-[230px] lg:h-[250px]">
-                  <Image
-                    src="/images/awards/award-ceremony.jpg"
-                    alt="Championship Award Ceremony"
-                    fill
-                    unoptimized
-                    sizes="(max-width: 768px) 50vw, 320px"
-                    className="object-cover object-top"
-                  />
-                  <div className="collage-overlay" />
-                  <span className="collage-badge">National Stage // Infra Competition</span>
-                </div>
+          <div className="awards-mosaic">
+            {photoColumns.map((col, colIndex) => (
+              <div key={colIndex} className="mosaic-col">
+                {col.map((photo) => (
+                  <div
+                    key={photo.id}
+                    onClick={() => setSelectedPhoto(photo)}
+                    className={`mosaic-item mosaic-item--${photo.orientation} group`}
+                  >
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover object-center"
+                    />
+                    <div className="mosaic-overlay" />
+                    <span className="mosaic-badge">{photo.badge}</span>
+                  </div>
+                ))}
               </div>
-
-              {/* Column 2 (Offset / Staggered) */}
-              <div className="collage-column collage-column--offset">
-                <div className="collage-item h-[230px] lg:h-[250px]">
-                  <Image
-                    src="/images/awards/academic-honors.jpg"
-                    alt="Academic Honors Graduate"
-                    fill
-                    unoptimized
-                    sizes="(max-width: 768px) 50vw, 320px"
-                    className="object-cover object-top"
-                  />
-                  <div className="collage-overlay" />
-                  <span className="collage-badge">Bachelor with Honors</span>
-                </div>
-
-                <div className="collage-item h-[200px] lg:h-[220px]">
-                  <Image
-                    src="/images/awards/hackathon-booth.jpg"
-                    alt="Cloud Architecture Showcase Booth"
-                    fill
-                    unoptimized
-                    sizes="(max-width: 768px) 50vw, 320px"
-                    className="object-cover object-center"
-                  />
-                  <div className="collage-overlay" />
-                  <span className="collage-badge">Architecture Showcase</span>
-                </div>
-              </div>
-            </div>
-
-          {/* Right: Awards Column */}
-          <div className="awards-column">
-            {awardsList.map((item) => (
-              <a
-                key={item.id}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="award-card group"
-              >
-                <div className="award-card-left">
-                  <div className="award-card-icon">{getIcon(item.icon)}</div>
-                  <div className="award-card-title">{item.title}</div>
-                </div>
-                <ExternalLink className="award-card-arrow w-4 h-4" />
-              </a>
             ))}
           </div>
-        </div>
-      </Reveal>
+        </Reveal>
+
+        {/* Awards & Credentials Cards Grid */}
+        <Reveal delay={200}>
+          <div className="mt-12 sm:mt-14">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+                Verified Credentials &amp; Recognitions
+              </span>
+            </div>
+            <div className="awards-cards-grid">
+              {awardsList.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="award-card group"
+                >
+                  <div className="award-card-left">
+                    <div className="award-card-icon">{getIcon(item.icon)}</div>
+                    <div className="award-card-title">{item.title}</div>
+                  </div>
+                  <ExternalLink className="award-card-arrow w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </div>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {selectedPhoto && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPhoto(null)}
+              className="fixed inset-0 bg-black/85 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 max-w-4xl max-h-[90vh] w-full flex flex-col items-center"
+            >
+              <button
+                onClick={() => setSelectedPhoto(null)}
+                aria-label="Close"
+                className="absolute -top-12 right-0 p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="relative w-full max-h-[80vh] flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-black/50 shadow-2xl">
+                <img
+                  src={selectedPhoto.src}
+                  alt={selectedPhoto.alt}
+                  className="max-w-full max-h-[80vh] object-contain rounded-2xl"
+                />
+              </div>
+              <div className="mt-3 text-center">
+                <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-semibold px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30">
+                  {selectedPhoto.badge}
+                </span>
+                <p className="text-xs text-zinc-400 mt-1.5">{selectedPhoto.alt}</p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
