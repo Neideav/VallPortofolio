@@ -1170,7 +1170,7 @@ export default function AdminDashboardPage() {
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Trainings</span>
+              <span>Journey</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
                 activeTab === "trainings"
                   ? "bg-[var(--surface)]/20 text-[var(--surface)]"
@@ -2086,8 +2086,8 @@ export default function AdminDashboardPage() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
               <div>
-                <div className="section-label mb-2">05 // GROWTH &amp; EXPERIENCE</div>
-                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Trainings &amp; Interactive Milestones</h2>
+                <div className="section-label mb-2">05 // JOURNEY &amp; EXPERIENCE</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Journey and Experience (Milestones)</h2>
                 <p className="section-desc text-xs sm:text-sm mb-0">
                   Setiap milestone memiliki 3 slot gambar interaktif flipper yang berputar saat kartu diklik oleh pengunjung.
                 </p>

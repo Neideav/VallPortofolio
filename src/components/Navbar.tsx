@@ -142,7 +142,7 @@ export function Navbar() {
         { name: "Skills", href: "/#skills" },
         { name: "About", href: "/#about" },
         { name: "Awards", href: "/#awards" },
-        { name: "Trainings", href: "/#trainings" },
+        { name: "Journey", href: "/#trainings" },
         { name: "Contact", href: "/#contact" },
       ];
 
