@@ -3,15 +3,22 @@
 import React, { useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
 
-const words = [
-  "Hello",
-  "Bonjour",
-  "Ciao",
-  "Hola",
-  "Guten Tag",
-  "Konnichiwa",
-  "Namaste",
-  "Halo",
+interface GreetingItem {
+  text: string;
+  lang: string;
+}
+
+const greetings: GreetingItem[] = [
+  { text: "Hello", lang: "English" },
+  { text: "こんにちは", lang: "Japanese" },
+  { text: "Bonjour", lang: "French" },
+  { text: "Hola", lang: "Spanish" },
+  { text: "Hallo", lang: "German" },
+  { text: "你好", lang: "Chinese" },
+  { text: "مرحباً", lang: "Arabic" },
+  { text: "안녕하세요", lang: "Korean" },
+  { text: "Привет", lang: "Russian" },
+  { text: "Halo", lang: "Indonesian" },
 ];
 
 interface PreloaderProps {
@@ -21,6 +28,7 @@ interface PreloaderProps {
 
 export function Preloader({ onComplete, transitionOnly = false }: PreloaderProps) {
   const [index, setIndex] = useState(0);
+  const [progress, setProgress] = useState(1);
 
   useEffect(() => {
     if (transitionOnly) {
@@ -31,21 +39,45 @@ export function Preloader({ onComplete, transitionOnly = false }: PreloaderProps
       return () => clearTimeout(timer);
     }
 
-    // Last word ("Halo"): pause for 600ms before exit animation
-    if (index === words.length - 1) {
-      const timer = setTimeout(() => {
-        onComplete();
-      }, 600);
-      return () => clearTimeout(timer);
-    }
+    let startTime: number | null = null;
+    let animationFrameId: number;
+    let completeTimeout: NodeJS.Timeout | null = null;
+    const TOTAL_DURATION = 2200; // 2.2 seconds smooth progression
 
-    // First word stays 1000ms, subsequent words cycle rapidly every 180ms
-    const timer = setTimeout(() => {
-      setIndex((prev) => prev + 1);
-    }, index === 0 ? 1000 : 180);
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const currentProgress = Math.min(
+        100,
+        Math.max(1, Math.floor((elapsed / TOTAL_DURATION) * 100))
+      );
 
-    return () => clearTimeout(timer);
-  }, [index, onComplete, transitionOnly]);
+      setProgress(currentProgress);
+
+      // Map progress (1-100) across the 10 greetings
+      const currentIdx = Math.min(
+        greetings.length - 1,
+        Math.floor((currentProgress / 100) * greetings.length)
+      );
+      setIndex(currentIdx);
+
+      if (currentProgress < 100) {
+        animationFrameId = requestAnimationFrame(step);
+      } else {
+        // Hold on 100% and "Halo" for 420ms before triggering curtain exit
+        completeTimeout = setTimeout(() => {
+          onComplete();
+        }, 420);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (completeTimeout) clearTimeout(completeTimeout);
+    };
+  }, [onComplete, transitionOnly]);
 
   // Curtain columns slide up sequentially with staggered delay
   const slideUp: Variants = {
@@ -80,28 +112,54 @@ export function Preloader({ onComplete, transitionOnly = false }: PreloaderProps
         ))}
       </div>
 
-      {/* Greeting text in center (omitted during transitionOnly) */}
+      {/* Greeting text, Loading Line & 1-100 Counter in center */}
       {!transitionOnly && (
         <motion.div
           variants={{
-            initial: { opacity: 1 },
+            initial: { opacity: 1, y: 0 },
             exit: {
               opacity: 0,
-              y: -50,
+              y: -40,
               transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] as const },
             },
           }}
           initial="initial"
           exit="exit"
-          className="relative z-10 flex items-center text-white text-[40px] md:text-[56px] font-medium tracking-tight select-none"
+          className="relative z-10 flex flex-col items-center justify-center text-white select-none px-6"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full mr-5 md:mr-7"
-          />
-          <p>{words[index]}</p>
+          {/* Greeting Word with indicator dot */}
+          <div className="flex items-center text-[38px] sm:text-[48px] md:text-[58px] font-medium tracking-tight min-h-[70px] sm:min-h-[80px]">
+            <motion.span
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 bg-white rounded-full mr-4 sm:mr-5 shrink-0"
+            />
+            <p className="tabular-nums transition-all duration-150">
+              {greetings[index].text}
+            </p>
+          </div>
+
+          {/* Progress Bar & Counter Container */}
+          <div className="w-56 sm:w-72 md:w-80 mt-4 sm:mt-6 space-y-2.5">
+            {/* Line Loading (fills from left to right) */}
+            <div className="w-full h-[2px] sm:h-[3px] bg-white/15 rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-75 ease-out shadow-[0_0_10px_rgba(255,255,255,0.7)]"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            {/* Bottom info: Language name & Percentage (1-100) */}
+            <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono tracking-wider text-white/50">
+              <span className="uppercase tracking-[0.2em]">
+                {greetings[index].lang}
+              </span>
+              <span className="tabular-nums font-semibold text-white/90">
+                {progress}%
+              </span>
+            </div>
+          </div>
         </motion.div>
       )}
     </motion.div>
