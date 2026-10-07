@@ -1469,87 +1469,138 @@ body:before {
   }
 }
 
-/* Awards Section */
-.awards-layout {
+/* Awards Photo Mosaic Gallery */
+.awards-mosaic {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: 40px;
-  align-items: center;
-  margin-top: 32px;
-}
-
-/* Asymmetrical Photo Collage */
-.collage-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  position: relative;
+  width: 100%;
+  margin-top: 36px;
 }
 
-.collage-column {
+.mosaic-col {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.collage-column--offset {
-  margin-top: 20px;
-}
-
-.collage-item {
+.mosaic-item {
   position: relative;
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--surface-2);
   box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.collage-item:hover {
+.mosaic-item:hover {
   border-color: var(--text);
   transform: translateY(-4px);
   box-shadow: 0 24px 44px -12px rgba(0, 0, 0, 0.35);
 }
 
-.collage-item img {
+.mosaic-item img {
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.collage-item:hover img {
+.mosaic-item:hover img {
   transform: scale(1.05);
 }
 
-.collage-overlay {
+.mosaic-item--vertical {
+  height: 270px;
+}
+
+.mosaic-item--landscape {
+  height: 190px;
+}
+
+.mosaic-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.15) 45%, transparent 100%);
   pointer-events: none;
 }
 
-.collage-badge {
+.mosaic-badge {
   position: absolute;
-  bottom: 14px;
-  left: 14px;
+  bottom: 12px;
+  left: 12px;
   font-family: var(--font-mono), monospace;
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #ffffff;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 4px 10px;
   border-radius: 6px;
   pointer-events: none;
+  max-width: calc(100% - 24px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Awards Cards Column */
-.awards-column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Awards Cards Grid below */
+.awards-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .awards-mosaic {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .mosaic-item--vertical {
+    height: 240px;
+  }
+  .mosaic-item--landscape {
+    height: 170px;
+  }
+  .awards-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .awards-mosaic {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .mosaic-col {
+    gap: 10px;
+  }
+  .mosaic-item {
+    border-radius: 12px;
+  }
+  .mosaic-item--vertical {
+    height: 190px;
+  }
+  .mosaic-item--landscape {
+    height: 135px;
+  }
+  .mosaic-badge {
+    bottom: 8px;
+    left: 8px;
+    font-size: 8px;
+    padding: 3px 6px;
+    letter-spacing: 0.05em;
+  }
+  .awards-cards-grid {
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+    gap: 10px;
+  }
 }
 
 .award-card {
@@ -1625,32 +1676,7 @@ body:before {
 }
 
 @media (max-width: 768px) {
-  .awards-layout {
-    grid-template-columns: 1fr;
-    gap: 32px;
-    margin-top: 24px;
-  }
-  .collage-container {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .collage-column {
-    gap: 10px;
-  }
-  .collage-column--offset {
-    margin-top: 14px;
-  }
-  .collage-item {
-    height: 140px !important;
-    border-radius: 12px;
-  }
-  .collage-badge {
-    bottom: 8px;
-    left: 8px;
-    font-size: 8px;
-    padding: 3px 6px;
-    letter-spacing: 0.05em;
-  }
+
   .award-card {
     padding: 14px 16px;
     border-radius: 14px;
