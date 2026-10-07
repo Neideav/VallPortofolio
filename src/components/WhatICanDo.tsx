@@ -17,14 +17,12 @@ const techCategories = [
       { name: "TypeScript", icon: "/images/tech/ts.svg" },
       { name: "JavaScript", icon: "/images/tech/js.svg" },
       { name: "PHP", icon: "/images/tech/php.svg" },
-      { name: "Java", icon: "/images/tech/java.svg" },
-      { name: "C++", icon: "/images/tech/cpp.svg" },
+      { name: "Kotlin", icon: "/images/tech/kotlin.svg" },
     ],
   },
   {
     title: "FRAMEWORK",
     items: [
-      { name: "Node.js", icon: "/images/tech/nodejs.svg" },
       { name: "Laravel", icon: "/images/tech/laravel.svg" },
       { name: "FastAPI", icon: "/images/tech/fastapi.svg" },
       { name: ".NET", icon: "/images/tech/dotnet.svg" },

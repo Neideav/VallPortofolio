@@ -39,10 +39,10 @@ const awardsList: AwardItem[] = [
     icon: "languages",
   },
   {
-    id: "best-capstone",
-    title: "Best Capstone System & Architecture",
-    link: "https://github.com/Neideav",
-    icon: "trophy",
+    id: "hacktiv8-ai-productivity",
+    title: "AI Productivity & AI API Integration — Hacktiv8",
+    link: "https://certificate-and-transcript.s3.ap-southeast-1.amazonaws.com/documents/8b859741-ab44-4af6-bd27-e583ad965899/1790742859761-19281362-efe5-4360-95e8-a6f6713a0076.pdf",
+    icon: "shield",
   },
 ];
 
