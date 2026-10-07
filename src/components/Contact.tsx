@@ -8,7 +8,18 @@ import { personalInfo as fallbackPersonal, PersonalInfo } from "@/data/personal"
 import { fetchPersonalInfo } from "@/lib/personal";
 
 export function Contact() {
-  const [personal, setPersonal] = useState<PersonalInfo>(fallbackPersonal);
+  const [personal, setPersonal] = useState<PersonalInfo>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_personal_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed && parsed.name) return parsed;
+        }
+      } catch {}
+    }
+    return fallbackPersonal;
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [formState, setFormState] = useState({ name: "", email: "", message: "" });

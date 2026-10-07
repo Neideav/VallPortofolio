@@ -8,7 +8,18 @@ import { fetchPersonalInfo } from "@/lib/personal";
 import { FadeInTitle } from "./FadeInTitle";
 
 export function About() {
-  const [personal, setPersonal] = useState(defaultPersonal);
+  const [personal, setPersonal] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_personal_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed && parsed.name) return parsed;
+        }
+      } catch {}
+    }
+    return defaultPersonal;
+  });
 
   useEffect(() => {
     fetchPersonalInfo().then((data) => {

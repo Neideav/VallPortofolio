@@ -69,7 +69,36 @@ const workProjects: WorkProject[] = [
 ];
 
 export function Work() {
-  const [projectsList, setProjectsList] = useState<WorkProject[]>(workProjects);
+  const [projectsList, setProjectsList] = useState<WorkProject[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_projects_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((p: any) => {
+              const defaultMatch = workProjects.find((wp) => wp.id === p.id);
+              const chosenImage =
+                p.imageUrl ||
+                p.image ||
+                defaultMatch?.image ||
+                "/images/projects/fintrack-pro.png";
+
+              return {
+                id: p.id,
+                title: p.title,
+                description: p.description,
+                image: chosenImage,
+                link: p.githubUrl,
+                tags: p.technologies || [],
+              };
+            });
+          }
+        }
+      } catch {}
+    }
+    return workProjects;
+  });
   const [activeIndex, setActiveIndex] = useState(1);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 

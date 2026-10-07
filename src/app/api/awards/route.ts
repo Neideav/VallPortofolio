@@ -31,7 +31,7 @@ export async function GET() {
           },
           {
             headers: {
-              "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
+              "Cache-Control": "no-store, no-cache, must-revalidate",
             },
           }
         );
@@ -49,7 +49,7 @@ export async function GET() {
     },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     }
   );

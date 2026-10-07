@@ -17,8 +17,30 @@ import { fetchAwardsData } from "@/lib/awards";
 
 export function Awards() {
   const [selectedPhoto, setSelectedPhoto] = useState<AwardPhoto | null>(null);
-  const [awards, setAwards] = useState<AwardItem[]>(defaultAwardsList);
-  const [photos, setPhotos] = useState<AwardPhoto[]>(defaultAwardPhotosList);
+  const [awards, setAwards] = useState<AwardItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_awards_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardsList;
+  });
+  const [photos, setPhotos] = useState<AwardPhoto[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_award_photos_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardPhotosList;
+  });
 
   useEffect(() => {
     fetchAwardsData().then((data) => {

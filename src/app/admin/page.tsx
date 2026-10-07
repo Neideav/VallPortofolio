@@ -147,19 +147,53 @@ export default function AdminDashboardPage() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // Awards & Collage States (Max 6 Photos)
-  const [awardsList, setAwardsList] = useState<AwardItem[]>(defaultAwardsList);
-  const [awardPhotos, setAwardPhotos] = useState<AwardPhoto[]>(defaultAwardPhotosList);
+  const [awardsList, setAwardsList] = useState<AwardItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_awards_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardsList;
+  });
+  const [awardPhotos, setAwardPhotos] = useState<AwardPhoto[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_award_photos_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardPhotosList;
+  });
   const [editingAward, setEditingAward] = useState<Partial<AwardItem> | null>(null);
   const [editingPhoto, setEditingPhoto] = useState<{ index: number; photo: AwardPhoto; isNew?: boolean } | null>(null);
   const [isSavingAwards, setIsSavingAwards] = useState(false);
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Trainings States
-  const [trainingsList, setTrainingsList] = useState<TrainingEntry[]>(defaultTrainingData);
+  const [trainingsList, setTrainingsList] = useState<TrainingEntry[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_trainings_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultTrainingData;
+  });
   const [editingTraining, setEditingTraining] = useState<Partial<TrainingEntry> | null>(null);
   const [trainingImgInputs, setTrainingImgInputs] = useState<string[]>(["", "", ""]);
   const [isSavingTrainings, setIsSavingTrainings] = useState(false);
   const trainingFileInputRef = useRef<HTMLInputElement>(null);
+  const activeTrainingImgSlotRef = useRef<number>(0);
   const [activeTrainingImgSlot, setActiveTrainingImgSlot] = useState<number>(0);
 
   // Project Modal State (Add or Edit)
@@ -255,6 +289,9 @@ export default function AdminDashboardPage() {
           image_url: extractProjectCoverImage(p, projectImagesMirror),
         }));
         setProjectsList(mappedData);
+        if (typeof window !== "undefined") {
+          try { localStorage.setItem("porto_projects_v1", JSON.stringify(mappedData)); } catch {}
+        }
       } else {
         // Table is empty, provide static projects as template
         const mappedFallback: ProjectRow[] = fallbackProjects.map((p, idx) => ({
@@ -344,9 +381,51 @@ export default function AdminDashboardPage() {
         const customPhotos = (currently as Record<string, unknown>).award_photos;
         const customTrainings = (currently as Record<string, unknown>).trainings as TrainingEntry[] | undefined;
 
-        if (customAwards && customAwards.length > 0) setAwardsList(customAwards);
-        if (customPhotos) setAwardPhotos(normalizeAwardPhotos(customPhotos));
-        if (customTrainings && customTrainings.length > 0) setTrainingsList(customTrainings);
+        if (customAwards && customAwards.length > 0) {
+          setAwardsList(customAwards);
+          if (typeof window !== "undefined") {
+            try { localStorage.setItem("porto_awards_v1", JSON.stringify(customAwards)); } catch {}
+          }
+        } else if (typeof window !== "undefined") {
+          const localAwards = localStorage.getItem("porto_awards_v1");
+          if (localAwards) {
+            try {
+              const parsed = JSON.parse(localAwards);
+              if (Array.isArray(parsed) && parsed.length > 0) setAwardsList(parsed);
+            } catch {}
+          }
+        }
+
+        if (customPhotos) {
+          const norm = normalizeAwardPhotos(customPhotos);
+          setAwardPhotos(norm);
+          if (typeof window !== "undefined") {
+            try { localStorage.setItem("porto_award_photos_v1", JSON.stringify(norm)); } catch {}
+          }
+        } else if (typeof window !== "undefined") {
+          const localPhotos = localStorage.getItem("porto_award_photos_v1");
+          if (localPhotos) {
+            try {
+              const parsed = JSON.parse(localPhotos);
+              if (Array.isArray(parsed) && parsed.length > 0) setAwardPhotos(parsed);
+            } catch {}
+          }
+        }
+
+        if (customTrainings && customTrainings.length > 0) {
+          setTrainingsList(customTrainings);
+          if (typeof window !== "undefined") {
+            try { localStorage.setItem("porto_trainings_v1", JSON.stringify(customTrainings)); } catch {}
+          }
+        } else if (typeof window !== "undefined") {
+          const localTrainings = localStorage.getItem("porto_trainings_v1");
+          if (localTrainings) {
+            try {
+              const parsed = JSON.parse(localTrainings);
+              if (Array.isArray(parsed) && parsed.length > 0) setTrainingsList(parsed);
+            } catch {}
+          }
+        }
       }
     } catch (err) {
       console.error("Fetch profile error:", err);
@@ -649,6 +728,24 @@ export default function AdminDashboardPage() {
         .map((r) => r.trim())
         .filter(Boolean);
 
+      // Fetch existing currently from Supabase to preserve awards, award_photos, trainings, and project_images
+      const { data: currentInfo } = await supabase
+        .from("personal_info")
+        .select("currently")
+        .eq("id", "default")
+        .single();
+
+      const currJson = ((currentInfo?.currently as Record<string, unknown>) || {});
+
+      const mergedCurrently = {
+        ...currJson,
+        building: personalData.currently_building,
+        exploring: personalData.currently_exploring,
+        learning: personalData.currently_learning,
+        approach: personalData.my_approach,
+        avatar_url: personalData.avatar_url,
+      };
+
       const payload = {
         id: "default",
         name: personalData.name,
@@ -667,17 +764,37 @@ export default function AdminDashboardPage() {
         availability: personalData.availability,
         status: personalData.status,
         resume_url: personalData.resume_url,
-        currently: {
-          building: personalData.currently_building,
-          exploring: personalData.currently_exploring,
-          learning: personalData.currently_learning,
-          approach: personalData.my_approach,
-          avatar_url: personalData.avatar_url,
-        },
+        currently: mergedCurrently,
         updated_at: new Date().toISOString(),
       };
 
       const { error } = await supabase.from("personal_info").upsert(payload);
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("porto_personal_v1", JSON.stringify({
+            name: personalData.name,
+            nickname: personalData.nickname,
+            title: personalData.title,
+            roles: rolesArray,
+            shortBio: personalData.short_bio,
+            bio: personalData.bio,
+            email: personalData.email,
+            placeOfBirth: personalData.place_of_birth,
+            gpa: personalData.gpa,
+            education: personalData.education,
+            github: personalData.github,
+            linkedin: personalData.linkedin,
+            location: personalData.location,
+            availability: personalData.availability,
+            status: personalData.status,
+            resumeUrl: personalData.resume_url,
+            approach: personalData.my_approach,
+            avatarUrl: personalData.avatar_url,
+            currently: mergedCurrently,
+          }));
+        } catch {}
+      }
 
       if (error) {
         showToast("error", `Gagal menyimpan profil: ${error.message}`);
@@ -764,6 +881,14 @@ export default function AdminDashboardPage() {
     try {
       const listToSave = newAwards || awardsList;
       const photosToSave = (newPhotos || awardPhotos).slice(0, 6);
+
+      // Save to localStorage immediately
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("porto_awards_v1", JSON.stringify(listToSave));
+          localStorage.setItem("porto_award_photos_v1", JSON.stringify(photosToSave));
+        } catch {}
+      }
 
       const { data: currentInfo } = await supabase
         .from("personal_info")
@@ -958,6 +1083,13 @@ export default function AdminDashboardPage() {
     try {
       const listToSave = newTrainings || trainingsList;
 
+      // Save to localStorage immediately so data persists even on reload
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("porto_trainings_v1", JSON.stringify(listToSave));
+        } catch {}
+      }
+
       const { data: currentInfo } = await supabase
         .from("personal_info")
         .select("currently")
@@ -991,14 +1123,19 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleDeleteTraining = (id: string, title: string) => {
+  const handleDeleteTraining = async (id: string, title: string) => {
     if (!confirm(`Hapus pelatihan "${title}"?`)) return;
     const nextList = trainingsList.filter((t) => t.id !== id);
     setTrainingsList(nextList);
-    handleSaveTrainings(nextList);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("porto_trainings_v1", JSON.stringify(nextList));
+      } catch {}
+    }
+    await handleSaveTrainings(nextList);
   };
 
-  const handleSaveTrainingModal = (e: React.FormEvent) => {
+  const handleSaveTrainingModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTraining || !editingTraining.title) return;
 
@@ -1031,7 +1168,12 @@ export default function AdminDashboardPage() {
 
     setTrainingsList(nextList);
     setEditingTraining(null);
-    handleSaveTrainings(nextList);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("porto_trainings_v1", JSON.stringify(nextList));
+      } catch {}
+    }
+    await handleSaveTrainings(nextList);
   };
 
   const handleTrainingFlipperImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2251,16 +2393,30 @@ export default function AdminDashboardPage() {
                   Setiap milestone memiliki 3 slot gambar interaktif flipper yang berputar saat kartu diklik oleh pengunjung.
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setEditingTraining({ id: "", date: "2026", title: "", org: "", desc: "", certificateName: "", certificateUrl: "" });
-                  setTrainingImgInputs(["", "", ""]);
-                }}
-                className="inline-flex items-center gap-2 bg-[var(--text)] text-[var(--surface)] hover:opacity-90 font-mono text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-full shadow-sm active:scale-[0.98] transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Tambah Pelatihan</span>
-              </button>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => {
+                    setEditingTraining({ id: "", date: "2026", title: "", org: "", desc: "", certificateName: "", certificateUrl: "" });
+                    setTrainingImgInputs(["", "", ""]);
+                  }}
+                  className="inline-flex items-center gap-2 bg-[var(--text)] text-[var(--surface)] hover:opacity-90 font-mono text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-full shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Pelatihan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm("Reset data Journey & Experience ke default 3 milestone?")) {
+                      setTrainingsList(defaultTrainingData);
+                      handleSaveTrainings(defaultTrainingData);
+                    }
+                  }}
+                  className="text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] hover:underline cursor-pointer px-2 py-1"
+                >
+                  Reset Default
+                </button>
+              </div>
             </div>
 
             {trainingsList.length === 0 ? (
