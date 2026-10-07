@@ -83,15 +83,15 @@ export function Preloader({ onComplete }: PreloaderProps) {
         }}
         initial="initial"
         exit="exit"
-        className="relative z-10 flex items-center text-white text-[38px] sm:text-[48px] md:text-[56px] font-medium tracking-tight select-none"
+        className="relative z-10 flex items-center text-white text-[40px] md:text-[56px] font-medium tracking-tight select-none"
       >
         <motion.span
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-3.5 h-3.5 md:w-4 md:h-4 bg-emerald-400 rounded-full mr-4 md:mr-6 shadow-[0_0_14px_rgba(52,211,153,0.9)]"
+          className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full mr-5 md:mr-7"
         />
-        <p className="font-sans font-medium">{words[index]}</p>
+        <p>{words[index]}</p>
       </motion.div>
     </motion.div>
   );
