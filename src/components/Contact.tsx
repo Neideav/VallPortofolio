@@ -29,7 +29,7 @@ export function Contact() {
   };
 
   return (
-    <section id="contact" className="section scroll-mt-28">
+    <section id="contact" className="section">
       <div className="contact-grid">
         {/* Left Side */}
         <div className="contact-left">

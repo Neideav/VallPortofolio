@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, ArrowRight } from "lucide-react";
+import { 
+  ArrowRight, 
+  ExternalLink 
+} from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
 
@@ -63,6 +66,8 @@ const workProjects: WorkProject[] = [
     tags: ["TypeScript", "React", "Next.js", "Tailwind CSS", "Web App"],
   },
 ];
+
+
 
 export function Work() {
   const [activeIndex, setActiveIndex] = useState(1);
@@ -147,10 +152,11 @@ export function Work() {
           </div>
           <Link
             href="/work"
-            className="work-album-btn-top"
+            className="work-album-btn-top group"
+            aria-label="View More Projects"
           >
             <span>View More Projects</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>
       </Reveal>

@@ -61,77 +61,78 @@ export function Awards() {
   };
 
   return (
-    <section id="awards" className="section scroll-mt-28">
-      <Reveal delay={0}>
-        <div className="section-label">RECOGNITION</div>
-        <FadeInTitle text="Awards and Achievements" />
-        <p className="section-desc">
-          A collection of academic and professional recognitions that reflect my dedication to excellence.
-        </p>
-      </Reveal>
+    <section id="awards" className="section min-h-screen flex flex-col justify-center">
+      <div className="w-full">
+        <Reveal delay={0}>
+          <div className="section-label">RECOGNITION</div>
+          <FadeInTitle text="Awards and Achievements" />
+          <p className="section-desc">
+            A collection of academic and professional recognitions that reflect my dedication to excellence.
+          </p>
+        </Reveal>
 
-      <Reveal delay={100}>
-        <div className="awards-layout">
-          {/* Left: Asymmetrical Staggered Photo Collage */}
-          <div className="collage-container">
-            {/* Column 1 */}
-            <div className="collage-column">
-              <div className="collage-item h-[240px]">
-                <Image
-                  src="/images/awards/jhic-cert.jpg"
-                  alt="Sertifikat Top 30 Nasional Jagoan Hosting Infra Competition 2025"
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 50vw, 320px"
-                  className="object-cover object-center"
-                />
-                <div className="collage-overlay" />
-                <span className="collage-badge">Top 30 Nasional // JHIC 2025</span>
+        <Reveal delay={100}>
+          <div className="awards-layout">
+            {/* Left: Asymmetrical Staggered Photo Collage */}
+            <div className="collage-container">
+              {/* Column 1 */}
+              <div className="collage-column">
+                <div className="collage-item h-[200px] lg:h-[220px]">
+                  <Image
+                    src="/images/awards/jhic-cert.jpg"
+                    alt="Sertifikat Top 30 Nasional Jagoan Hosting Infra Competition 2025"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 50vw, 320px"
+                    className="object-cover object-center"
+                  />
+                  <div className="collage-overlay" />
+                  <span className="collage-badge">Top 30 Nasional // JHIC 2025</span>
+                </div>
+
+                <div className="collage-item h-[230px] lg:h-[250px]">
+                  <Image
+                    src="/images/awards/award-ceremony.jpg"
+                    alt="Championship Award Ceremony"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 50vw, 320px"
+                    className="object-cover object-top"
+                  />
+                  <div className="collage-overlay" />
+                  <span className="collage-badge">National Stage // Infra Competition</span>
+                </div>
               </div>
 
-              <div className="collage-item h-[280px]">
-                <Image
-                  src="/images/awards/award-ceremony.jpg"
-                  alt="Championship Award Ceremony"
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 50vw, 320px"
-                  className="object-cover object-top"
-                />
-                <div className="collage-overlay" />
-                <span className="collage-badge">National Stage // Infra Competition</span>
+              {/* Column 2 (Offset / Staggered) */}
+              <div className="collage-column collage-column--offset">
+                <div className="collage-item h-[230px] lg:h-[250px]">
+                  <Image
+                    src="/images/awards/academic-honors.jpg"
+                    alt="Academic Honors Graduate"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 50vw, 320px"
+                    className="object-cover object-top"
+                  />
+                  <div className="collage-overlay" />
+                  <span className="collage-badge">Bachelor with Honors</span>
+                </div>
+
+                <div className="collage-item h-[200px] lg:h-[220px]">
+                  <Image
+                    src="/images/awards/hackathon-booth.jpg"
+                    alt="Cloud Architecture Showcase Booth"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 50vw, 320px"
+                    className="object-cover object-center"
+                  />
+                  <div className="collage-overlay" />
+                  <span className="collage-badge">Architecture Showcase</span>
+                </div>
               </div>
             </div>
-
-            {/* Column 2 (Offset / Staggered) */}
-            <div className="collage-column collage-column--offset">
-              <div className="collage-item h-[280px]">
-                <Image
-                  src="/images/awards/academic-honors.jpg"
-                  alt="Academic Honors Graduate"
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 50vw, 320px"
-                  className="object-cover object-top"
-                />
-                <div className="collage-overlay" />
-                <span className="collage-badge">Bachelor with Honors</span>
-              </div>
-
-              <div className="collage-item h-[240px]">
-                <Image
-                  src="/images/awards/hackathon-booth.jpg"
-                  alt="Cloud Architecture Showcase Booth"
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 50vw, 320px"
-                  className="object-cover object-center"
-                />
-                <div className="collage-overlay" />
-                <span className="collage-badge">Architecture Showcase</span>
-              </div>
-            </div>
-          </div>
 
           {/* Right: Awards Column */}
           <div className="awards-column">
@@ -153,6 +154,7 @@ export function Awards() {
           </div>
         </div>
       </Reveal>
+      </div>
     </section>
   );
 }

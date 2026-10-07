@@ -8,44 +8,47 @@ import {
   BentoSupportVisual,
 } from "./TechLogos";
 
-// Tech stack items directly matched with https://github.com/Neideav/Neideav.git
-const techColumns = [
-  // Column 1: Programming Languages
-  [
-    { name: "Python", icon: "/images/tech/python.svg" },
-    { name: "TypeScript", icon: "/images/tech/ts.svg" },
-    { name: "JavaScript", icon: "/images/tech/js.svg" },
-    { name: "PHP", icon: "/images/tech/php.svg" },
-    { name: "Java", icon: "/images/tech/java.svg" },
-    { name: "C++", icon: "/images/tech/cpp.svg" },
-  ],
-  // Column 2: Frameworks & Backend
-  [
-    { name: "Node.js", icon: "/images/tech/nodejs.svg" },
-    { name: "Laravel", icon: "/images/tech/laravel.svg" },
-    { name: "FastAPI", icon: "/images/tech/fastapi.svg" },
-    { name: ".NET", icon: "/images/tech/dotnet.svg" },
-    { name: "Vue.js", icon: "/images/tech/vue.svg" },
-    { name: "Tailwind CSS", icon: "/images/tech/tailwind.svg" },
-  ],
-  // Column 3: Databases & Web Servers
-  [
-    { name: "MySQL", icon: "/images/tech/mysql.svg" },
-    { name: "PostgreSQL", icon: "/images/tech/postgres.svg" },
-    { name: "Redis", icon: "/images/tech/redis.svg" },
-    { name: "MariaDB", icon: "/images/tech/mariadb.svg" },
-    { name: "Nginx", icon: "/images/tech/nginx.svg" },
-    { name: "Apache", icon: "/images/tech/apache.svg" },
-  ],
-  // Column 4: Cloud, DevOps & Tools
-  [
-    { name: "AWS", icon: "/images/tech/aws.svg" },
-    { name: "Azure", icon: "/images/tech/azure.svg" },
-    { name: "Cloudflare", icon: "/images/tech/cloudflare.svg" },
-    { name: "Vercel", icon: "/images/tech/vercel.svg" },
-    { name: "Git", icon: "/images/tech/git.svg" },
-    { name: "GitHub", icon: "/images/tech/github.svg" },
-  ],
+// Tech stack categorized into LANGUAGE, FRAMEWORK, and MAIN TOOLS
+const techCategories = [
+  {
+    title: "LANGUAGE",
+    items: [
+      { name: "Python", icon: "/images/tech/python.svg" },
+      { name: "TypeScript", icon: "/images/tech/ts.svg" },
+      { name: "JavaScript", icon: "/images/tech/js.svg" },
+      { name: "PHP", icon: "/images/tech/php.svg" },
+      { name: "Java", icon: "/images/tech/java.svg" },
+      { name: "C++", icon: "/images/tech/cpp.svg" },
+    ],
+  },
+  {
+    title: "FRAMEWORK",
+    items: [
+      { name: "Node.js", icon: "/images/tech/nodejs.svg" },
+      { name: "Laravel", icon: "/images/tech/laravel.svg" },
+      { name: "FastAPI", icon: "/images/tech/fastapi.svg" },
+      { name: ".NET", icon: "/images/tech/dotnet.svg" },
+      { name: "Vue.js", icon: "/images/tech/vue.svg" },
+      { name: "Tailwind CSS", icon: "/images/tech/tailwind.svg" },
+    ],
+  },
+  {
+    title: "MAIN TOOLS",
+    items: [
+      { name: "MySQL", icon: "/images/tech/mysql.svg" },
+      { name: "PostgreSQL", icon: "/images/tech/postgres.svg" },
+      { name: "Redis", icon: "/images/tech/redis.svg" },
+      { name: "MariaDB", icon: "/images/tech/mariadb.svg" },
+      { name: "Nginx", icon: "/images/tech/nginx.svg" },
+      { name: "Apache", icon: "/images/tech/apache.svg" },
+      { name: "AWS", icon: "/images/tech/aws.svg" },
+      { name: "Azure", icon: "/images/tech/azure.svg" },
+      { name: "Cloudflare", icon: "/images/tech/cloudflare.svg" },
+      { name: "Vercel", icon: "/images/tech/vercel.svg" },
+      { name: "Git", icon: "/images/tech/git.svg" },
+      { name: "GitHub", icon: "/images/tech/github.svg" },
+    ],
+  },
 ];
 
 export function WhatICanDo() {
@@ -62,27 +65,27 @@ export function WhatICanDo() {
               reliable systems, scalable APIs, and secure digital infrastructure.
             </p>
 
-            {/* Tech Stack Columns matching Neideav GitHub README */}
+            {/* Categorized Tech Stack */}
             <div className="tech-stack">
-              {techColumns.map((col, colIdx) => (
-                <div
-                  key={colIdx}
-                  className={`tech-stack-column ${colIdx >= 2 ? "workspace-column" : ""}`}
-                >
-                  {col.map((item) => (
-                    <div key={item.name} className="tech-stack-item group" title={item.name}>
-                      <img
-                        src={item.icon}
-                        alt={item.name}
-                        width={30}
-                        height={30}
-                        loading="lazy"
-                        draggable="false"
-                        className="tech-icon-img"
-                      />
-                      <span className="tech-stack-label">{item.name}</span>
-                    </div>
-                  ))}
+              {techCategories.map((cat) => (
+                <div key={cat.title} className="tech-stack-group">
+                  <div className="tech-stack-category">{cat.title}</div>
+                  <div className="tech-stack-grid">
+                    {cat.items.map((item) => (
+                      <div key={item.name} className="tech-stack-item group" title={item.name}>
+                        <img
+                          src={item.icon}
+                          alt={item.name}
+                          width={30}
+                          height={30}
+                          loading="lazy"
+                          draggable="false"
+                          className="tech-icon-img"
+                        />
+                        <span className="tech-stack-label">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

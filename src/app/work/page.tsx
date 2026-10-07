@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, ArrowUp } from "lucide-react";
+import { 
+  ExternalLink, 
+  ArrowUp, 
+  ArrowLeft 
+} from "lucide-react";
 import { BackgroundLines } from "@/components/BackgroundLines";
 import { Navbar } from "@/components/Navbar";
 import { CoffeeButton } from "@/components/CoffeeButton";
@@ -217,7 +221,18 @@ export default function WorkPage() {
       <main style={{ position: "relative" }}>
         {/* Technical Archive Section */}
         <section className="archive-section" id="technical">
+          {/* Breadcrumb Top Bar */}
           <Reveal delay={0}>
+            <div className="archive-top-bar">
+              <Link href="/#work" className="archive-back-btn group">
+                <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+                <span>Return to Portfolio</span>
+              </Link>
+            </div>
+          </Reveal>
+
+          {/* Section Header */}
+          <Reveal delay={50}>
             <div className="archive-header">
               <div className="archive-header-left">
                 <div className="section-label">Archive</div>
@@ -229,6 +244,7 @@ export default function WorkPage() {
             </div>
           </Reveal>
 
+          {/* Content Area: Technical Projects List */}
           <Reveal delay={100}>
             <div className="archive-list">
               {technicalProjects.map((project) => (

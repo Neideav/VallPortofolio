@@ -126,7 +126,15 @@ export function Navbar() {
       setMobileMenuOpen(false);
       const target = document.querySelector(href);
       if (target) {
-        target.scrollIntoView({ behavior: "smooth" });
+        if (href === "#hero") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+        const targetTop = target.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({
+          top: targetTop,
+          behavior: "smooth",
+        });
       }
     }
   };
