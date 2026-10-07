@@ -79,11 +79,17 @@ export function Work() {
         setProjectsList(
           items.map((p) => {
             const defaultMatch = workProjects.find((wp) => wp.id === p.id);
+            const chosenImage =
+              (p as any).imageUrl ||
+              (p as any).image ||
+              defaultMatch?.image ||
+              "/images/projects/fintrack-pro.png";
+
             return {
               id: p.id,
               title: p.title,
               description: p.description,
-              image: defaultMatch?.image || "/images/projects/fintrack-pro.png",
+              image: chosenImage,
               link: p.githubUrl,
               tags: p.technologies,
             };

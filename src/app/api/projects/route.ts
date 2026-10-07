@@ -7,16 +7,26 @@ export async function GET() {
     const supabase = getSupabaseServerClient();
 
     if (supabase) {
-      const { data, error } = await supabase
+      let result: any = await supabase
         .from("projects")
         .select(
-          "id, number, title, category, description, detailed_description, technologies, github_url, live_url, featured, metrics, architecture_points, banner_gradient, sort_order"
+          "id, number, title, category, description, detailed_description, technologies, github_url, live_url, featured, metrics, architecture_points, banner_gradient, sort_order, image_url"
         )
         .order("sort_order", { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      // If column image_url does not exist in remote DB yet, fallback query without it
+      if (result.error && (result.error.message?.includes("image_url") || result.error.code === "42703")) {
+        result = await supabase
+          .from("projects")
+          .select(
+            "id, number, title, category, description, detailed_description, technologies, github_url, live_url, featured, metrics, architecture_points, banner_gradient, sort_order"
+          )
+          .order("sort_order", { ascending: true });
+      }
+
+      if (!result.error && result.data && result.data.length > 0) {
         // Map Supabase snake_case to Project camelCase interface
-        const mapped: Project[] = data.map((row) => ({
+        const mapped: Project[] = result.data.map((row: any) => ({
           id: row.id,
           number: row.number,
           title: row.title,
@@ -31,6 +41,8 @@ export async function GET() {
           architecturePoints: row.architecture_points || undefined,
           bannerGradient:
             row.banner_gradient || "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
+          imageUrl: row.image_url || undefined,
+          image: row.image_url || undefined,
         }));
 
         return NextResponse.json(

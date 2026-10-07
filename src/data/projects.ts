@@ -12,6 +12,8 @@ export interface Project {
   metrics?: { label: string; value: string }[];
   architecturePoints?: string[];
   bannerGradient: string;
+  imageUrl?: string;
+  image?: string;
 }
 
 export const projects: Project[] = [
@@ -26,6 +28,8 @@ export const projects: Project[] = [
     githubUrl: "https://github.com/Neideav/fintrack-pro",
     liveUrl: "https://fintrack-pro-topaz.vercel.app",
     featured: true,
+    imageUrl: "/images/projects/fintrack-pro.png",
+    image: "/images/projects/fintrack-pro.png",
     metrics: [
       { label: "Architecture", value: "REST API + SPA" },
       { label: "Deployment", value: "Vercel + Cloud DB" },
@@ -50,6 +54,8 @@ export const projects: Project[] = [
     githubUrl: "https://github.com/Neideav/shopcart",
     liveUrl: "https://github.com/Neideav/shopcart",
     featured: true,
+    imageUrl: "/images/projects/shopcart.png",
+    image: "/images/projects/shopcart.png",
     metrics: [
       { label: "Language", value: "TypeScript" },
       { label: "Frontend", value: "React + Vite" },
@@ -58,25 +64,27 @@ export const projects: Project[] = [
     architecturePoints: [
       "Modular shopping cart state management with real-time price computations",
       "Responsive grid product catalog with instant search and category filtering",
-      "Type-safe data modeling and interface contracts across components",
-      "Clean UI styled with Tailwind CSS for optimal mobile and desktop experiences"
+      "Modern clean aesthetic with warm ivory, dark forest emerald, and glass accents",
+      "Optimized performance and snappy dynamic filtering across broad item lists"
     ],
-    bannerGradient: "from-blue-950/40 via-slate-900/60 to-zinc-950/80"
+    bannerGradient: "from-amber-950/40 via-stone-900/60 to-zinc-950/80"
   },
   {
     id: "kumo-ai",
     number: "03",
-    title: "KumoAI",
-    category: "AI Chatbot & Intelligent Systems",
-    description: "ChatBot Project dengan integrasi model AI cerdas, streaming respons percakapan, dan arsitektur modular responsif.",
-    detailedDescription: "Sistem kecerdasan buatan berbasis ChatBot yang mengintegrasikan model AI untuk pemrosesan percakapan alami, streaming respons real-time, dan arsitektur kode terstruktur yang dapat diperluas.",
-    technologies: ["JavaScript", "Java", "Tailwind CSS", "Node.js", "AI Integration"],
+    title: "Kumo AI",
+    category: "AI Workspace & Real-Time Intelligence",
+    description: "Ruang kerja AI generasi baru dengan streaming Server-Sent Events (SSE), antarmuka minimalis modern, dan analisis konsep.",
+    detailedDescription: "Ruang kerja AI generasi baru dengan streaming Server-Sent Events (SSE) berkecepatan tinggi, antarmuka minimalis modern, eksplorasi ide kreatif, analisis konsep, dan debugging kode multi-model.",
+    technologies: ["React 18", "Vite", "Tailwind CSS", "SSE Streaming", "AI Intelligence", "FastAPI"],
     githubUrl: "https://github.com/Neideav/KumoAI",
     liveUrl: "https://github.com/Neideav/KumoAI",
     featured: true,
+    imageUrl: "/images/projects/kumo-ai.png",
+    image: "/images/projects/kumo-ai.png",
     metrics: [
-      { label: "Integration", value: "AI Chat Models" },
-      { label: "Runtime", value: "Node.js / Java" },
+      { label: "Streaming", value: "SSE Protocol" },
+      { label: "Interface", value: "Minimalist Modern" },
       { label: "Interaction", value: "Real-Time Streaming" }
     ],
     architecturePoints: [
@@ -98,6 +106,8 @@ export const projects: Project[] = [
     githubUrl: "https://github.com/Neideav/ProjectShyeunD",
     liveUrl: "https://github.com/Neideav/ProjectShyeunD",
     featured: false,
+    imageUrl: "/images/projects/cloudops.png",
+    image: "/images/projects/cloudops.png",
     metrics: [
       { label: "Platform", value: "Android Native" },
       { label: "Language", value: "Kotlin" },

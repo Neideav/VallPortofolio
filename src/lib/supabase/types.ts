@@ -73,6 +73,7 @@ export type Database = {
           architecture_points: string[] | null;
           banner_gradient: string | null;
           sort_order: number;
+          image_url?: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +92,7 @@ export type Database = {
           architecture_points?: string[] | null;
           banner_gradient?: string | null;
           sort_order?: number;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -109,6 +111,7 @@ export type Database = {
           architecture_points?: string[] | null;
           banner_gradient?: string | null;
           sort_order?: number;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };

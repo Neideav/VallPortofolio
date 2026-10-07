@@ -161,6 +161,8 @@ export default function AdminDashboardPage() {
   const [editingProject, setEditingProject] = useState<Partial<ProjectRow> | null>(null);
   const [techInput, setTechInput] = useState<string>("");
   const [isSavingProject, setIsSavingProject] = useState(false);
+  const [isUploadingProjectImage, setIsUploadingProjectImage] = useState(false);
+  const projectFileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -221,6 +223,7 @@ export default function AdminDashboardPage() {
           architecture_points: p.architecturePoints || null,
           banner_gradient: p.bannerGradient || null,
           sort_order: idx + 1,
+          image_url: p.imageUrl || p.image || `/images/projects/${p.id}.png`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
@@ -244,6 +247,7 @@ export default function AdminDashboardPage() {
           architecture_points: p.architecturePoints || null,
           banner_gradient: p.bannerGradient || null,
           sort_order: idx + 1,
+          image_url: p.imageUrl || p.image || `/images/projects/${p.id}.png`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
@@ -371,6 +375,57 @@ export default function AdminDashboardPage() {
     setTechInput(proj.technologies ? proj.technologies.join(", ") : "");
   };
 
+  // Upload Project Cover Photo
+  const handleProjectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingProject) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Harap pilih file gambar.");
+      return;
+    }
+
+    setIsUploadingProjectImage(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      let uploadedUrl: string | null = null;
+
+      if (supabase) {
+        try {
+          const ext = file.name.split(".").pop() || "png";
+          const fileName = `projects/${editingProject.id || Date.now()}-${Date.now()}.${ext}`;
+          const { data: uploadData, error: uploadErr } = await supabase.storage
+            .from("portfolio")
+            .upload(fileName, file, { upsert: true });
+
+          if (!uploadErr && uploadData) {
+            const { data: pubData } = supabase.storage
+              .from("portfolio")
+              .getPublicUrl(uploadData.path);
+            uploadedUrl = pubData.publicUrl;
+          }
+        } catch {
+          // fallback to client-side data URL
+        }
+      }
+
+      if (!uploadedUrl) {
+        uploadedUrl = await optimizeImageFile(file, 1200, 0.85);
+      }
+
+      setEditingProject((prev) => (prev ? { ...prev, image_url: uploadedUrl! } : null));
+      showToast("success", "Foto cover proyek berhasil dimuat!");
+    } catch (err) {
+      console.error("Project image upload error:", err);
+      showToast("error", "Gagal memproses gambar proyek.");
+    } finally {
+      setIsUploadingProjectImage(false);
+      if (projectFileInputRef.current) {
+        projectFileInputRef.current.value = "";
+      }
+    }
+  };
+
   // Open Create Modal
   const handleCreateProject = () => {
     const nextNum = String(projectsList.length + 1).padStart(2, "0");
@@ -387,6 +442,7 @@ export default function AdminDashboardPage() {
       featured: true,
       banner_gradient: "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
       sort_order: projectsList.length + 1,
+      image_url: "",
     });
     setTechInput("");
   };
@@ -413,7 +469,7 @@ export default function AdminDashboardPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      const payload = {
+      const payload: any = {
         id: editingProject.id,
         number: editingProject.number || "01",
         title: editingProject.title,
@@ -427,10 +483,19 @@ export default function AdminDashboardPage() {
         banner_gradient:
           editingProject.banner_gradient || "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
         sort_order: Number(editingProject.sort_order) || 1,
+        image_url: editingProject.image_url || null,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from("projects").upsert(payload);
+      let { error } = await supabase.from("projects").upsert(payload);
+
+      // If remote Supabase schema doesn't have image_url column yet, fallback without crashing
+      if (error && (error.message?.includes("image_url") || (error as any).code === "42703")) {
+        const fallbackPayload = { ...payload };
+        delete fallbackPayload.image_url;
+        const res = await supabase.from("projects").upsert(fallbackPayload);
+        error = res.error;
+      }
 
       if (error) {
         console.error("Upsert project error:", error);
@@ -1079,19 +1144,35 @@ export default function AdminDashboardPage() {
                 {projectsList.map((proj) => (
                   <div
                     key={proj.id}
-                    className="bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[var(--text)]/40 hover:-translate-y-0.5 transition-all text-[var(--text)] group"
+                    className="bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:border-[var(--text)]/40 hover:-translate-y-0.5 transition-all text-[var(--text)] group"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-xs font-mono font-bold text-[var(--text)] bg-[var(--surface-2)] px-2.5 py-1 rounded-md border border-[var(--line)]">
+                      {/* Project Cover Photo Thumbnail */}
+                      <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden mb-3.5 border border-[var(--line)] bg-[var(--surface-2)]">
+                        {proj.image_url ? (
+                          <Image
+                            src={proj.image_url}
+                            alt={proj.title}
+                            fill
+                            unoptimized
+                            className="object-cover object-top transition-transform group-hover:scale-105 duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-[var(--muted)] text-[11px] font-mono">
+                            <ImageIcon className="w-6 h-6 mb-1 opacity-40" />
+                            <span>Belum ada foto cover</span>
+                          </div>
+                        )}
+                        <span className="absolute top-2 left-2 text-[10px] font-mono font-bold text-[var(--text)] bg-[var(--surface)]/90 backdrop-blur-md px-2 py-0.5 rounded-md border border-[var(--line)] shadow-sm">
                           #{proj.number}
                         </span>
                         {proj.featured && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-mono">
+                          <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono shadow-sm">
                             Featured
                           </span>
                         )}
                       </div>
+
                       <h3 className="text-base font-bold text-[var(--text)] line-clamp-1 group-hover:underline transition-colors">
                         {proj.title}
                       </h3>
@@ -2075,6 +2156,86 @@ export default function AdminDashboardPage() {
                     required
                     className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
+                </div>
+              </div>
+
+              {/* Foto Cover Work Gallery */}
+              <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--text)] flex items-center gap-2">
+                    <Camera className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Foto Cover (Work Gallery 3D &amp; Showcase)</span>
+                  </label>
+                  {editingProject.image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingProject({ ...editingProject, image_url: "" })}
+                      className="text-[11px] font-mono text-rose-500 hover:underline cursor-pointer"
+                    >
+                      Hapus Foto
+                    </button>
+                  )}
+                </div>
+
+                {/* Preview Box */}
+                {editingProject.image_url ? (
+                  <div className="relative w-full aspect-[16/10] max-h-56 rounded-xl overflow-hidden border border-[var(--line)] bg-black/20 shadow-inner">
+                    <Image
+                      src={editingProject.image_url}
+                      alt="Preview Cover"
+                      fill
+                      unoptimized
+                      className="object-cover object-top"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full aspect-[16/10] max-h-36 rounded-xl border border-dashed border-[var(--line)] flex flex-col items-center justify-center text-[var(--muted)] text-xs font-mono">
+                    <ImageIcon className="w-7 h-7 mb-1.5 opacity-30" />
+                    <span>Belum ada foto cover proyek</span>
+                  </div>
+                )}
+
+                {/* Upload Action & URL Input */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <input
+                      ref={projectFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProjectImageUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      disabled={isUploadingProjectImage}
+                      onClick={() => projectFileInputRef.current?.click()}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-semibold bg-[var(--surface)] hover:border-[var(--text)] border border-[var(--line)] text-[var(--text)] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    >
+                      {isUploadingProjectImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Mengunggah...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>Upload File Foto</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div>
+                    <input
+                      type="text"
+                      value={editingProject.image_url || ""}
+                      onChange={(e) =>
+                        setEditingProject({ ...editingProject, image_url: e.target.value })
+                      }
+                      placeholder="Atau tempel URL / /images/projects/..."
+                      className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
+                    />
+                  </div>
                 </div>
               </div>
 
