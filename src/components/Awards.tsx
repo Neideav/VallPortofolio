@@ -74,7 +74,7 @@ const photoColumns: AwardPhoto[][] = [
       orientation: "landscape",
     },
   ],
-  // Column 4: Landscape then Vertical (incorporating newly added JHIC photos)
+  // Column 4: Landscape then Vertical (including newly added JHIC photos)
   [
     {
       id: "jhic-team",
@@ -119,10 +119,10 @@ const awardsList: AwardItem[] = [
     icon: "languages",
   },
   {
-    id: "hacktiv8-ai-productivity",
-    title: "AI Productivity & AI API Integration — Hacktiv8",
+    id: "best-capstone",
+    title: "Best Capstone System & Architecture",
     link: "https://certificate-and-transcript.s3.ap-southeast-1.amazonaws.com/documents/8b859741-ab44-4af6-bd27-e583ad965899/1790742859761-19281362-efe5-4360-95e8-a6f6713a0076.pdf",
-    icon: "shield",
+    icon: "trophy",
   },
 ];
 
@@ -157,54 +157,50 @@ export function Awards() {
   };
 
   return (
-    <section id="awards" className="section min-h-screen flex flex-col justify-center">
+    <section id="awards" className="section min-h-screen flex flex-col justify-center py-20">
       <div className="w-full">
         <Reveal delay={0}>
           <div className="section-label">RECOGNITION</div>
           <FadeInTitle text="Awards and Achievements" />
-          <p className="section-desc">
+          <p className="section-desc mb-8 lg:mb-10">
             A collection of academic and professional recognitions that reflect my dedication to excellence.
           </p>
         </Reveal>
 
-        {/* Mosaic Photo Gallery: Interlocking Landscape and Vertical Layout */}
         <Reveal delay={100}>
-          <div className="awards-mosaic">
-            {photoColumns.map((col, colIndex) => (
-              <div key={colIndex} className="mosaic-col">
-                {col.map((photo) => (
-                  <div
-                    key={photo.id}
-                    onClick={() => setSelectedPhoto(photo)}
-                    className={`mosaic-item mosaic-item--${photo.orientation} group`}
-                  >
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt}
-                      fill
-                      unoptimized
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover object-center"
-                    />
-                    <div className="mosaic-overlay" />
-                    <span className="mosaic-badge">{photo.badge}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-center">
+            {/* Left Side: Photo Collage with alternating vertical and landscape photos */}
+            <div className="lg:col-span-7 xl:col-span-7">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                {photoColumns.map((col, colIndex) => (
+                  <div key={colIndex} className="flex flex-col gap-2.5 sm:gap-3">
+                    {col.map((photo) => (
+                      <div
+                        key={photo.id}
+                        onClick={() => setSelectedPhoto(photo)}
+                        className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-black/60 border border-white/[0.08] hover:border-white/20 bg-zinc-900 group ${
+                          photo.orientation === "vertical"
+                            ? "h-[200px] sm:h-[220px]"
+                            : "h-[135px] sm:h-[150px]"
+                        }`}
+                      >
+                        <Image
+                          src={photo.src}
+                          alt={photo.alt}
+                          fill
+                          unoptimized
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 35vw, 18vw"
+                          className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        </Reveal>
-
-        {/* Awards & Credentials Cards Grid */}
-        <Reveal delay={200}>
-          <div className="mt-12 sm:mt-14">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
-                Verified Credentials &amp; Recognitions
-              </span>
             </div>
-            <div className="awards-cards-grid">
+
+            {/* Right Side: Awards Cards List Column */}
+            <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-3">
               {awardsList.map((item) => (
                 <a
                   key={item.id}
@@ -251,9 +247,12 @@ export function Awards() {
                 <X className="w-6 h-6" />
               </button>
               <div className="relative w-full max-h-[80vh] flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-black/50 shadow-2xl">
-                <img
+                <Image
                   src={selectedPhoto.src}
                   alt={selectedPhoto.alt}
+                  width={1200}
+                  height={900}
+                  unoptimized
                   className="max-w-full max-h-[80vh] object-contain rounded-2xl"
                 />
               </div>
