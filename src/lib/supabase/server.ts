@@ -1,9 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
-import { isSupabaseConfigured } from "./client";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { isSupabaseConfigured, supabaseUrl, supabaseAnonKey } from "./client";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export function getSupabaseServerClient(useServiceRole = false): SupabaseClient<Database> | null {
