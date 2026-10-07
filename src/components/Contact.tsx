@@ -11,21 +11,39 @@ export function Contact() {
   const [formState, setFormState] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState.name || !formState.email || !formState.message) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setIsSent(true);
+        setFormState({ name: "", email: "", message: "" });
+        setTimeout(() => {
+          setIsSent(false);
+          setModalOpen(false);
+        }, 3200);
+      } else {
+        setErrorMessage(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setErrorMessage("Something went wrong. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      setIsSent(true);
-      setFormState({ name: "", email: "", message: "" });
-      setTimeout(() => {
-        setIsSent(false);
-        setModalOpen(false);
-      }, 3000);
-    }, 700);
+    }
   };
 
   return (
@@ -213,6 +231,12 @@ export function Contact() {
                       className="contact-modal-input"
                     />
                   </div>
+
+                  {errorMessage && (
+                    <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-md p-2 text-center">
+                      {errorMessage}
+                    </div>
+                  )}
 
                   <button
                     type="submit"
