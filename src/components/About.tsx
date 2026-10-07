@@ -1,11 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { personalInfo } from "@/data/personal";
+import { personalInfo as defaultPersonal } from "@/data/personal";
+import { fetchPersonalInfo } from "@/lib/personal";
 
 export function About() {
+  const [personal, setPersonal] = useState(defaultPersonal);
+
+  useEffect(() => {
+    fetchPersonalInfo().then((data) => {
+      if (data) setPersonal(data);
+    });
+  }, []);
   return (
     <>
       <section
@@ -40,7 +48,7 @@ export function About() {
                 <div className="relative z-10 p-2.5 bg-[var(--surface)] border border-[var(--line)] rounded-3xl shadow-2xl overflow-hidden aspect-[4/5] w-full group transition-all duration-500 hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.25)] hover:-translate-y-1">
                   <Image
                     src="/images/nauval-portrait.png"
-                    alt={personalInfo.name}
+                    alt={personal.name}
                     fill
                     unoptimized
                     sizes="(max-width: 1024px) 100vw, 390px"
@@ -74,7 +82,7 @@ export function About() {
                     Who Am I
                   </h4>
                   <p className="text-sm md:text-[14.5px] text-[var(--muted)] leading-relaxed font-medium">
-                    Saya seorang Cloud Engineer &amp; Backend Developer yang berpengalaman dalam merancang dan mengembangkan arsitektur sistem menggunakan AWS, Docker, Kubernetes, Linux, Laravel, Node.js, dan MySQL. Saya terampil dalam membangun REST APIs, otomasi CI/CD pipelines, dan sistem infrastruktur server yang aman dan skalabel.
+                    {personal.bio}
                   </p>
                 </div>
 
@@ -103,7 +111,7 @@ export function About() {
                       Name
                     </span>
                     <span className="text-sm md:text-base font-semibold text-[var(--text)]">
-                      {personalInfo.name}
+                      {personal.name}
                     </span>
                   </div>
 
@@ -113,7 +121,7 @@ export function About() {
                       Place of Birth
                     </span>
                     <span className="text-sm md:text-base font-semibold text-[var(--text)]">
-                      {personalInfo.placeOfBirth}
+                      {personal.placeOfBirth}
                     </span>
                   </div>
 
@@ -123,7 +131,7 @@ export function About() {
                       Role
                     </span>
                     <span className="text-sm md:text-base font-semibold text-[var(--text)]">
-                      Cloud &amp; DevOps Engineer
+                      {personal.title}
                     </span>
                   </div>
 
@@ -133,7 +141,7 @@ export function About() {
                       GPA
                     </span>
                     <span className="text-sm md:text-base font-semibold text-[var(--text)]">
-                      {personalInfo.gpa}
+                      {personal.gpa}
                     </span>
                   </div>
 
@@ -143,10 +151,10 @@ export function About() {
                       Email
                     </span>
                     <a
-                      href={`mailto:${personalInfo.email}`}
+                      href={`mailto:${personal.email}`}
                       className="text-sm md:text-base font-semibold text-[var(--text)] hover:text-emerald-500 transition-colors underline decoration-[var(--muted)]/30 underline-offset-4"
                     >
-                      {personalInfo.email}
+                      {personal.email}
                     </a>
                   </div>
 
@@ -156,7 +164,7 @@ export function About() {
                       Education
                     </span>
                     <span className="text-sm md:text-base font-semibold text-[var(--text)]">
-                      {personalInfo.education}
+                      {personal.education}
                     </span>
                   </div>
                 </div>

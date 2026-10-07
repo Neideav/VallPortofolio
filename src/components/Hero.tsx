@@ -1,10 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { personalInfo as defaultPersonal } from "@/data/personal";
+import { fetchPersonalInfo } from "@/lib/personal";
 
 export function Hero() {
-  const marqueeName = "NAUVALDY MAULANA";
+  const [info, setInfo] = useState(defaultPersonal);
+
+  useEffect(() => {
+    fetchPersonalInfo().then((data) => {
+      if (data) setInfo(data);
+    });
+  }, []);
+
+  const marqueeName = (info.name || "NAUVALDY MAULANA").toUpperCase();
 
   return (
     <section id="hero" className="hero-root">
@@ -30,7 +40,7 @@ export function Hero() {
         <div className="profile-image-container">
           <Image
             src="/images/nauval-portrait.png"
-            alt="Muhammad Bahruddin Nauvaldy Maulana"
+            alt={info.name}
             fill
             priority
             unoptimized
@@ -43,14 +53,13 @@ export function Hero() {
       {/* Bottom Left Hero Text */}
       <div className="hero-text">
         <h1 className="hero-name">
-          MUHAMMAD BAHRUDDIN NAUVALDY MAULANA
+          {info.name}
         </h1>
         <div className="hero-subtitle">
-          Cloud Engineer · Backend Developer · DevOps Engineer
+          {info.title}
         </div>
         <p className="hero-statement">
-          I build reliable backend systems, cloud infrastructure, and automated delivery
-          pipelines with a security-first mindset.
+          {info.shortBio || defaultPersonal.shortBio}
         </p>
       </div>
 

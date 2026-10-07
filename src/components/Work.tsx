@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
+import { getProjects } from "@/lib/projects";
 
 interface WorkProject {
   id: string;
@@ -67,13 +68,32 @@ const workProjects: WorkProject[] = [
   },
 ];
 
-
-
 export function Work() {
+  const [projectsList, setProjectsList] = useState<WorkProject[]>(workProjects);
   const [activeIndex, setActiveIndex] = useState(1);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const total = workProjects.length;
+  useEffect(() => {
+    getProjects().then((items) => {
+      if (items && items.length > 0) {
+        setProjectsList(
+          items.map((p) => {
+            const defaultMatch = workProjects.find((wp) => wp.id === p.id);
+            return {
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              image: defaultMatch?.image || "/images/projects/fintrack-pro.png",
+              link: p.githubUrl,
+              tags: p.technologies,
+            };
+          })
+        );
+      }
+    });
+  }, []);
+
+  const total = projectsList.length || 1;
 
   const handleNext = () => {
     setActiveIndex((prev) => (prev + 1) % total);
@@ -136,7 +156,7 @@ export function Work() {
     };
   };
 
-  const activeProject = workProjects[activeIndex];
+  const activeProject = projectsList[activeIndex] || projectsList[0];
 
   return (
     <section id="work" className="section">
@@ -165,7 +185,7 @@ export function Work() {
       <Reveal delay={100}>
         <div className="work-album hidden md:flex">
           <div className="work-album-inner">
-            {workProjects.map((project, index) => {
+            {projectsList.map((project, index) => {
               const isCenter = index === activeIndex;
               return (
                 <div
@@ -234,7 +254,7 @@ export function Work() {
 
               {/* Pagination Dots */}
               <div className="flex items-center gap-2">
-                {workProjects.map((p, idx) => (
+                {projectsList.map((p, idx) => (
                   <button
                     key={p.id}
                     onClick={() => setActiveIndex(idx)}
