@@ -375,13 +375,12 @@ export default function AdminDashboardPage() {
     setTechInput(proj.technologies ? proj.technologies.join(", ") : "");
   };
 
-  // Upload Project Cover Photo
-  const handleProjectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingProject) return;
+  // Process & Upload Project Cover Photo (Supports Dropzone & File Input)
+  const processProjectImageFile = async (file: File) => {
+    if (!editingProject) return;
 
     if (!file.type.startsWith("image/")) {
-      showToast("error", "Harap pilih file gambar.");
+      showToast("error", "Harap pilih file gambar (PNG, JPG, WEBP).");
       return;
     }
 
@@ -414,7 +413,7 @@ export default function AdminDashboardPage() {
       }
 
       setEditingProject((prev) => (prev ? { ...prev, image_url: uploadedUrl! } : null));
-      showToast("success", "Foto cover proyek berhasil dimuat!");
+      showToast("success", "Foto proyek berhasil di-upload!");
     } catch (err) {
       console.error("Project image upload error:", err);
       showToast("error", "Gagal memproses gambar proyek.");
@@ -423,6 +422,13 @@ export default function AdminDashboardPage() {
       if (projectFileInputRef.current) {
         projectFileInputRef.current.value = "";
       }
+    }
+  };
+
+  const handleProjectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processProjectImageFile(file);
     }
   };
 
@@ -2159,83 +2165,137 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Foto Cover Work Gallery */}
-              <div className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] space-y-3">
+              {/* Foto Cover Work Gallery (Dropzone & Upload) */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] space-y-3.5">
                 <div className="flex items-center justify-between">
                   <label className="font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--text)] flex items-center gap-2">
                     <Camera className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Foto Cover (Work Gallery 3D &amp; Showcase)</span>
+                    <span>Upload Foto Cover Proyek (Work Gallery 3D)</span>
                   </label>
                   {editingProject.image_url && (
                     <button
                       type="button"
                       onClick={() => setEditingProject({ ...editingProject, image_url: "" })}
-                      className="text-[11px] font-mono text-rose-500 hover:underline cursor-pointer"
+                      className="text-[11px] font-mono text-rose-500 hover:underline cursor-pointer flex items-center gap-1"
                     >
-                      Hapus Foto
+                      <Trash2 className="w-3 h-3" />
+                      <span>Hapus Foto</span>
                     </button>
                   )}
                 </div>
 
-                {/* Preview Box */}
+                {/* Hidden File Input */}
+                <input
+                  ref={projectFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleProjectImageUpload}
+                  className="hidden"
+                />
+
+                {/* Interactive Dropzone / Preview Area */}
                 {editingProject.image_url ? (
-                  <div className="relative w-full aspect-[16/10] max-h-56 rounded-xl overflow-hidden border border-[var(--line)] bg-black/20 shadow-inner">
-                    <Image
-                      src={editingProject.image_url}
-                      alt="Preview Cover"
-                      fill
-                      unoptimized
-                      className="object-cover object-top"
-                    />
+                  <div className="space-y-3">
+                    {/* Live Preview Card with hover overlay */}
+                    <div className="relative w-full aspect-[16/10] max-h-56 rounded-2xl overflow-hidden border border-[var(--line)] bg-black/20 shadow-md group">
+                      <Image
+                        src={editingProject.image_url}
+                        alt="Preview Cover"
+                        fill
+                        unoptimized
+                        className="object-cover object-top transition-transform duration-300 group-hover:scale-102"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                        <button
+                          type="button"
+                          disabled={isUploadingProjectImage}
+                          onClick={() => projectFileInputRef.current?.click()}
+                          className="px-4 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-white/90 transition-all cursor-pointer shadow-lg flex items-center gap-1.5"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Ganti Foto</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProject({ ...editingProject, image_url: "" })}
+                          className="px-4 py-2 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-rose-600 text-white hover:bg-rose-700 transition-all cursor-pointer shadow-lg flex items-center gap-1.5"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Foto siap disimpan &amp; tampil di Work Gallery</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => projectFileInputRef.current?.click()}
+                        className="underline hover:opacity-80 text-[var(--muted)] cursor-pointer"
+                      >
+                        Pilih foto lain
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="w-full aspect-[16/10] max-h-36 rounded-xl border border-dashed border-[var(--line)] flex flex-col items-center justify-center text-[var(--muted)] text-xs font-mono">
-                    <ImageIcon className="w-7 h-7 mb-1.5 opacity-30" />
-                    <span>Belum ada foto cover proyek</span>
+                  /* Dropzone when no image yet */
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        processProjectImageFile(file);
+                      }
+                    }}
+                    onClick={() => !isUploadingProjectImage && projectFileInputRef.current?.click()}
+                    className="w-full aspect-[16/9] max-h-48 rounded-2xl border-2 border-dashed border-[var(--line)] hover:border-[var(--text)]/60 bg-[var(--surface)] hover:bg-[var(--surface-2)] flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-200 group"
+                  >
+                    {isUploadingProjectImage ? (
+                      <div className="flex flex-col items-center gap-2 text-[var(--text)]">
+                        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                        <span className="text-xs font-mono font-medium">Sedang memproses dan mengunggah gambar...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] group-hover:scale-110 flex items-center justify-center mb-3 text-[var(--text)] transition-transform shadow-sm">
+                          <Upload className="w-6 h-6" />
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-[var(--text)] mb-1">
+                          Klik untuk Upload File Foto dari Komputer
+                        </p>
+                        <p className="text-[11px] font-mono text-[var(--muted)]">
+                          atau drag &amp; drop gambar ke sini (PNG, JPG, WEBP)
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* Upload Action & URL Input */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <input
-                      ref={projectFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProjectImageUpload}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      disabled={isUploadingProjectImage}
-                      onClick={() => projectFileInputRef.current?.click()}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-semibold bg-[var(--surface)] hover:border-[var(--text)] border border-[var(--line)] text-[var(--text)] transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                    >
-                      {isUploadingProjectImage ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Mengunggah...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4" />
-                          <span>Upload File Foto</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  <div>
-                    <input
-                      type="text"
-                      value={editingProject.image_url || ""}
-                      onChange={(e) =>
-                        setEditingProject({ ...editingProject, image_url: e.target.value })
-                      }
-                      placeholder="Atau tempel URL / /images/projects/..."
-                      className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
-                    />
-                  </div>
+                {/* Optional Collapsible Manual URL input */}
+                <div className="pt-2 border-t border-[var(--line)]">
+                  <details className="text-[11px] font-mono text-[var(--muted)]">
+                    <summary className="cursor-pointer hover:text-[var(--text)] select-none">
+                      Opsi alternatif: Masukkan URL gambar manual
+                    </summary>
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={editingProject.image_url || ""}
+                        onChange={(e) =>
+                          setEditingProject({ ...editingProject, image_url: e.target.value })
+                        }
+                        placeholder="https://... atau /images/projects/nama-file.png"
+                        className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
+                      />
+                    </div>
+                  </details>
                 </div>
               </div>
 
