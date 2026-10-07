@@ -25,6 +25,7 @@ function subscribeTheme(callback: () => void) {
 }
 
 function getThemeSnapshot() {
+  if (typeof document === "undefined") return true;
   return document.documentElement.classList.contains("dark");
 }
 
@@ -57,7 +58,7 @@ export function Navbar() {
       const saved = localStorage.getItem("theme");
       if (saved === "light") {
         document.documentElement.classList.remove("dark");
-      } else {
+      } else if (saved === "dark") {
         document.documentElement.classList.add("dark");
       }
     } catch {
@@ -168,12 +169,27 @@ export function Navbar() {
 
   const transitionEase = { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const };
 
+  // Explicit color classes to guarantee perfect contrast in both light & dark mode
+  const textMuted = scrolled
+    ? "text-neutral-400"
+    : isDark
+    ? "text-white/60"
+    : "text-neutral-800";
+
+  const textActive = scrolled
+    ? "text-white"
+    : isDark
+    ? "text-white"
+    : "text-black";
+
   return (
     <>
       {/* Top Scroll Indicator Line matching Surya */}
       <motion.div
         style={{ scaleX }}
-        className="fixed top-0 left-0 right-0 h-[2.5px] bg-[#141414] dark:bg-white origin-left z-[1000] pointer-events-none"
+        className={`fixed top-0 left-0 right-0 h-[2.5px] origin-left z-[1000] pointer-events-none transition-colors duration-300 ${
+          isDark ? "bg-white" : "bg-[#141414]"
+        }`}
       />
 
       {/* Floating Sticky Navigation Container */}
@@ -194,7 +210,9 @@ export function Navbar() {
           className={`pointer-events-auto flex items-center justify-between origin-top transition-[background-color,border-radius,padding,box-shadow,border-color] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] relative ${
             scrolled
               ? "w-auto bg-[#141414]/90 dark:bg-[#161616]/95 backdrop-blur-xl rounded-full px-7 md:px-9 py-3 md:py-3.5 shadow-2xl border border-white/10 dark:border-white/20 dark:shadow-[0_16px_40px_rgba(0,0,0,0.8)]"
-              : "w-full bg-transparent px-6 md:px-16 py-5 md:py-8 rounded-none border-b border-black/[0.06] dark:border-white/[0.08] shadow-none"
+              : `w-full bg-transparent px-6 md:px-16 py-5 md:py-8 rounded-none border-b shadow-none ${
+                  isDark ? "border-white/[0.08]" : "border-black/[0.08]"
+                }`
           }`}
         >
           {/* Nav Links Desktop with Rolling Text Animation */}
@@ -208,20 +226,12 @@ export function Navbar() {
                   >
                     <div className="flex flex-col transition-transform duration-[0.5s] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2">
                       <span
-                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
-                          scrolled
-                            ? "text-neutral-400 dark:text-neutral-400"
-                            : "text-[#1a1a1a]/60 dark:text-white/60"
-                        }`}
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${textMuted}`}
                       >
                         {item.name}
                       </span>
                       <span
-                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
-                          scrolled
-                            ? "text-white dark:text-white"
-                            : "text-[#1a1a1a] dark:text-white"
-                        }`}
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${textActive}`}
                       >
                         {item.name}
                       </span>
@@ -235,20 +245,12 @@ export function Navbar() {
                   >
                     <div className="flex flex-col transition-transform duration-[0.5s] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2">
                       <span
-                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
-                          scrolled
-                            ? "text-neutral-400 dark:text-neutral-400"
-                            : "text-[#1a1a1a]/60 dark:text-white/60"
-                        }`}
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${textMuted}`}
                       >
                         {item.name}
                       </span>
                       <span
-                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
-                          scrolled
-                            ? "text-white dark:text-white"
-                            : "text-[#1a1a1a] dark:text-white"
-                        }`}
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${textActive}`}
                       >
                         {item.name}
                       </span>
@@ -263,7 +265,7 @@ export function Navbar() {
           <div
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`md:hidden cursor-pointer flex justify-end items-center transition-colors duration-700 ${
-              scrolled ? "text-white" : "text-[#1a1a1a] dark:text-white"
+              scrolled ? "text-white" : isDark ? "text-white" : "text-neutral-900"
             }`}
           >
             <div
@@ -304,7 +306,9 @@ export function Navbar() {
             className={`flex items-center gap-4 ml-6 md:ml-8 pl-5 md:pl-6 border-l transition-colors duration-700 ${
               scrolled
                 ? "border-white/15 dark:border-white/20"
-                : "border-black/10 dark:border-white/15"
+                : isDark
+                ? "border-white/15"
+                : "border-black/15"
             }`}
           >
             <button
@@ -347,7 +351,7 @@ export function Navbar() {
                   className={`transition-colors ${
                     scrolled
                       ? "text-white hover:text-neutral-300"
-                      : "text-[#1a1a1a] hover:opacity-75"
+                      : "text-neutral-900 hover:text-black"
                   }`}
                 >
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -367,7 +371,9 @@ export function Navbar() {
                 className={`absolute top-[100%] left-4 right-4 mt-3 rounded-2xl p-5 shadow-2xl overflow-hidden flex flex-col gap-3 md:hidden backdrop-blur-2xl ${
                   scrolled
                     ? "bg-[#141414]/95 dark:bg-[#181818]/98 border border-white/10 dark:border-white/20"
-                    : "bg-white/95 dark:bg-[#161616]/98 border border-black/10 dark:border-white/15"
+                    : isDark
+                    ? "bg-[#161616]/98 border border-white/15"
+                    : "bg-white/95 border border-black/10 shadow-lg"
                 }`}
               >
                 {navItems.map((item, idx) => (
@@ -377,8 +383,10 @@ export function Navbar() {
                     onClick={(e) => handleNavClick(e, item.href)}
                     className={`text-[13px] tracking-wide font-medium w-full border-b pb-2.5 transition-colors ${
                       scrolled
-                        ? "text-neutral-300 dark:text-neutral-300 hover:text-white border-white/10"
-                        : "text-[#1a1a1a]/80 dark:text-white/80 hover:text-[#1a1a1a] dark:hover:text-white border-black/5 dark:border-white/10"
+                        ? "text-neutral-300 hover:text-white border-white/10"
+                        : isDark
+                        ? "text-neutral-300 hover:text-white border-white/10"
+                        : "text-neutral-900 hover:text-black border-black/10"
                     }`}
                   >
                     {item.name}
