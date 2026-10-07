@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
 import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
+import { markComingFromWork } from "@/lib/introState";
 
 function subscribeTheme(callback: () => void) {
   if (typeof window === "undefined" || typeof MutationObserver === "undefined") {
@@ -146,6 +147,9 @@ export function Navbar() {
       ];
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (isWorkPage) {
+      markComingFromWork();
+    }
     if (href.startsWith("/#") || href.startsWith("#")) {
       const targetId = href.replace("/#", "").replace("#", "");
       let el = document.getElementById(targetId);
@@ -222,6 +226,9 @@ export function Navbar() {
                 {item.href.startsWith("/") && !item.href.startsWith("/#") ? (
                   <Link
                     href={item.href}
+                    onClick={() => {
+                      if (isWorkPage) markComingFromWork();
+                    }}
                     className="relative block overflow-hidden h-[18px]"
                   >
                     <div className="flex flex-col transition-transform duration-[0.5s] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2">

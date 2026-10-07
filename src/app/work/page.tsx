@@ -15,7 +15,7 @@ import { Reveal } from "@/components/Reveal";
 import { FadeInTitle } from "@/components/FadeInTitle";
 import { AnimatePresence } from "framer-motion";
 import { Preloader } from "@/components/Preloader";
-import { markIntroAsSeen } from "@/lib/introState";
+import { markComingFromWork } from "@/lib/introState";
 
 interface ArchiveProject {
   num: string;
@@ -200,7 +200,10 @@ export default function WorkPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    markIntroAsSeen();
+    markComingFromWork();
+    return () => {
+      markComingFromWork();
+    };
   }, []);
 
   useEffect(() => {
@@ -243,7 +246,11 @@ export default function WorkPage() {
           {/* Breadcrumb Top Bar */}
           <Reveal delay={0}>
             <div className="archive-top-bar">
-              <Link href="/#work" className="archive-back-btn group">
+              <Link
+                href="/#work"
+                onClick={() => markComingFromWork()}
+                className="archive-back-btn group"
+              >
                 <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
                 <span>Return to Portfolio</span>
               </Link>

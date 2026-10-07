@@ -14,14 +14,16 @@ import { Awards } from "@/components/Awards";
 import { Trainings } from "@/components/Trainings";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
-import { checkHasSeenIntro, markIntroAsSeen } from "@/lib/introState";
+import { checkAndClearComingFromWork } from "@/lib/introState";
 
 export default function Home() {
-  const [transitionOnly, setTransitionOnly] = useState(() => checkHasSeenIntro());
+  // If returning from /work, transitionOnly is true (curtains only, no text).
+  // On direct visit or page refresh, transitionOnly is false (plays the text greeting).
+  const [transitionOnly, setTransitionOnly] = useState(() => checkAndClearComingFromWork());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!transitionOnly && checkHasSeenIntro()) {
+    if (!transitionOnly && checkAndClearComingFromWork()) {
       setTransitionOnly(true);
     }
   }, [transitionOnly]);
@@ -42,7 +44,6 @@ export default function Home() {
 
   const handleComplete = () => {
     setIsLoading(false);
-    markIntroAsSeen();
     if (typeof window !== "undefined" && window.location.hash) {
       setTimeout(() => {
         const id = window.location.hash.replace("#", "");
@@ -56,7 +57,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Animated Greeting & Staggered Curtain Preloader */}
+      {/* Animated Greeting on refresh, or Curtain Transition when returning from /work */}
       <AnimatePresence mode="wait">
         {isLoading && (
           <Preloader
