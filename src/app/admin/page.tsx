@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,12 +26,16 @@ import {
   Camera,
   RefreshCw,
   FileText,
-  Globe
+  Globe,
+  Upload,
+  ImageIcon,
+  Link2
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
 import { projects as fallbackProjects } from "@/data/projects";
 import { personalInfo as fallbackPersonal } from "@/data/personal";
+import { optimizeImageFile } from "@/lib/image-utils";
 
 type TabType = "projects" | "profile" | "messages";
 
@@ -95,6 +99,9 @@ export default function AdminDashboardPage() {
   });
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showManualUrl, setShowManualUrl] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [messagesList, setMessagesList] = useState<ContactMessageRow[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -462,6 +469,64 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Handle Image File Upload (Compacts client-side and/or uploads to Supabase)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("error", "Harap pilih file gambar (JPG, PNG, atau WebP).");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("error", "Ukuran file terlalu besar (maksimal 15MB).");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      let uploadedUrl: string | null = null;
+
+      // Attempt upload to Supabase storage if portfolio bucket is available
+      if (supabase) {
+        try {
+          const ext = file.name.split(".").pop() || "png";
+          const fileName = `portrait-${Date.now()}.${ext}`;
+          const { data: uploadData, error: uploadErr } = await supabase.storage
+            .from("portfolio")
+            .upload(fileName, file, { upsert: true });
+
+          if (!uploadErr && uploadData) {
+            const { data: pubData } = supabase.storage
+              .from("portfolio")
+              .getPublicUrl(uploadData.path);
+            uploadedUrl = pubData.publicUrl;
+          }
+        } catch {
+          // fallback to client-side data URL
+        }
+      }
+
+      // If storage bucket is not available, optimize client-side into lightweight high-res data URL
+      if (!uploadedUrl) {
+        uploadedUrl = await optimizeImageFile(file, 1000, 0.85);
+      }
+
+      setPersonalData((prev) => ({ ...prev, avatar_url: uploadedUrl! }));
+      showToast("success", "Foto berhasil dimuat! Klik 'Simpan Perubahan' di bawah untuk menerapkan.");
+    } catch (err) {
+      console.error("Image upload error:", err);
+      showToast("error", "Gagal memproses gambar.");
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   // Mark Message as Read
   const handleToggleMessageStatus = async (msg: ContactMessageRow) => {
     const supabase = getSupabaseBrowserClient();
@@ -745,48 +810,119 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Photo Preview & URL (4 cols) */}
+                  {/* Photo Preview & Upload (4 cols) */}
                   <div className="lg:col-span-4 flex flex-col items-center">
-                    <div className="w-full max-w-[220px] aspect-[4/5] relative rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl mb-3 group">
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/jpg"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+
+                    {/* Interactive Preview Card (Click to upload) */}
+                    <div
+                      onClick={() => !isUploadingImage && fileInputRef.current?.click()}
+                      className="w-full max-w-[220px] aspect-[4/5] relative rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl mb-3 group cursor-pointer hover:border-emerald-500/50 transition-all duration-300"
+                      title="Klik untuk memilih foto baru dari perangkat"
+                    >
                       <Image
                         src={personalData.avatar_url || "/images/nauval-portrait.png"}
                         alt={personalData.name || "Portrait Preview"}
                         fill
                         unoptimized
-                        className="object-cover object-[48%_14%]"
+                        className="object-cover object-[48%_14%] transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
-                          // Fallback to default image on error
                           const target = e.target as HTMLImageElement;
                           target.src = "/images/nauval-portrait.png";
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
+
+                      {/* Hover Overlay with Upload Icon */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                        <Upload className="w-6 h-6 text-emerald-400 animate-bounce" />
+                        <span className="text-xs font-bold text-white">Ganti Foto</span>
+                        <span className="text-[10px] text-zinc-300">Klik untuk upload</span>
+                      </div>
+
+                      {/* Bottom Tag */}
+                      <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-center justify-between pointer-events-none">
                         <span className="text-[10px] font-mono font-bold text-zinc-300 bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm">
-                          Live Preview Card
+                          Live Card
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                          <Camera className="w-3 h-3" />
+                          <span>4:5</span>
                         </span>
                       </div>
+
+                      {isUploadingImage && (
+                        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 z-10">
+                          <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
+                          <span className="text-xs font-semibold text-emerald-300">Memproses...</span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="w-full space-y-2">
-                      <label className="block text-xs font-semibold text-zinc-300">
-                        URL Foto Portrait
-                      </label>
-                      <input
-                        type="text"
-                        value={personalData.avatar_url}
-                        onChange={(e) => setPersonalData({ ...personalData, avatar_url: e.target.value })}
-                        placeholder="/images/nauval-portrait.png atau https://..."
-                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
-                      />
+                    {/* Upload Controls & Actions */}
+                    <div className="w-full space-y-2.5">
+                      {/* Primary Upload Button */}
                       <button
                         type="button"
-                        onClick={() =>
-                          setPersonalData({ ...personalData, avatar_url: "/images/nauval-portrait.png" })
-                        }
-                        className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors underline cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
                       >
-                        Reset ke foto default (/images/nauval-portrait.png)
+                        {isUploadingImage ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Memproses Foto...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Pilih Foto dari Perangkat</span>
+                          </>
+                        )}
                       </button>
+
+                      {/* URL Toggle & Reset Button */}
+                      <div className="flex items-center justify-between text-[11px] pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowManualUrl(!showManualUrl)}
+                          className="text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Link2 className="w-3 h-3" />
+                          <span>{showManualUrl ? "Tutup Input URL" : "Pakai URL Online"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPersonalData({ ...personalData, avatar_url: "/images/nauval-portrait.png" })
+                          }
+                          className="text-emerald-400 hover:text-emerald-300 transition-colors underline cursor-pointer"
+                        >
+                          Reset Default
+                        </button>
+                      </div>
+
+                      {/* Manual URL Input (Collapsible) */}
+                      {showManualUrl && (
+                        <div className="space-y-1 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <label className="block text-[11px] font-medium text-zinc-400">
+                            URL Gambar Alternatif:
+                          </label>
+                          <input
+                            type="text"
+                            value={personalData.avatar_url}
+                            onChange={(e) => setPersonalData({ ...personalData, avatar_url: e.target.value })}
+                            placeholder="/images/nauval-portrait.png atau https://..."
+                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
