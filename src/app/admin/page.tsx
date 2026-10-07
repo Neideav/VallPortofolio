@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { BackgroundLines } from "@/components/BackgroundLines";
 import { 
   FolderGit2, 
   User, 
@@ -35,7 +36,9 @@ import {
   ShieldCheck,
   Languages,
   Award,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
@@ -56,6 +59,25 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("projects");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      setIsDarkTheme(document.documentElement.classList.contains("dark"));
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isDarkTheme;
+    setIsDarkTheme(next);
+    if (next) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   // Status feedback toast
@@ -835,78 +857,85 @@ export default function AdminDashboardPage() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-[#070b12] text-zinc-200 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+      <div className="portfolio-root min-h-screen bg-[var(--bg)] text-[var(--text)] flex items-center justify-center font-sans">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--text)]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-[#e7e9ee] font-sans flex flex-col relative selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Background ambient lighting matching main portfolio style */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-emerald-500/[0.04] rounded-full blur-[160px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-teal-500/[0.03] rounded-full blur-[180px]" />
-        <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] bg-cyan-500/[0.03] rounded-full blur-[160px]" />
-      </div>
+    <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400 font-sans flex flex-col selection:bg-[var(--text)] selection:text-[var(--surface)]">
+      {/* Background SVG curved topographic lines spanning the entire page */}
+      <BackgroundLines />
 
       {/* Toast Notification */}
       {toast && (
         <div
           className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
             toast.type === "success"
-              ? "bg-[#14171f]/95 border-emerald-500/40 text-emerald-200 shadow-emerald-950/20"
-              : "bg-[#14171f]/95 border-red-500/40 text-red-200 shadow-red-950/20"
+              ? "bg-[var(--surface)] border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-emerald-950/20"
+              : "bg-[var(--surface)] border-rose-500/40 text-rose-600 dark:text-rose-400 shadow-rose-950/20"
           }`}
         >
           {toast.type === "success" ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
           )}
           <span className="text-xs sm:text-sm font-medium">{toast.message}</span>
         </div>
       )}
 
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-[#0f1115]/85 border-b border-white/[0.08] backdrop-blur-2xl px-4 sm:px-8 py-3.5 transition-all">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
+      {/* Top Floating Navbar matching Main Page Navbar pill */}
+      <header className="sticky top-4 z-40 px-4 sm:px-6 w-full max-w-7xl mx-auto">
+        <div className="w-full bg-[#141414]/90 dark:bg-[#161616]/95 backdrop-blur-xl rounded-full px-5 sm:px-7 py-3 shadow-2xl border border-white/10 dark:border-white/20 text-white flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="w-10 h-10 rounded-2xl bg-[#1a1d23] border border-white/[0.1] hover:border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-black/40 transition-all group"
+              className="w-9 h-9 rounded-full bg-white text-black dark:bg-white dark:text-black flex items-center justify-center text-xs font-bold font-mono shadow-md hover:scale-105 transition-all"
               title="Kembali ke Portofolio"
             >
-              <Shield className="w-5 h-5 transition-transform group-hover:scale-110" />
+              VM
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono tracking-[0.25em] uppercase text-zinc-300 font-bold">
-                  NAUVALDY MAULANA
+                <span className="text-xs font-mono tracking-[0.2em] uppercase font-bold text-white">
+                  NAUVALDY // CMS
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2.5 py-0.5 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>CMS Active</span>
+                  Live
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
-                Logged in as: <span className="text-zinc-300">{userEmail}</span>
+              <p className="text-[10px] text-white/60 font-mono hidden sm:block">
+                {userEmail}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-zinc-300 hover:text-white px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.18] transition-all"
+              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-white/80 hover:text-white px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 transition-all"
             >
               <span>Lihat Website</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-white/70" />
             </Link>
+
+            {/* Theme Toggle matching Main Page Navbar */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer"
+            >
+              {isDarkTheme ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-white" />}
+            </button>
+
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-red-400 hover:text-red-300 bg-red-500/[0.06] hover:bg-red-500/[0.12] px-3.5 py-2 rounded-xl border border-red-500/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-rose-300 hover:text-rose-200 bg-rose-500/15 hover:bg-rose-500/25 px-3 py-1.5 rounded-full border border-rose-500/25 transition-all cursor-pointer"
+              title="Keluar dari Admin"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Keluar</span>
@@ -916,81 +945,97 @@ export default function AdminDashboardPage() {
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
-        {/* Tab Navigation Segmented Pill */}
-        <div className="mb-8 overflow-x-auto pb-2 scrollbar-none">
-          <div className="inline-flex items-center gap-1.5 p-1.5 bg-[#14171f]/90 border border-white/[0.08] rounded-2xl backdrop-blur-xl shadow-xl">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
+        {/* Tab Navigation Capsule */}
+        <div className="my-6 sm:my-8 flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-full shadow-md overflow-x-auto max-w-full">
             <button
               onClick={() => setActiveTab("projects")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "projects"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
               }`}
             >
-              <FolderGit2 className="w-4 h-4" />
+              <FolderGit2 className="w-3.5 h-3.5" />
               <span>Projects</span>
-              <span className="font-mono text-[10px] bg-white/[0.06] px-1.5 py-0.5 rounded-md">
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                activeTab === "projects"
+                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+              }`}>
                 {projectsList.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab("profile")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "profile"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
               }`}
             >
-              <User className="w-4 h-4" />
+              <User className="w-3.5 h-3.5" />
               <span>Profile &amp; About</span>
             </button>
 
             <button
               onClick={() => setActiveTab("awards")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "awards"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
               }`}
             >
-              <Trophy className="w-4 h-4" />
+              <Trophy className="w-3.5 h-3.5" />
               <span>Awards &amp; Collage</span>
-              <span className="font-mono text-[10px] bg-white/[0.06] px-1.5 py-0.5 rounded-md">
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                activeTab === "awards"
+                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+              }`}>
                 {awardsList.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab("trainings")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "trainings"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
               }`}
             >
-              <BookOpen className="w-4 h-4" />
-              <span>Trainings &amp; Milestones</span>
-              <span className="font-mono text-[10px] bg-white/[0.06] px-1.5 py-0.5 rounded-md">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Trainings</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                activeTab === "trainings"
+                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+              }`}>
                 {trainingsList.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab("messages")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "messages"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
               }`}
             >
-              <Mail className="w-4 h-4" />
+              <Mail className="w-3.5 h-3.5" />
               <span>Messages</span>
               {messagesList.filter((m) => m.status === "unread").length > 0 ? (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               ) : (
-                <span className="font-mono text-[10px] bg-white/[0.06] px-1.5 py-0.5 rounded-md">
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                  activeTab === "messages"
+                    ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                    : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+                }`}>
                   {messagesList.length}
                 </span>
               )}
@@ -1003,21 +1048,17 @@ export default function AdminDashboardPage() {
         {/* ============================================================== */}
         {activeTab === "projects" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#14171f]/70 border border-white/[0.08] backdrop-blur-xl p-6 rounded-2xl shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
               <div>
-                <div className="font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-2">
-                  <span className="w-2 h-[1px] bg-emerald-400/60 inline-block" />
-                  <span>// REPOSITORY &amp; WORK</span>
-                </div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">Daftar Proyek Portofolio</h2>
-                <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
-                  Data ini tersimpan di tabel Supabase PostgreSQL <code className="text-emerald-400 font-mono">projects</code>.
-                  Perubahan akan langsung tampil di halaman Work dan Featured Showcase.
+                <div className="section-label mb-2">01 // REPOSITORY</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Projects &amp; Work Gallery</h2>
+                <p className="section-desc text-xs sm:text-sm mb-0">
+                  Kelola daftar proyek, deskripsi, teknologi, link GitHub, dan demo live Anda di Supabase.
                 </p>
               </div>
               <button
                 onClick={handleCreateProject}
-                className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[var(--text)] text-[var(--surface)] hover:opacity-90 font-mono text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-full shadow-sm active:scale-[0.98] transition-all cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Proyek Baru</span>
@@ -1025,42 +1066,42 @@ export default function AdminDashboardPage() {
             </div>
 
             {isLoadingProjects ? (
-              <div className="p-12 text-center text-zinc-500 bg-[#14171f]/40 border border-white/[0.06] rounded-2xl">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-400" />
+              <div className="p-12 text-center text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-3xl shadow-sm">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[var(--text)]" />
                 <span className="text-xs font-mono">Memuat proyek dari Supabase...</span>
               </div>
             ) : projectsList.length === 0 ? (
-              <div className="p-12 text-center text-zinc-500 border border-dashed border-white/[0.08] rounded-2xl bg-[#14171f]/30">
+              <div className="p-12 text-center text-[var(--muted)] border border-dashed border-[var(--line)] rounded-3xl bg-[var(--surface)]">
                 Belum ada proyek di database. Klik &ldquo;Tambah Proyek Baru&rdquo; untuk memulai.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {projectsList.map((proj) => (
                   <div
                     key={proj.id}
-                    className="bg-[#14171f]/60 border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between hover:border-white/20 transition-all duration-300 backdrop-blur-md group"
+                    className="bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[var(--text)]/40 hover:-translate-y-0.5 transition-all text-[var(--text)] group"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/20">
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-xs font-mono font-bold text-[var(--text)] bg-[var(--surface-2)] px-2.5 py-1 rounded-md border border-[var(--line)]">
                           #{proj.number}
                         </span>
                         {proj.featured && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-teal-300 bg-teal-950/60 border border-teal-500/30 px-2 py-0.5 rounded-full font-mono">
+                          <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-mono">
                             Featured
                           </span>
                         )}
                       </div>
-                      <h3 className="text-base font-bold text-white line-clamp-1 group-hover:text-emerald-300 transition-colors">
+                      <h3 className="text-base font-bold text-[var(--text)] line-clamp-1 group-hover:underline transition-colors">
                         {proj.title}
                       </h3>
-                      <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">{proj.description}</p>
+                      <p className="text-xs text-[var(--muted)] mt-1.5 line-clamp-2 leading-relaxed">{proj.description}</p>
 
-                      <div className="flex flex-wrap gap-1.5 mt-3">
+                      <div className="flex flex-wrap gap-1.5 mt-4">
                         {(proj.technologies || []).slice(0, 4).map((tech, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-mono bg-white/[0.05] border border-white/[0.06] text-zinc-300 px-2 py-0.5 rounded"
+                            className="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
                           >
                             {tech}
                           </span>
@@ -1068,14 +1109,14 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+                    <div className="mt-6 pt-4 border-t border-[var(--line)] flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {proj.github_url && (
                           <a
                             href={proj.github_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-zinc-500 hover:text-white transition-colors"
+                            className="text-[var(--muted)] hover:text-[var(--text)] transition-colors p-1"
                             title="GitHub"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -1083,20 +1124,22 @@ export default function AdminDashboardPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEditProject(proj)}
-                          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          className="px-3 py-1.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] font-mono text-xs uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
                           title="Edit Proyek"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
                         </button>
                         <button
                           onClick={() => handleDeleteProject(proj.id, proj.title)}
-                          className="p-2 rounded-xl bg-red-500/[0.08] hover:bg-red-500/[0.16] text-red-400 hover:text-red-300 border border-red-500/20 transition-all cursor-pointer"
+                          className="px-3 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/20 font-mono text-xs uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
                           title="Hapus Proyek"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 h-3" />
+                          <span>Hapus</span>
                         </button>
                       </div>
                     </div>
@@ -1111,48 +1154,42 @@ export default function AdminDashboardPage() {
         {/* TAB 2: PROFILE & ABOUT ME */}
         {/* ============================================================== */}
         {activeTab === "profile" && (
-          <div className="max-w-5xl bg-[#14171f]/70 border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 sm:p-8 space-y-8 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
               <div>
-                <div className="font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-2">
-                  <span className="w-2 h-[1px] bg-emerald-400/60 inline-block" />
-                  <span>// BIOGRAPHY &amp; PROFILE</span>
-                </div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                  <span>Kelola About Me &amp; Data Portofolio</span>
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  Semua perubahan langsung tersimpan ke Supabase PostgreSQL <code className="text-emerald-400 font-mono">personal_info</code> dan langsung tampil di website utama.
+                <div className="section-label mb-2">02 // BIOGRAPHY &amp; PROFILE</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Kelola About Me &amp; Data Portofolio</h2>
+                <p className="section-desc text-xs sm:text-sm mb-0">
+                  Semua perubahan langsung tersimpan ke Supabase PostgreSQL <code className="font-mono bg-[var(--surface-2)] px-1.5 py-0.5 rounded border border-[var(--line)]">personal_info</code> dan tampil di portofolio.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={fetchProfile}
                 disabled={isLoadingProfile}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer w-fit"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] transition-all cursor-pointer w-fit shrink-0"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? "animate-spin" : ""}`} />
                 <span>Muat Ulang Data</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="space-y-8">
+            <form onSubmit={handleSaveProfile} className="space-y-6">
               {/* SECTION A: ABOUT ME (PHOTO, WHO AM I, MY APPROACH) */}
-              <div className="bg-[#0c0e14]/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-6 backdrop-blur-md">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.06]">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-                    <Camera className="w-4 h-4" />
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex items-center gap-3 pb-4 border-b border-[var(--line)]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <Camera className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Bagian About Me (Foto &amp; Narasi)</h3>
-                    <p className="text-[11px] text-zinc-400 font-mono">Tampilan foto portrait, bio &ldquo;Who Am I&rdquo;, dan &ldquo;My Approach&rdquo;.</p>
+                    <h3 className="text-base font-bold text-[var(--text)]">Bagian About Me (Foto &amp; Narasi)</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">Tampilan foto portrait, bio &ldquo;Who Am I&rdquo;, dan &ldquo;My Approach&rdquo;.</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   {/* Photo Preview & Upload (4 cols) */}
                   <div className="lg:col-span-4 flex flex-col items-center">
-                    {/* Hidden file input */}
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -1164,7 +1201,7 @@ export default function AdminDashboardPage() {
                     {/* Interactive Preview Card (Click to upload) */}
                     <div
                       onClick={() => !isUploadingImage && fileInputRef.current?.click()}
-                      className="w-full max-w-[220px] aspect-[4/5] relative rounded-2xl overflow-hidden bg-[#0a0c10] border border-white/[0.1] shadow-2xl mb-3 group cursor-pointer hover:border-emerald-500/60 transition-all duration-300"
+                      className="w-full max-w-[240px] aspect-[4/5] relative rounded-3xl overflow-hidden bg-[var(--surface-2)] border border-[var(--line)] shadow-xl mb-4 group cursor-pointer hover:border-[var(--text)]/60 transition-all duration-300"
                       title="Klik untuk memilih foto baru dari perangkat"
                     >
                       <Image
@@ -1180,39 +1217,38 @@ export default function AdminDashboardPage() {
                       />
 
                       {/* Hover Overlay with Upload Icon */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1.5 p-3 text-center">
-                        <Upload className="w-6 h-6 text-emerald-400 animate-bounce" />
-                        <span className="text-xs font-bold text-white">Ganti Foto</span>
-                        <span className="text-[10px] text-zinc-300 font-mono">Klik untuk upload</span>
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 p-3 text-center text-white">
+                        <Upload className="w-6 h-6 animate-bounce" />
+                        <span className="text-xs font-bold font-mono uppercase tracking-wider">Ganti Foto</span>
+                        <span className="text-[10px] text-white/70 font-mono">Klik untuk upload</span>
                       </div>
 
                       {/* Bottom Tag */}
-                      <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-center justify-between pointer-events-none">
-                        <span className="text-[10px] font-mono font-bold text-zinc-300 bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">
-                          Live Card
+                      <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-between pointer-events-none text-white">
+                        <span className="text-[10px] font-mono font-bold bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-white/10">
+                          About Card
                         </span>
-                        <span className="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1">
+                        <span className="text-[10px] font-mono font-semibold flex items-center gap-1 text-white/80">
                           <Camera className="w-3 h-3" />
                           <span>4:5</span>
                         </span>
                       </div>
 
                       {isUploadingImage && (
-                        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 z-10">
-                          <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
-                          <span className="text-xs font-mono font-semibold text-emerald-300">Memproses...</span>
+                        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 z-10 text-white">
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <span className="text-xs font-mono font-semibold">Memproses...</span>
                         </div>
                       )}
                     </div>
 
                     {/* Upload Controls & Actions */}
                     <div className="w-full space-y-2.5">
-                      {/* Primary Upload Button */}
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploadingImage}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                       >
                         {isUploadingImage ? (
                           <>
@@ -1227,12 +1263,11 @@ export default function AdminDashboardPage() {
                         )}
                       </button>
 
-                      {/* URL Toggle & Reset Button */}
-                      <div className="flex items-center justify-between text-[11px] pt-0.5 font-mono">
+                      <div className="flex items-center justify-between text-[11px] pt-1 font-mono">
                         <button
                           type="button"
                           onClick={() => setShowManualUrl(!showManualUrl)}
-                          className="text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          className="text-[var(--muted)] hover:text-[var(--text)] transition-colors inline-flex items-center gap-1 cursor-pointer"
                         >
                           <Link2 className="w-3 h-3" />
                           <span>{showManualUrl ? "Tutup Input URL" : "Pakai URL Online"}</span>
@@ -1242,16 +1277,15 @@ export default function AdminDashboardPage() {
                           onClick={() =>
                             setPersonalData({ ...personalData, avatar_url: "/images/nauval-portrait.png" })
                           }
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors underline cursor-pointer"
+                          className="text-[var(--text)] hover:underline cursor-pointer"
                         >
                           Reset Default
                         </button>
                       </div>
 
-                      {/* Manual URL Input (Collapsible) */}
                       {showManualUrl && (
-                        <div className="space-y-1 pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                          <label className="block text-[11px] font-mono text-zinc-400">
+                        <div className="space-y-1.5 pt-1 animate-in fade-in duration-200">
+                          <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--muted)]">
                             URL Gambar Alternatif:
                           </label>
                           <input
@@ -1259,7 +1293,7 @@ export default function AdminDashboardPage() {
                             value={personalData.avatar_url}
                             onChange={(e) => setPersonalData({ ...personalData, avatar_url: e.target.value })}
                             placeholder="/images/nauval-portrait.png atau https://..."
-                            className="w-full px-3 py-2 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500 focus:outline-none rounded-xl text-xs text-white"
+                            className="w-full px-3.5 py-2 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs text-[var(--text)] outline-none font-mono"
                           />
                         </div>
                       )}
@@ -1267,32 +1301,32 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Narration Texts (8 cols) */}
-                  <div className="lg:col-span-8 space-y-5">
+                  <div className="lg:col-span-8 space-y-6">
                     <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5 flex items-center justify-between">
+                      <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2 flex items-center justify-between">
                         <span>Who Am I (Deskripsi Diri)</span>
-                        <span className="text-[10px] text-zinc-500 font-mono normal-case">Kolom kiri About Me</span>
+                        <span className="text-[10px] text-[var(--muted)]/70 font-mono normal-case">Kolom kiri About Me</span>
                       </label>
                       <textarea
                         rows={4}
                         value={personalData.bio}
                         onChange={(e) => setPersonalData({ ...personalData, bio: e.target.value })}
                         placeholder="Deskripsi spesialisasi dan latar belakang kamu..."
-                        className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all leading-relaxed"
+                        className="w-full px-4 py-3 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-2xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5 flex items-center justify-between">
+                      <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2 flex items-center justify-between">
                         <span>My Approach (Pendekatan Saya)</span>
-                        <span className="text-[10px] text-zinc-500 font-mono normal-case">Kolom kanan About Me</span>
+                        <span className="text-[10px] text-[var(--muted)]/70 font-mono normal-case">Kolom kanan About Me</span>
                       </label>
                       <textarea
                         rows={4}
                         value={personalData.my_approach}
                         onChange={(e) => setPersonalData({ ...personalData, my_approach: e.target.value })}
                         placeholder="Prinsip rekayasa, keandalan sistem, standar kualitas..."
-                        className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all leading-relaxed"
+                        className="w-full px-4 py-3 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-2xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                       />
                     </div>
                   </div>
@@ -1300,21 +1334,21 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* SECTION B: PERSONAL DETAILS (THE 6 SPECIFIC FIELDS) */}
-              <div className="bg-[#0c0e14]/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-5 backdrop-blur-md">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.06]">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-                    <FileText className="w-4 h-4" />
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex items-center gap-3 pb-4 border-b border-[var(--line)]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Personal Details (Tabel 6 Rincian)</h3>
-                    <p className="text-[11px] text-zinc-400 font-mono">Data ini muncul pada kartu rincian di bawah narasi About Me.</p>
+                    <h3 className="text-base font-bold text-[var(--text)]">Personal Details (Tabel 6 Rincian)</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">Data ini muncul pada kartu rincian di bawah narasi About Me.</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {/* 1. Name */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       1. Name (Nama Lengkap)
                     </label>
                     <input
@@ -1323,13 +1357,13 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setPersonalData({ ...personalData, name: e.target.value })}
                       required
                       placeholder="Muhammad Bahruddin Nauvaldy Maulana"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-medium"
                     />
                   </div>
 
                   {/* 2. Place of Birth */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       2. Place of Birth (Tempat Lahir)
                     </label>
                     <input
@@ -1337,13 +1371,13 @@ export default function AdminDashboardPage() {
                       value={personalData.place_of_birth}
                       onChange={(e) => setPersonalData({ ...personalData, place_of_birth: e.target.value })}
                       placeholder="Batu, Indonesia"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-medium"
                     />
                   </div>
 
                   {/* 3. Role */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       3. Role (Jabatan / Peran)
                     </label>
                     <input
@@ -1351,13 +1385,13 @@ export default function AdminDashboardPage() {
                       value={personalData.title}
                       onChange={(e) => setPersonalData({ ...personalData, title: e.target.value })}
                       placeholder="Cloud Engineer · Backend Developer · DevOps Engineer"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-medium"
                     />
                   </div>
 
                   {/* 4. GPA */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       4. GPA (Nilai / IPK)
                     </label>
                     <input
@@ -1365,13 +1399,13 @@ export default function AdminDashboardPage() {
                       value={personalData.gpa}
                       onChange={(e) => setPersonalData({ ...personalData, gpa: e.target.value })}
                       placeholder="N/A atau 3.90"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-mono font-medium"
                     />
                   </div>
 
                   {/* 5. Email */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       5. Email Kontak
                     </label>
                     <input
@@ -1380,13 +1414,13 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setPersonalData({ ...personalData, email: e.target.value })}
                       required
                       placeholder="nvaldymaulana@gmail.com"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-mono"
                     />
                   </div>
 
                   {/* 6. Education */}
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       6. Education (Pendidikan)
                     </label>
                     <input
@@ -1394,135 +1428,94 @@ export default function AdminDashboardPage() {
                       value={personalData.education}
                       onChange={(e) => setPersonalData({ ...personalData, education: e.target.value })}
                       placeholder="SMKS PGRI 3 Malang"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors font-medium"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* SECTION C: HERO HEADLINE & STATUS PUBLIK */}
-              <div className="bg-[#0c0e14]/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-5 backdrop-blur-md">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.06]">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-                    <Sparkles className="w-4 h-4" />
+              {/* SECTION C: HERO SECTION HEADLINE & AVAILABILITY */}
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex items-center gap-3 pb-4 border-b border-[var(--line)]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Hero Section &amp; Status Portofolio</h3>
-                    <p className="text-[11px] text-zinc-400 font-mono">Teks pembuka hero, badge status kerja, dan ketersediaan.</p>
+                    <h3 className="text-base font-bold text-[var(--text)]">Hero Section (Headline &amp; Ketersediaan)</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">Teks pembuka di layar utama portofolio.</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                      Nama Panggilan (Hero Marquee)
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                      Hero Statement / Kutipan Utama
                     </label>
-                    <input
-                      type="text"
-                      value={personalData.nickname}
-                      onChange={(e) => setPersonalData({ ...personalData, nickname: e.target.value })}
-                      placeholder="Nauval"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                    <textarea
+                      rows={2}
+                      value={personalData.short_bio}
+                      onChange={(e) => setPersonalData({ ...personalData, short_bio: e.target.value })}
+                      placeholder="Kalimat pengantar di bagian bawah foto Hero..."
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                      Roles (Pisahkan dengan koma)
-                    </label>
-                    <input
-                      type="text"
-                      value={personalData.roles}
-                      onChange={(e) => setPersonalData({ ...personalData, roles: e.target.value })}
-                      placeholder="Cloud Engineer, Backend Developer, DevOps Engineer"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                        Status Ketersediaan
+                      </label>
+                      <input
+                        type="text"
+                        value={personalData.availability}
+                        onChange={(e) => setPersonalData({ ...personalData, availability: e.target.value })}
+                        placeholder="Available for hire"
+                        className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                        Lokasi Domisili
+                      </label>
+                      <input
+                        type="text"
+                        value={personalData.location}
+                        onChange={(e) => setPersonalData({ ...personalData, location: e.target.value })}
+                        placeholder="Malang, Indonesia"
+                        className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                        Link Dokumen CV / Resume
+                      </label>
+                      <input
+                        type="url"
+                        value={personalData.resume_url}
+                        onChange={(e) => setPersonalData({ ...personalData, resume_url: e.target.value })}
+                        placeholder="https://drive.google.com/..."
+                        className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none font-mono"
+                      />
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                    Short Statement (Hero Headline Quote)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={personalData.short_bio}
-                    onChange={(e) => setPersonalData({ ...personalData, short_bio: e.target.value })}
-                    placeholder="I build reliable backend systems, cloud infrastructure..."
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all leading-relaxed"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                      Status Ketersediaan
-                    </label>
-                    <input
-                      type="text"
-                      value={personalData.availability}
-                      onChange={(e) => setPersonalData({ ...personalData, availability: e.target.value })}
-                      placeholder="Open to Opportunities"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                      Status Badge Hero
-                    </label>
-                    <input
-                      type="text"
-                      value={personalData.status}
-                      onChange={(e) => setPersonalData({ ...personalData, status: e.target.value })}
-                      placeholder="System Active & Deploying"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                      Lokasi Domisili
-                    </label>
-                    <input
-                      type="text"
-                      value={personalData.location}
-                      onChange={(e) => setPersonalData({ ...personalData, location: e.target.value })}
-                      placeholder="Indonesia (Remote / Hybrid)"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
-                    Link Resume / CV
-                  </label>
-                  <input
-                    type="text"
-                    value={personalData.resume_url}
-                    onChange={(e) => setPersonalData({ ...personalData, resume_url: e.target.value })}
-                    placeholder="#contact atau URL Google Drive CV"
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
-                  />
                 </div>
               </div>
 
-              {/* SECTION D: SOCIAL & CURRENTLY */}
-              <div className="bg-[#0c0e14]/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-5 backdrop-blur-md">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.06]">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-                    <Globe className="w-4 h-4" />
+              {/* SECTION D: SOCIAL MEDIA & "CURRENTLY" STATUS */}
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex items-center gap-3 pb-4 border-b border-[var(--line)]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Sosial Media &amp; Aktivitas Terkini (Currently)</h3>
-                    <p className="text-[11px] text-zinc-400 font-mono">Tautan profil luar dan aktivitas belajar / riset saat ini.</p>
+                    <h3 className="text-base font-bold text-[var(--text)]">Tautan Sosial &amp; Status Terkini</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">Akun media sosial dan fokus kegiatan saat ini.</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       GitHub URL
                     </label>
                     <input
@@ -1530,11 +1523,11 @@ export default function AdminDashboardPage() {
                       value={personalData.github}
                       onChange={(e) => setPersonalData({ ...personalData, github: e.target.value })}
                       placeholder="https://github.com/Neideav"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none font-mono"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-mono uppercase tracking-[0.16em] text-zinc-400 mb-1.5">
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                       LinkedIn URL
                     </label>
                     <input
@@ -1542,64 +1535,67 @@ export default function AdminDashboardPage() {
                       value={personalData.linkedin}
                       onChange={(e) => setPersonalData({ ...personalData, linkedin: e.target.value })}
                       placeholder="https://linkedin.com/in/nvaldymaulana"
-                      className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500/80 focus:bg-[#0f121a] focus:ring-1 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-[#e7e9ee] placeholder-zinc-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none font-mono"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                   <div>
-                    <label className="block text-[11px] font-mono text-zinc-400 mb-1">Building</label>
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                      Currently Building
+                    </label>
                     <input
                       type="text"
                       value={personalData.currently_building}
-                      onChange={(e) =>
-                        setPersonalData({ ...personalData, currently_building: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500 rounded-xl text-xs text-white outline-none"
+                      onChange={(e) => setPersonalData({ ...personalData, currently_building: e.target.value })}
+                      placeholder="Cloud-native microservices..."
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-mono text-zinc-400 mb-1">Exploring</label>
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                      Currently Exploring
+                    </label>
                     <input
                       type="text"
                       value={personalData.currently_exploring}
-                      onChange={(e) =>
-                        setPersonalData({ ...personalData, currently_exploring: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500 rounded-xl text-xs text-white outline-none"
+                      onChange={(e) => setPersonalData({ ...personalData, currently_exploring: e.target.value })}
+                      placeholder="Kubernetes Operators..."
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-mono text-zinc-400 mb-1">Learning</label>
+                    <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                      Currently Learning
+                    </label>
                     <input
                       type="text"
                       value={personalData.currently_learning}
-                      onChange={(e) =>
-                        setPersonalData({ ...personalData, currently_learning: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 bg-[#0b0d13] border border-white/[0.08] hover:border-white/[0.18] focus:border-emerald-500 rounded-xl text-xs text-white outline-none"
+                      onChange={(e) => setPersonalData({ ...personalData, currently_learning: e.target.value })}
+                      placeholder="Rust &amp; eBPF security..."
+                      className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SAVE BUTTON */}
-              <div className="pt-2 sticky bottom-4 z-20">
+              <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
                   disabled={isSavingProfile}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-8 py-3.5 rounded-xl text-xs sm:text-sm tracking-wide shadow-xl shadow-emerald-500/25 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 shadow-md active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSavingProfile ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Menyimpan ke Supabase...</span>
+                      <span>Menyimpan ke Cloud...</span>
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      <span>Simpan Perubahan About Me &amp; Profil</span>
+                      <span>Simpan Seluruh Perubahan Profil</span>
                     </>
                   )}
                 </button>
@@ -1612,79 +1608,102 @@ export default function AdminDashboardPage() {
         {/* TAB 3: CONTACT MESSAGES */}
         {/* ============================================================== */}
         {activeTab === "messages" && (
-          <div className="space-y-4">
-            <div className="bg-[#14171f]/70 border border-white/[0.08] backdrop-blur-xl p-6 rounded-2xl shadow-xl">
-              <div className="font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-2">
-                <span className="w-2 h-[1px] bg-emerald-400/60 inline-block" />
-                <span>// INBOX &amp; COMMUNICATIONS</span>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
+              <div>
+                <div className="section-label mb-2">03 // COMMUNICATIONS</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Contact Messages Inbox</h2>
+                <p className="section-desc text-xs sm:text-sm mb-0">
+                  Daftar pesan masuk yang dikirim pengunjung melalui formulir kontak portofolio.
+                </p>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">Pesan Masuk dari Formulir Kontak</h2>
-              <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
-                Data ini dikirim oleh pengunjung melalui formulir kontak dan tersimpan di tabel{" "}
-                <code className="text-emerald-400 font-mono">contact_messages</code>.
-              </p>
+              <button
+                onClick={fetchMessages}
+                disabled={isLoadingMessages}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] transition-all cursor-pointer w-fit shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMessages ? "animate-spin" : ""}`} />
+                <span>Refresh Inbox</span>
+              </button>
             </div>
 
             {isLoadingMessages ? (
-              <div className="p-12 text-center text-zinc-500 bg-[#14171f]/40 border border-white/[0.06] rounded-2xl">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-400" />
-                <span className="text-xs font-mono">Memuat pesan masuk...</span>
+              <div className="p-12 text-center text-[var(--muted)] bg-[var(--surface)] border border-[var(--line)] rounded-3xl shadow-sm">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[var(--text)]" />
+                <span className="text-xs font-mono">Memuat pesan...</span>
               </div>
             ) : messagesList.length === 0 ? (
-              <div className="p-12 text-center text-zinc-500 border border-dashed border-white/[0.08] rounded-2xl bg-[#14171f]/30">
+              <div className="p-12 text-center text-[var(--muted)] border border-dashed border-[var(--line)] rounded-3xl bg-[var(--surface)]">
                 Belum ada pesan yang masuk dari pengunjung.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {messagesList.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`p-5 rounded-2xl border transition-all backdrop-blur-md ${
+                    className={`bg-[var(--surface)] border rounded-2xl p-6 shadow-sm transition-all ${
                       msg.status === "unread"
-                        ? "bg-[#14171f]/85 border-emerald-500/40 shadow-lg shadow-emerald-950/20"
-                        : "bg-[#14171f]/40 border-white/[0.06] opacity-80"
+                        ? "border-[var(--text)]/40 shadow-md"
+                        : "border-[var(--line)]"
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--line)]">
                       <div className="flex items-center gap-3">
-                        <span className="font-bold text-sm text-white">{msg.name}</span>
-                        <a
-                          href={`mailto:${msg.email}`}
-                          className="text-xs text-emerald-400 hover:underline font-mono"
-                        >
-                          {msg.email}
-                        </a>
+                        <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center font-bold font-mono text-sm text-[var(--text)]">
+                          {(msg.name || "A")[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-[var(--text)] flex items-center gap-2">
+                            <span>{msg.name}</span>
+                            {msg.status === "unread" && (
+                              <span className="text-[9px] font-mono uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                                Baru
+                              </span>
+                            )}
+                          </h3>
+                          <a
+                            href={`mailto:${msg.email}`}
+                            className="text-xs text-[var(--muted)] hover:text-[var(--text)] font-mono transition-colors"
+                          >
+                            {msg.email}
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
-                        <span>{new Date(msg.created_at).toLocaleString("id-ID")}</span>
-                        <span
-                          className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${
-                            msg.status === "unread"
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                              : "bg-white/[0.05] border border-white/[0.08] text-zinc-400"
-                          }`}
-                        >
-                          {msg.status}
-                        </span>
-                      </div>
+                      <span className="text-[11px] text-[var(--muted)] font-mono">
+                        {new Date(msg.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed bg-[#0b0d13] p-4 rounded-xl border border-white/[0.06]">
+                    <div className="bg-[var(--surface-2)] border-l-2 border-[var(--text)] p-4 rounded-r-xl my-4 text-xs sm:text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap">
                       {msg.message}
-                    </p>
+                    </div>
 
-                    <div className="mt-3 flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-2 pt-2">
                       <button
                         onClick={() => handleToggleMessageStatus(msg)}
-                        className="text-xs text-zinc-300 hover:text-white px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all cursor-pointer font-mono"
+                        className="px-3.5 py-1.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] font-mono text-xs uppercase tracking-wider transition-all inline-flex items-center gap-1.5 cursor-pointer"
                       >
-                        {msg.status === "unread" ? "Tandai Sudah Dibaca" : "Tandai Belum Dibaca"}
+                        <span>{msg.status === "unread" ? "Tandai Dibaca" : "Tandai Belum Dibaca"}</span>
                       </button>
+                      <a
+                        href={`mailto:${msg.email}?subject=Balasan: Portofolio Nauvaldy&body=Halo ${msg.name},%0D%0A%0D%0ATerima kasih atas pesan Anda:%0D%0A"${encodeURIComponent(msg.message)}"%0D%0A%0D%0A`}
+                        className="px-3.5 py-1.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] font-mono text-xs uppercase tracking-wider transition-all inline-flex items-center gap-1.5"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Balas Email</span>
+                      </a>
                       <button
                         onClick={() => handleDeleteMessage(msg.id)}
-                        className="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-xl bg-red-500/[0.08] hover:bg-red-500/[0.16] border border-red-500/20 transition-all cursor-pointer font-mono"
+                        className="px-3 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/20 font-mono text-xs uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
                       >
-                        Hapus Pesan
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus</span>
                       </button>
                     </div>
                   </div>
@@ -1695,199 +1714,186 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 4: AWARDS & ACHIEVEMENTS + PHOTO COLLAGE */}
+        {/* TAB 4: AWARDS & 8-PHOTO COLLAGE */}
         {/* ============================================================== */}
         {activeTab === "awards" && (
           <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#14171f]/70 border border-white/[0.08] backdrop-blur-xl p-6 rounded-2xl shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
               <div>
-                <div className="font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-2">
-                  <span className="w-2 h-[1px] bg-emerald-400/60 inline-block" />
-                  <span>// RECOGNITION &amp; AWARDS</span>
-                </div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-emerald-400" />
-                  <span>Awards, Prestasi &amp; Kolase Foto</span>
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-                  Bagian ini mengatur daftar pencapaian di sebelah kanan dan 8 foto kolase (4 kolom) di sebelah kiri pada section Recognition.
-                  Data tersimpan secara otomatis di kolom <code className="text-emerald-400 font-mono">currently.awards</code> dan <code className="text-emerald-400 font-mono">currently.award_photos</code>.
+                <div className="section-label mb-2">04 // RECOGNITION</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Awards &amp; 8-Photo Collage</h2>
+                <p className="section-desc text-xs sm:text-sm mb-0">
+                  Kelola kartu penghargaan di sisi kanan dan galeri 8 foto kolase di sisi kiri pada section Recognition.
                 </p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
-                  type="button"
-                  onClick={() => setEditingAward({ title: "", link: "", icon: "trophy" })}
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                  onClick={() => setEditingAward({ id: "", title: "", link: "", icon: "trophy" })}
+                  className="inline-flex items-center gap-2 bg-[var(--text)] text-[var(--surface)] hover:opacity-90 font-mono text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-full shadow-sm active:scale-[0.98] transition-all cursor-pointer shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Tambah Penghargaan</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveAwards()}
-                  disabled={isSavingAwards}
-                  className="inline-flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] text-white font-semibold px-4 py-2.5 rounded-xl text-xs border border-white/[0.09] transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isSavingAwards ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Menyimpan...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Simpan Semua</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
 
-            {/* SECTION 1: AWARDS LIST */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Award className="w-4 h-4 text-emerald-400" />
-                  <span>Daftar Penghargaan &amp; Sertifikasi ({awardsList.length})</span>
-                </h3>
-                <span className="text-xs font-mono text-zinc-400">Tampil di sisi kanan section Awards</span>
-              </div>
-
-              {awardsList.length === 0 ? (
-                <div className="p-8 text-center text-zinc-500 border border-dashed border-white/[0.08] rounded-2xl bg-[#14171f]/30">
-                  Belum ada penghargaan. Klik &ldquo;Tambah Penghargaan&rdquo; untuk menambahkan.
+            {/* AWARDS SECTION */}
+            <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--line)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[var(--text)]">Daftar Penghargaan (Sisi Kanan)</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">Tersimpan di JSON awards Supabase.</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  {awardsList.map((award, idx) => (
-                    <div
-                      key={award.id || idx}
-                      className="bg-[#14171f]/60 border border-white/[0.08] rounded-2xl p-4 flex items-center justify-between gap-3 hover:border-white/20 transition-all backdrop-blur-md group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0">
-                          {award.icon === "cap" && <GraduationCap className="w-5 h-5 text-emerald-400" />}
-                          {award.icon === "trophy" && <Trophy className="w-5 h-5 text-amber-400" />}
-                          {award.icon === "shield" && <ShieldCheck className="w-5 h-5 text-teal-400" />}
-                          {award.icon === "languages" && <Languages className="w-5 h-5 text-cyan-400" />}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-emerald-300 transition-colors">
-                            {award.title}
-                          </h4>
-                          <a
-                            href={award.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11px] font-mono text-zinc-400 hover:text-emerald-400 flex items-center gap-1 mt-0.5 truncate transition-colors"
-                          >
-                            <span className="truncate">{award.link}</span>
-                            <ArrowUpRight className="w-3 h-3 shrink-0" />
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setEditingAward({ ...award })}
-                          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] transition-all cursor-pointer"
-                          title="Edit Penghargaan"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteAward(award.id, award.title)}
-                          className="p-2 rounded-xl bg-red-500/[0.08] hover:bg-red-500/[0.16] text-red-400 hover:text-red-300 border border-red-500/20 transition-all cursor-pointer"
-                          title="Hapus Penghargaan"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* SECTION 2: PHOTO COLLAGE */}
-            <div className="space-y-4 pt-4 border-t border-white/[0.08]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-white/[0.08]">
-                <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Camera className="w-4 h-4 text-emerald-400" />
-                    <span>Galeri Kolase Foto (4 Kolom × 2 Foto)</span>
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    Tampil sebagai animasi bergerak di sisi kiri section Awards. Klik &ldquo;Edit Foto &amp; Badge&rdquo; untuk upload dari HP/laptop atau ganti label.
-                  </p>
-                </div>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full self-start sm:self-auto">
-                  Total 8 Foto Aktif
+                <span className="text-xs font-mono bg-[var(--surface-2)] text-[var(--muted)] px-3 py-1 rounded-full border border-[var(--line)]">
+                  Total: {awardsList.length}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {awardPhotos.map((column, colIdx) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {awardsList.map((item) => (
                   <div
-                    key={colIdx}
-                    className="bg-[#14171f]/50 border border-white/[0.08] rounded-2xl p-3.5 space-y-3.5 flex flex-col justify-between backdrop-blur-md"
+                    key={item.id}
+                    className="bg-[var(--surface-2)] border border-[var(--line)] rounded-2xl p-4 flex items-center justify-between hover:border-[var(--text)]/40 hover:-translate-y-0.5 transition-all text-[var(--text)] group"
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-                      <span className="text-xs font-bold text-zinc-300 font-mono">Kolom #{colIdx + 1}</span>
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                        {colIdx % 2 === 0 ? "Normal" : "Reverse"}
-                      </span>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center text-[var(--text)] shrink-0">
+                        {item.icon === "cap" && <GraduationCap className="w-5 h-5" />}
+                        {item.icon === "trophy" && <Trophy className="w-5 h-5" />}
+                        {item.icon === "shield" && <ShieldCheck className="w-5 h-5" />}
+                        {item.icon === "languages" && <Languages className="w-5 h-5" />}
+                        {!["cap", "trophy", "shield", "languages"].includes(item.icon) && (
+                          <Award className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[var(--text)] truncate">{item.title}</h4>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-[var(--muted)] hover:text-[var(--text)] font-mono truncate flex items-center gap-1 mt-0.5"
+                        >
+                          <span className="truncate">{item.link}</span>
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      {column.map((photo, photoIdx) => (
-                        <div
-                          key={photo.id || photoIdx}
-                          className="bg-[#0c0e14]/70 border border-white/[0.08] rounded-xl p-2.5 space-y-2 hover:border-white/20 transition-all"
-                        >
-                          <div className="relative w-full h-32 rounded-lg overflow-hidden bg-zinc-950 border border-white/[0.06] group">
-                            {photo.src ? (
-                              <Image
-                                src={photo.src}
-                                alt={photo.badge || "Award Photo"}
-                                fill
-                                unoptimized
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs font-mono">
-                                Tanpa Foto
-                              </div>
-                            )}
-                            <div className="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/20">
-                              {photo.badge || "Photo"}
-                            </div>
-                            <div className="absolute bottom-1.5 right-1.5 bg-black/75 backdrop-blur-md px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-400 capitalize">
-                              {photo.orientation}
-                            </div>
-                          </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                      <button
+                        onClick={() => setEditingAward(item)}
+                        className="p-2 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
+                        title="Edit Penghargaan"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAward(item.id, item.title)}
+                        className="p-2 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
+                        title="Hapus Penghargaan"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
+            {/* 8-PHOTO COLLAGE SECTION */}
+            <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--line)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)]">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[var(--text)]">Galeri 8 Foto Kolase (Sisi Kiri)</h3>
+                    <p className="text-xs text-[var(--muted)] font-mono">4 Kolom x 2 Foto vertikal dan landscape.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if (confirm("Reset penghargaan & foto kolase ke default?")) {
+                      setAwardsList(defaultAwardsList);
+                      setAwardPhotos(defaultPhotoColumns);
+                      handleSaveAwards(defaultAwardsList, defaultPhotoColumns);
+                    }
+                  }}
+                  className="text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] hover:underline cursor-pointer"
+                >
+                  Reset Default
+                </button>
+              </div>
+
+              {/* 4 Columns Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {awardPhotos.map((col, colIndex) => (
+                  <div key={colIndex} className="bg-[var(--surface-2)] border border-[var(--line)] rounded-2xl p-4 space-y-3.5">
+                    <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+                      <span className="font-mono text-xs font-bold text-[var(--text)]">
+                        Kolom #{colIndex + 1}
+                      </span>
+                      <span className="text-[10px] font-mono text-[var(--muted)]">2 Foto</span>
+                    </div>
+
+                    {col.map((photo, photoIndex) => (
+                      <div
+                        key={photo.id}
+                        className="bg-[var(--surface)] border border-[var(--line)] rounded-xl p-3 space-y-2.5 shadow-sm"
+                      >
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--line)]">
+                          {photo.src ? (
+                            <Image
+                              src={photo.src}
+                              alt={photo.badge}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[var(--muted)] text-[10px] font-mono">
+                              Kosong
+                            </div>
+                          )}
+                          <div className="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded-full text-[9px] font-mono text-white backdrop-blur-sm border border-white/10">
+                            {photo.orientation}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-xs font-bold text-[var(--text)] truncate">{photo.badge}</div>
+                          <div className="text-[10px] text-[var(--muted)] font-mono truncate">{photo.alt}</div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pt-1">
                           <button
                             type="button"
-                            onClick={() =>
-                              setEditingPhoto({
-                                colIndex: colIdx,
-                                photoIndex: photoIdx,
-                                photo: { ...photo },
-                              })
-                            }
-                            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-white/[0.04] hover:bg-emerald-500/20 hover:text-emerald-300 text-zinc-300 text-xs font-medium border border-white/[0.08] hover:border-emerald-500/30 transition-all cursor-pointer font-mono"
+                            onClick={() => {
+                              setEditingPhoto({ colIndex, photoIndex, photo });
+                              photoFileInputRef.current?.click();
+                            }}
+                            className="flex-1 py-1 px-2 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] flex items-center justify-center gap-1 cursor-pointer transition-all"
+                          >
+                            <Upload className="w-3 h-3" />
+                            <span>Upload</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPhoto({ colIndex, photoIndex, photo })}
+                            className="p-1 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] cursor-pointer transition-all"
+                            title="Edit URL &amp; Badge"
                           >
                             <Edit3 className="w-3 h-3" />
-                            <span>Edit Foto &amp; Badge</span>
                           </button>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -1896,146 +1902,99 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 5: TRAININGS & EXPERIENCE */}
+        {/* TAB 5: TRAININGS & FLIPPER EXPERIENCE */}
         {/* ============================================================== */}
         {activeTab === "trainings" && (
           <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#14171f]/70 border border-white/[0.08] backdrop-blur-xl p-6 rounded-2xl shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 rounded-3xl shadow-sm">
               <div>
-                <div className="font-mono text-[10px] md:text-[11px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-2">
-                  <span className="w-2 h-[1px] bg-emerald-400/60 inline-block" />
-                  <span>// GROWTH &amp; MILESTONES</span>
-                </div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-emerald-400" />
-                  <span>Trainings &amp; Experience (Milestones)</span>
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-                  Bagian ini menampilkan kartu milestone teknis di section Trainings &amp; Experience. Setiap milestone memiliki 3 gambar flipper interaktif yang berputar saat diklik.
-                  Tersimpan di Supabase di kolom <code className="text-emerald-400 font-mono">currently.trainings</code>.
+                <div className="section-label mb-2">05 // GROWTH &amp; EXPERIENCE</div>
+                <h2 className="section-title text-2xl sm:text-3xl font-bold mb-2">Trainings &amp; Interactive Milestones</h2>
+                <p className="section-desc text-xs sm:text-sm mb-0">
+                  Setiap milestone memiliki 3 slot gambar interaktif flipper yang berputar saat kartu diklik oleh pengunjung.
                 </p>
               </div>
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTraining({
-                      id: `training-${Date.now()}`,
-                      title: "",
-                      date: "2026 — Present",
-                      org: "",
-                      desc: "",
-                      certificateName: "Sertifikat Pelatihan",
-                      certificateUrl: "https://github.com/Neideav",
-                    });
-                    setTrainingImgInputs(["", "", ""]);
-                  }}
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Tambah Pelatihan Baru</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveTrainings()}
-                  disabled={isSavingTrainings}
-                  className="inline-flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] text-white font-semibold px-4 py-2.5 rounded-xl text-xs border border-white/[0.09] transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isSavingTrainings ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Menyimpan...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Simpan Perubahan</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setEditingTraining({ id: "", date: "2026", title: "", org: "", desc: "", certificateName: "", certificateUrl: "" });
+                  setTrainingImgInputs(["", "", ""]);
+                }}
+                className="inline-flex items-center gap-2 bg-[var(--text)] text-[var(--surface)] hover:opacity-90 font-mono text-xs uppercase tracking-wider font-bold px-5 py-2.5 rounded-full shadow-sm active:scale-[0.98] transition-all cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Pelatihan</span>
+              </button>
             </div>
 
-            {/* Trainings List */}
             {trainingsList.length === 0 ? (
-              <div className="p-12 text-center text-zinc-500 border border-dashed border-white/[0.08] rounded-2xl bg-[#14171f]/30">
-                Belum ada data pelatihan. Klik &ldquo;Tambah Pelatihan Baru&rdquo; untuk memulai.
+              <div className="p-12 text-center text-[var(--muted)] border border-dashed border-[var(--line)] rounded-3xl bg-[var(--surface)]">
+                Belum ada pelatihan di database.
               </div>
             ) : (
-              <div className="space-y-4">
-                {trainingsList.map((item, idx) => (
+              <div className="space-y-6">
+                {trainingsList.map((entry, index) => (
                   <div
-                    key={item.id || idx}
-                    className="bg-[#14171f]/60 border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-4 hover:border-white/20 transition-all backdrop-blur-md"
+                    key={entry.id}
+                    className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-8 shadow-sm text-[var(--text)] space-y-6 hover:border-[var(--text)]/40 transition-all"
                   >
-                    {/* Top Row */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/20">
-                            {item.date}
-                          </span>
-                          <span className="text-xs text-zinc-400 font-mono">· {item.org}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--line)]">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs font-bold bg-[var(--surface-2)] text-[var(--text)] border border-[var(--line)] px-2.5 py-1 rounded-md">
+                          0{index + 1}
+                        </span>
+                        <div>
+                          <div className="font-mono text-xs text-[var(--muted)]">{entry.date}</div>
+                          <h3 className="text-lg font-bold text-[var(--text)]">{entry.title}</h3>
+                          <div className="text-xs text-[var(--muted)] font-medium">{entry.org}</div>
                         </div>
-                        <h3 className="text-base font-bold text-white">{item.title}</h3>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <button
-                          type="button"
                           onClick={() => {
-                            setEditingTraining({ ...item });
-                            setTrainingImgInputs(
-                              item.images && item.images.length > 0
-                                ? [...item.images, "", "", ""].slice(0, 3)
-                                : ["", "", ""]
-                            );
+                            setEditingTraining(entry);
+                            setTrainingImgInputs(entry.images || ["", "", ""]);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-white transition-all cursor-pointer font-mono"
+                          className="px-3.5 py-1.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] font-mono text-xs uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Edit Pelatihan</span>
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
                         </button>
                         <button
-                          type="button"
-                          onClick={() => handleDeleteTraining(item.id, item.title)}
-                          className="p-2 rounded-xl bg-red-500/[0.08] hover:bg-red-500/[0.16] text-red-400 hover:text-red-300 border border-red-500/20 transition-all cursor-pointer"
-                          title="Hapus Pelatihan"
+                          onClick={() => handleDeleteTraining(entry.id, entry.title)}
+                          className="px-3.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/20 font-mono text-xs uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 h-3" />
+                          <span>Hapus</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Description & Certificate */}
-                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                      {item.desc}
-                    </p>
+                    <p className="text-xs sm:text-sm text-[var(--muted)] leading-relaxed">{entry.desc}</p>
 
-                    <div className="flex items-center gap-2 pt-1">
-                      <span className="text-[11px] font-mono text-zinc-500">Sertifikat:</span>
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
                       <a
-                        href={item.certificateUrl}
+                        href={entry.certificateUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/30 border border-emerald-500/30 px-3 py-1 rounded-lg hover:bg-emerald-950/50 transition-colors font-mono"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-xs font-mono bg-[var(--surface-2)] border border-[var(--line)] px-3.5 py-1.5 rounded-full text-[var(--text)] hover:border-[var(--text)] transition-colors"
                       >
-                        <span>{item.certificateName}</span>
-                        <ArrowUpRight className="w-3 h-3" />
+                        <Award className="w-3.5 h-3.5" />
+                        <span>{entry.certificateName}</span>
+                        <ExternalLink className="w-3 h-3 ml-1" />
                       </a>
+
+                      <span className="font-mono text-xs text-[var(--muted)]">3 Flipper Cards:</span>
                     </div>
 
-                    {/* 3 Images Flipper Preview */}
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 block mb-2">
-                        3 Gambar Flipper (Tampil Bergantian saat Diklik):
-                      </span>
-                      <div className="grid grid-cols-3 gap-3">
-                        {(item.images || []).slice(0, 3).map((imgUrl, imgIdx) => (
+                    {/* 3 Thumbnails Preview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                      {[0, 1, 2].map((imgIdx) => {
+                        const imgUrl = (entry.images || [])[imgIdx];
+                        return (
                           <div
                             key={imgIdx}
-                            className="relative h-24 sm:h-28 rounded-xl overflow-hidden bg-[#0c0e14] border border-white/[0.08]"
+                            className="relative h-28 rounded-xl overflow-hidden bg-[var(--surface-2)] border border-[var(--line)]"
                           >
                             {imgUrl ? (
                               <Image
@@ -2046,16 +2005,16 @@ export default function AdminDashboardPage() {
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[10px] font-mono">
+                              <div className="w-full h-full flex items-center justify-center text-[var(--muted)] text-[10px] font-mono">
                                 Slot {imgIdx + 1} Kosong
                               </div>
                             )}
-                            <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-mono text-zinc-300 border border-white/10">
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/70 px-2 py-0.5 rounded-full text-[9px] font-mono text-white border border-white/10 backdrop-blur-sm">
                               {imgIdx + 1}/3
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -2063,38 +2022,35 @@ export default function AdminDashboardPage() {
             )}
           </div>
         )}
-      </div>
+      </main>
 
       {/* ============================================================== */}
       {/* MODAL: ADD / EDIT PROJECT */}
       {/* ============================================================== */}
       {editingProject && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#12151d] border border-white/[0.12] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingProject(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="mb-6">
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                // PROJECT REPOSITORY
-              </span>
-              <h3 className="text-xl font-bold text-white tracking-tight">
+              <div className="section-label mb-1">// PROJECT REPOSITORY</div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingProject.title ? `Edit: ${editingProject.title}` : "Tambah Proyek Baru"}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">
-                Data akan disinkronkan langsung ke database Supabase dan tampil di portfolio.
+              <p className="text-xs text-[var(--muted)] mt-1">
+                Data akan disinkronkan langsung ke database Supabase dan tampil di portofolio.
               </p>
             </div>
 
             <form onSubmit={handleSaveProject} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Slug ID (Unik)
                   </label>
                   <input
@@ -2105,11 +2061,11 @@ export default function AdminDashboardPage() {
                     }
                     placeholder="my-cool-project"
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Nomor Urut (misal 01, 02)
                   </label>
                   <input
@@ -2117,37 +2073,41 @@ export default function AdminDashboardPage() {
                     value={editingProject.number || ""}
                     onChange={(e) => setEditingProject({ ...editingProject, number: e.target.value })}
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">Judul Proyek</label>
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
+                  Judul Proyek
+                </label>
                 <input
                   type="text"
                   value={editingProject.title || ""}
                   onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
                   placeholder="FinTrack Pro — Aplikasi Keuangan"
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-medium"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-medium transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">Kategori</label>
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
+                  Kategori
+                </label>
                 <input
                   type="text"
                   value={editingProject.category || ""}
                   onChange={(e) => setEditingProject({ ...editingProject, category: e.target.value })}
-                  placeholder="Full-Stack Web App & Finance Analytics"
+                  placeholder="Full-Stack Web App &amp; Finance Analytics"
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Deskripsi Singkat
                 </label>
                 <textarea
@@ -2157,13 +2117,13 @@ export default function AdminDashboardPage() {
                     setEditingProject({ ...editingProject, description: e.target.value })
                   }
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all leading-relaxed"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
-                  Deskripsi Lengkap (Untuk halaman detail)
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
+                  Deskripsi Lengkap
                 </label>
                 <textarea
                   rows={3}
@@ -2171,12 +2131,12 @@ export default function AdminDashboardPage() {
                   onChange={(e) =>
                     setEditingProject({ ...editingProject, detailed_description: e.target.value })
                   }
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all leading-relaxed"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Technologies (Pisahkan dengan koma)
                 </label>
                 <input
@@ -2184,13 +2144,15 @@ export default function AdminDashboardPage() {
                   value={techInput}
                   onChange={(e) => setTechInput(e.target.value)}
                   placeholder="React.js, Node.js, Tailwind CSS, PostgreSQL"
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">GitHub URL</label>
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
+                    GitHub URL
+                  </label>
                   <input
                     type="url"
                     value={editingProject.github_url || ""}
@@ -2198,11 +2160,11 @@ export default function AdminDashboardPage() {
                       setEditingProject({ ...editingProject, github_url: e.target.value })
                     }
                     placeholder="https://github.com/..."
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Live Demo URL (Opsional)
                   </label>
                   <input
@@ -2212,7 +2174,7 @@ export default function AdminDashboardPage() {
                       setEditingProject({ ...editingProject, live_url: e.target.value })
                     }
                     placeholder="https://myproject.vercel.app"
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
               </div>
@@ -2225,36 +2187,36 @@ export default function AdminDashboardPage() {
                     onChange={(e) =>
                       setEditingProject({ ...editingProject, featured: e.target.checked })
                     }
-                    className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500/30 bg-[#0b0d13] border-white/[0.12]"
+                    className="w-4 h-4 rounded text-[var(--text)] focus:ring-[var(--text)]"
                   />
-                  <span className="text-xs text-zinc-300 font-medium">Tampilkan di Featured Showcase</span>
+                  <span className="text-xs text-[var(--text)] font-medium">Tampilkan di Featured Showcase</span>
                 </label>
 
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400">Sort Order:</span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[var(--muted)]">Sort:</span>
                   <input
                     type="number"
                     value={editingProject.sort_order || 1}
                     onChange={(e) =>
                       setEditingProject({ ...editingProject, sort_order: Number(e.target.value) })
                     }
-                    className="w-16 px-2.5 py-1.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs text-white font-mono text-center"
+                    className="w-16 px-2.5 py-1.5 bg-[var(--surface-2)] border border-[var(--line)] rounded-xl text-xs text-[var(--text)] font-mono text-center"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-3 pt-5 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => setEditingProject(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] transition-all cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingProject}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 transition-all cursor-pointer shadow-sm active:scale-[0.98] disabled:opacity-50"
                 >
                   {isSavingProject ? (
                     <>
@@ -2293,31 +2255,28 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT AWARD */}
       {/* ============================================================== */}
       {editingAward && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#12151d] border border-white/[0.12] rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingAward(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="mb-6">
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                // HONORS & CREDENTIALS
-              </span>
-              <h3 className="text-xl font-bold text-white tracking-tight">
+              <div className="section-label mb-1">// HONORS &amp; CREDENTIALS</div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingAward.id ? "Edit Penghargaan" : "Tambah Penghargaan Baru"}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1 font-mono">
-                Tersimpan di kolom <code className="text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/20">currently.awards</code>
+              <p className="text-xs text-[var(--muted)] mt-1 font-mono">
+                Tersimpan di kolom <code className="bg-[var(--surface-2)] px-1 py-0.5 rounded border border-[var(--line)]">currently.awards</code>
               </p>
             </div>
 
             <form onSubmit={handleSaveAwardModal} className="space-y-4">
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Judul Penghargaan / Sertifikasi
                 </label>
                 <input
@@ -2326,12 +2285,12 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditingAward({ ...editingAward, title: e.target.value })}
                   placeholder="Misal: Dean's Lister, Top 30 Nasional"
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-medium"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-medium transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Link Sertifikat / Bukti Kredensial (URL)
                 </label>
                 <input
@@ -2340,20 +2299,20 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditingAward({ ...editingAward, link: e.target.value })}
                   placeholder="https://..."
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-2">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
                   Pilih Ikon Tampilan
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {[
-                    { key: "trophy", label: "Trophy", icon: Trophy, color: "text-amber-400" },
-                    { key: "cap", label: "Toga", icon: GraduationCap, color: "text-emerald-400" },
-                    { key: "shield", label: "Perisai", icon: ShieldCheck, color: "text-teal-400" },
-                    { key: "languages", label: "Bahasa", icon: Languages, color: "text-cyan-400" },
+                    { key: "trophy", label: "Trophy", icon: Trophy },
+                    { key: "cap", label: "Toga", icon: GraduationCap },
+                    { key: "shield", label: "Perisai", icon: ShieldCheck },
+                    { key: "languages", label: "Bahasa", icon: Languages },
                   ].map((item) => {
                     const IconComp = item.icon;
                     const isSelected = (editingAward.icon || "trophy") === item.key;
@@ -2367,13 +2326,13 @@ export default function AdminDashboardPage() {
                             icon: item.key as AwardItem["icon"],
                           })
                         }
-                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl border text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-emerald-500/15 border-emerald-500/50 text-white shadow-lg shadow-emerald-500/10"
-                            : "bg-[#0b0d13] border-white/[0.08] text-zinc-400 hover:border-white/[0.15] hover:text-white"
+                            ? "bg-[var(--text)] text-[var(--surface)] border-[var(--text)] shadow-sm font-semibold"
+                            : "bg-[var(--surface-2)] border-[var(--line)] text-[var(--muted)] hover:border-[var(--text)]/40 hover:text-[var(--text)]"
                         }`}
                       >
-                        <IconComp className={`w-5 h-5 ${item.color}`} />
+                        <IconComp className="w-5 h-5" />
                         <span className="font-mono text-[11px]">{item.label}</span>
                       </button>
                     );
@@ -2381,17 +2340,17 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-3 pt-5 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => setEditingAward(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] transition-all cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                  className="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                 >
                   Simpan Penghargaan
                 </button>
@@ -2405,33 +2364,31 @@ export default function AdminDashboardPage() {
       {/* MODAL: EDIT COLLAGE PHOTO */}
       {/* ============================================================== */}
       {editingPhoto && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#12151d] border border-white/[0.12] rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingPhoto(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="mb-6">
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                // COLLAGE FRAME EDITOR
-              </span>
-              <h3 className="text-xl font-bold text-white tracking-tight">
+              <div className="section-label mb-1">// COLLAGE FRAME EDITOR</div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 Edit Foto Kolase (Kolom #{editingPhoto.colIndex + 1}, Foto #{editingPhoto.photoIndex + 1})
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-[var(--muted)] mt-1">
                 Ganti gambar langsung dari file perangkat Anda atau masukkan link gambar.
               </p>
             </div>
 
             <form onSubmit={handleSavePhotoModal} className="space-y-4">
-              {/* Photo Preview */}
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-2">Pratinjau Foto</label>
-                <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-[#0b0d13] border border-white/[0.08] flex items-center justify-center">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2">
+                  Pratinjau Foto
+                </label>
+                <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center">
                   {editingPhoto.photo.src ? (
                     <Image
                       src={editingPhoto.photo.src}
@@ -2441,26 +2398,24 @@ export default function AdminDashboardPage() {
                       className="object-cover"
                     />
                   ) : (
-                    <span className="text-xs font-mono text-zinc-600">Belum ada foto</span>
+                    <span className="text-xs font-mono text-[var(--muted)]">Belum ada foto</span>
                   )}
                 </div>
               </div>
 
-              {/* Upload Button */}
               <div>
                 <button
                   type="button"
                   onClick={() => photoFileInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] text-white text-xs font-semibold border border-white/[0.09] transition-all cursor-pointer hover:border-emerald-500/40"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] text-[var(--text)] text-xs font-mono uppercase tracking-wider font-semibold border border-[var(--line)] hover:border-[var(--text)] transition-all cursor-pointer"
                 >
-                  <Upload className="w-4 h-4 text-emerald-400" />
-                  <span>Unggah Foto dari Perangkat (HP / Laptop)</span>
+                  <Upload className="w-4 h-4" />
+                  <span>Unggah Foto dari Perangkat</span>
                 </button>
               </div>
 
-              {/* Manual URL Input */}
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Atau Masukkan URL Gambar Manual
                 </label>
                 <input
@@ -2473,13 +2428,12 @@ export default function AdminDashboardPage() {
                     })
                   }
                   placeholder="/images/awards/photo.jpg atau https://..."
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                 />
               </div>
 
-              {/* Badge Text */}
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Label Badge Foto
                 </label>
                 <input
@@ -2493,13 +2447,12 @@ export default function AdminDashboardPage() {
                   }
                   placeholder="Misal: Dean's Lister, Competition Winner"
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-medium"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-medium transition-colors"
                 />
               </div>
 
-              {/* Orientation */}
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Orientasi Tampilan
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -2519,10 +2472,10 @@ export default function AdminDashboardPage() {
                           },
                         })
                       }
-                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      className={`py-2 px-3 rounded-xl border text-xs font-mono uppercase tracking-wider font-semibold transition-all cursor-pointer ${
                         editingPhoto.photo.orientation === ori.key
-                          ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-500/10"
-                          : "bg-[#0b0d13] border-white/[0.08] text-zinc-400 hover:text-white"
+                          ? "bg-[var(--text)] text-[var(--surface)] border-[var(--text)] shadow-sm"
+                          : "bg-[var(--surface-2)] border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)]"
                       }`}
                     >
                       {ori.label}
@@ -2531,17 +2484,17 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-3 pt-5 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => setEditingPhoto(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] transition-all cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                  className="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                 >
                   Simpan Foto
                 </button>
@@ -2555,26 +2508,23 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT TRAINING */}
       {/* ============================================================== */}
       {editingTraining && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#12151d] border border-white/[0.12] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingTraining(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="mb-6">
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-emerald-400 font-semibold mb-1 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                // TRAINING & FLIPPER EXPERIENCE
-              </span>
-              <h3 className="text-xl font-bold text-white tracking-tight">
+              <div className="section-label mb-1">// TRAINING &amp; FLIPPER EXPERIENCE</div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingTraining.id && trainingsList.some((t) => t.id === editingTraining.id)
                   ? "Edit Training & Experience"
                   : "Tambah Pelatihan Baru"}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-[var(--muted)] mt-1">
                 Milestone teknis dengan 3 gambar flipper interaktif yang berputar saat kartu diklik.
               </p>
             </div>
@@ -2582,7 +2532,7 @@ export default function AdminDashboardPage() {
             <form onSubmit={handleSaveTrainingModal} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Periode / Tahun
                   </label>
                   <input
@@ -2591,40 +2541,40 @@ export default function AdminDashboardPage() {
                     onChange={(e) => setEditingTraining({ ...editingTraining, date: e.target.value })}
                     placeholder="2026 — Present atau 2025"
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Sub-Judul / Penyelenggara
                   </label>
                   <input
                     type="text"
                     value={editingTraining.org || ""}
                     onChange={(e) => setEditingTraining({ ...editingTraining, org: e.target.value })}
-                    placeholder="Infrastructure & CI/CD Development"
+                    placeholder="Infrastructure &amp; CI/CD Development"
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Judul Pelatihan / Milestone
                 </label>
                 <input
                   type="text"
                   value={editingTraining.title || ""}
                   onChange={(e) => setEditingTraining({ ...editingTraining, title: e.target.value })}
-                  placeholder="Cloud & DevOps Infrastructure Engineering"
+                  placeholder="Cloud &amp; DevOps Infrastructure Engineering"
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-medium"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-medium transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                   Deskripsi Pengalaman
                 </label>
                 <textarea
@@ -2633,13 +2583,13 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditingTraining({ ...editingTraining, desc: e.target.value })}
                   placeholder="Tuliskan ringkasan peran, teknologi, dan pencapaian selama kegiatan..."
                   required
-                  className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all leading-relaxed"
+                  className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors leading-relaxed"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Nama Badge Sertifikat
                   </label>
                   <input
@@ -2650,11 +2600,11 @@ export default function AdminDashboardPage() {
                     }
                     placeholder="IBM DevOps and Software Engineering"
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-1.5">
+                  <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-1.5">
                     Link Sertifikat (URL)
                   </label>
                   <input
@@ -2665,14 +2615,14 @@ export default function AdminDashboardPage() {
                     }
                     placeholder="https://..."
                     required
-                    className="w-full px-3.5 py-2.5 bg-[#0b0d13] border border-white/[0.08] focus:border-emerald-500/60 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all font-mono"
+                    className="w-full px-4 py-2.5 bg-[var(--surface-2)] border border-[var(--line)] focus:border-[var(--text)] rounded-xl text-xs sm:text-sm text-[var(--text)] placeholder-[var(--muted)]/50 outline-none font-mono transition-colors"
                   />
                 </div>
               </div>
 
               {/* 3 FLIPPER IMAGES EDITOR */}
               <div className="pt-2">
-                <label className="block font-mono text-[11px] uppercase tracking-wider text-zinc-400 mb-2.5">
+                <label className="block font-mono text-[11px] uppercase tracking-[0.2em] font-semibold text-[var(--muted)] mb-2.5">
                   3 Slot Gambar Card Flipper (Berganti saat Kartu Diklik)
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2681,18 +2631,18 @@ export default function AdminDashboardPage() {
                     return (
                       <div
                         key={slotIdx}
-                        className="bg-[#0b0d13] border border-white/[0.08] rounded-2xl p-3 space-y-2.5"
+                        className="bg-[var(--surface-2)] border border-[var(--line)] rounded-2xl p-3.5 space-y-2.5"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-zinc-300">
-                            Slot #{slotIdx + 1} {slotIdx === 0 ? "(Default)" : `(Flip ${slotIdx})`}
+                          <span className="text-[11px] font-bold text-[var(--text)] font-mono">
+                            Slot #{slotIdx + 1} {slotIdx === 0 ? "(Utama)" : `(Flip ${slotIdx})`}
                           </span>
-                          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          <span className="text-[10px] font-mono text-[var(--muted)] bg-[var(--surface)] px-2 py-0.5 rounded-full border border-[var(--line)]">
                             {slotIdx + 1}/3
                           </span>
                         </div>
 
-                        <div className="relative w-full h-24 rounded-xl overflow-hidden bg-black/60 border border-white/[0.06] flex items-center justify-center">
+                        <div className="relative w-full h-24 rounded-xl overflow-hidden bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center">
                           {currentImg ? (
                             <Image
                               src={currentImg}
@@ -2702,7 +2652,7 @@ export default function AdminDashboardPage() {
                               className="object-cover"
                             />
                           ) : (
-                            <span className="text-[10px] font-mono text-zinc-600">Belum ada</span>
+                            <span className="text-[10px] font-mono text-[var(--muted)]">Belum ada</span>
                           )}
                         </div>
 
@@ -2712,9 +2662,9 @@ export default function AdminDashboardPage() {
                             setActiveTrainingImgSlot(slotIdx);
                             trainingFileInputRef.current?.click();
                           }}
-                          className="w-full py-1.5 px-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-white rounded-xl text-[11px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:border-emerald-500/30"
+                          className="w-full py-1.5 px-2 bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] rounded-full text-[11px] font-mono uppercase tracking-wider font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                         >
-                          <Upload className="w-3 h-3 text-emerald-400" />
+                          <Upload className="w-3 h-3" />
                           <span>Pilih Gambar</span>
                         </button>
 
@@ -2727,7 +2677,7 @@ export default function AdminDashboardPage() {
                             setTrainingImgInputs(next);
                           }}
                           placeholder="URL manual..."
-                          className="w-full px-2.5 py-1.5 bg-black/40 border border-white/[0.08] rounded-xl text-[10px] text-zinc-300 placeholder-zinc-600 focus:border-emerald-500/60 focus:outline-none font-mono"
+                          className="w-full px-3 py-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-xl text-[10px] text-[var(--text)] placeholder-[var(--muted)]/50 focus:border-[var(--text)] outline-none font-mono"
                         />
                       </div>
                     );
@@ -2735,17 +2685,17 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-3 pt-5 border-t border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => setEditingTraining(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] transition-all cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                  className="px-6 py-2.5 rounded-full text-xs font-mono uppercase tracking-wider font-bold bg-[var(--text)] text-[var(--surface)] hover:opacity-90 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                 >
                   Simpan Pelatihan
                 </button>
