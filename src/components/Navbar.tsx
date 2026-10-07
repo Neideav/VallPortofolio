@@ -4,8 +4,7 @@ import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
-import { Sun, Moon, Menu, X } from "lucide-react";
-import { useCoffeeCount } from "@/lib/useCoffeeCount";
+import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 
 function subscribeTheme(callback: () => void) {
   if (typeof window === "undefined" || typeof MutationObserver === "undefined") {
@@ -39,18 +38,27 @@ export function Navbar() {
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
   const isDark = useSyncExternalStore(
     subscribeTheme,
     getThemeSnapshot,
     getThemeServerSnapshot
   );
-  const { count: coffeeCount, increment: incrementCoffee } = useCoffeeCount();
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem("theme");
       if (saved === "light") {
         document.documentElement.classList.remove("dark");
+      } else {
+        document.documentElement.classList.add("dark");
       }
     } catch {
       // ignore
@@ -59,7 +67,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > 60);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -120,259 +128,267 @@ export function Navbar() {
     }
   };
 
+  const navItems = isWorkPage
+    ? [
+        { name: "Home", href: "/" },
+        { name: "Technical", href: "#technical" },
+        { name: "Digital", href: "#digital" },
+        { name: "Contact", href: "/#contact" },
+      ]
+    : [
+        { name: "Work", href: "/#work" },
+        { name: "Skills", href: "/#skills" },
+        { name: "About", href: "/#about" },
+        { name: "Awards", href: "/#awards" },
+        { name: "Trainings", href: "/#trainings" },
+        { name: "Contact", href: "/#contact" },
+      ];
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      setMobileMenuOpen(false);
-      const target = document.querySelector(href);
-      if (target) {
-        if (href === "#hero") {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
+    if (href.startsWith("/#") || href.startsWith("#")) {
+      const targetId = href.replace("/#", "").replace("#", "");
+      let el = document.getElementById(targetId);
+      if (!el && targetId === "skills") {
+        el = document.getElementById("what-i-can-do");
+      }
+      if (el) {
+        e.preventDefault();
+        const win = window as unknown as {
+          lenis?: { scrollTo: (target: HTMLElement, options: { offset: number; duration: number }) => void };
+        };
+        if (win.lenis) {
+          win.lenis.scrollTo(el, { offset: -100, duration: 1.5 });
+        } else {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-        const targetTop = target.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-          top: targetTop,
-          behavior: "smooth",
-        });
       }
     }
+    setMobileMenuOpen(false);
   };
+
+  const transitionEase = { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const };
 
   return (
     <>
-      <nav className={`nav-bar ${scrolled ? "scrolled" : ""}`}>
-        {/* Left: Monogram and Brand */}
-        {isWorkPage ? (
-          <Link
-            href="/"
-            className="nav-left"
-            aria-label="Nauval - Home"
-          >
-            <div className="nav-logo">N</div>
-            <div className="nav-brand">NAUVAL</div>
-          </Link>
-        ) : (
-          <a
-            href="#hero"
-            onClick={(e) => handleNavClick(e, "#hero")}
-            className="nav-left"
-            aria-label="Nauval - Home"
-          >
-            <div className="nav-logo">N</div>
-            <div className="nav-brand">NAUVAL</div>
-          </a>
-        )}
+      {/* Top Scroll Indicator Line matching Surya */}
+      <motion.div
+        style={{ scaleX }}
+        className="fixed top-0 left-0 right-0 h-[2.5px] bg-[#141414] dark:bg-white origin-left z-[1000] pointer-events-none"
+      />
 
-        {/* Center: Links */}
-        <div className="nav-center">
-          {isWorkPage ? (
-            <>
-              <a
-                href="#technical"
-                onClick={(e) => handleNavClick(e, "#technical")}
-                className="nav-link"
-              >
-                Technical
-              </a>
-              <a
-                href="#digital"
-                onClick={(e) => handleNavClick(e, "#digital")}
-                className="nav-link"
-              >
-                Digital
-              </a>
-            </>
-          ) : (
-            <>
-              <a
-                href="#work"
-                onClick={(e) => handleNavClick(e, "#work")}
-                className="nav-link"
-              >
-                Work
-              </a>
-              <a
-                href="#what-i-can-do"
-                onClick={(e) => handleNavClick(e, "#what-i-can-do")}
-                className="nav-link"
-              >
-                What I Can Do
-              </a>
-              <a
-                href="#about"
-                onClick={(e) => handleNavClick(e, "#about")}
-                className="nav-link"
-              >
-                About
-              </a>
-              <a
-                href="#awards"
-                onClick={(e) => handleNavClick(e, "#awards")}
-                className="nav-link"
-              >
-                Awards
-              </a>
-              <a
-                href="#trainings"
-                onClick={(e) => handleNavClick(e, "#trainings")}
-                className="nav-link"
-              >
-                Trainings
-              </a>
-            </>
-          )}
-        </div>
+      {/* Floating Sticky Navigation Container */}
+      <motion.div
+        className="fixed top-0 left-0 w-full z-[100] flex flex-col items-center pointer-events-none font-sans"
+        animate={{ paddingTop: scrolled ? "1.25rem" : "0rem" }}
+        transition={transitionEase}
+      >
+        <motion.nav
+          layout
+          transition={{
+            layout: transitionEase,
+            y: transitionEase,
+            opacity: transitionEase,
+          }}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className={`pointer-events-auto flex items-center justify-between origin-top transition-[background-color,border-radius,padding,box-shadow,border-color] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] relative ${
+            scrolled
+              ? "w-auto bg-[#141414]/90 dark:bg-[#161616]/95 backdrop-blur-xl rounded-full px-7 md:px-9 py-3 md:py-3.5 shadow-2xl border border-white/10 dark:border-white/20 dark:shadow-[0_16px_40px_rgba(0,0,0,0.8)]"
+              : "w-full bg-transparent px-6 md:px-16 py-5 md:py-8 rounded-none border-b border-black/[0.06] dark:border-white/[0.08] shadow-none"
+          }`}
+        >
+          {/* Nav Links Desktop with Rolling Text Animation */}
+          <ul className="hidden md:flex items-center gap-6 lg:gap-8">
+            {navItems.map((item, idx) => (
+              <li key={idx} className="relative group">
+                {item.href.startsWith("/") && !item.href.startsWith("/#") ? (
+                  <Link
+                    href={item.href}
+                    className="relative block overflow-hidden h-[18px]"
+                  >
+                    <div className="flex flex-col transition-transform duration-[0.5s] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2">
+                      <span
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
+                          scrolled
+                            ? "text-neutral-400 dark:text-neutral-400"
+                            : "text-[#1a1a1a]/60 dark:text-white/60"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                      <span
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
+                          scrolled
+                            ? "text-white dark:text-white"
+                            : "text-[#1a1a1a] dark:text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
+                  </Link>
+                ) : (
+                  <a
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className="relative block overflow-hidden h-[18px]"
+                  >
+                    <div className="flex flex-col transition-transform duration-[0.5s] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-1/2">
+                      <span
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
+                          scrolled
+                            ? "text-neutral-400 dark:text-neutral-400"
+                            : "text-[#1a1a1a]/60 dark:text-white/60"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                      <span
+                        className={`text-[12px] lg:text-[13px] tracking-wide font-medium block h-[18px] leading-[18px] transition-colors ${
+                          scrolled
+                            ? "text-white dark:text-white"
+                            : "text-[#1a1a1a] dark:text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
 
-        {/* Right: Theme Toggle & Hire Me */}
-        <div className="nav-right">
-          <button
-            onClick={toggleTheme}
-            className="nav-theme-toggle"
-            aria-label="Toggle theme"
-          >
-            <Sun className="w-4 h-4 icon-sun" />
-            <Moon className="w-4 h-4 icon-moon" />
-          </button>
-
-          {isWorkPage ? (
-            <Link href="/#contact" className="nav-cta">
-              Hire Me
-            </Link>
-          ) : (
-            <a
-              href="#contact"
-              onClick={(e) => handleNavClick(e, "#contact")}
-              className="nav-cta"
-            >
-              Hire Me
-            </a>
-          )}
-
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-inherit flex items-center justify-center"
-            aria-label="Open navigation menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Backdrop & Dropdown */}
-      {mobileMenuOpen && (
-        <>
+          {/* Mobile Hamburger Button */}
           <div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="fixed top-20 left-4 right-4 z-50 md:hidden p-5 rounded-2xl bg-[var(--surface)] border border-[var(--line)] shadow-2xl flex flex-col gap-2.5">
-            {isWorkPage ? (
-              <>
-                <Link
-                  href="/"
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span>Home</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">00</span>
-                </Link>
-                <a
-                  href="#technical"
-                  onClick={(e) => handleNavClick(e, "#technical")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>Technical</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
-                </a>
-                <a
-                  href="#digital"
-                  onClick={(e) => handleNavClick(e, "#digital")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>Digital</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
-                </a>
-                <Link
-                  href="/#contact"
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Contact / Hire Me &rarr;
-                </Link>
-              </>
-            ) : (
-              <>
-                <a
-                  href="#work"
-                  onClick={(e) => handleNavClick(e, "#work")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>Work</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">01</span>
-                </a>
-                <a
-                  href="#what-i-can-do"
-                  onClick={(e) => handleNavClick(e, "#what-i-can-do")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>What I Can Do</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">02</span>
-                </a>
-                <a
-                  href="#about"
-                  onClick={(e) => handleNavClick(e, "#about")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>About</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">03</span>
-                </a>
-                <a
-                  href="#awards"
-                  onClick={(e) => handleNavClick(e, "#awards")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>Awards</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">04</span>
-                </a>
-                <a
-                  href="#trainings"
-                  onClick={(e) => handleNavClick(e, "#trainings")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 border-b border-[var(--line)] flex items-center justify-between"
-                >
-                  <span>Trainings</span>
-                  <span className="text-[10px] font-mono text-[var(--muted)]">05</span>
-                </a>
-                <a
-                  href="#contact"
-                  onClick={(e) => handleNavClick(e, "#contact")}
-                  className="text-xs font-semibold tracking-wider uppercase py-2.5 text-emerald-500 font-mono"
-                >
-                  Contact / Hire Me &rarr;
-                </a>
-              </>
-            )}
-
-            {/* Coffee Button in Menu */}
-            <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between">
-              <span className="text-xs text-[var(--muted)]">Support creator</span>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  incrementCoffee();
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-2)] text-xs font-mono active:scale-95 transition-transform"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`md:hidden cursor-pointer flex justify-end items-center transition-colors duration-700 ${
+              scrolled ? "text-white" : "text-[#1a1a1a] dark:text-white"
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center transition-all duration-700 ${
+                scrolled
+                  ? "w-10 h-10 bg-[#141414] dark:bg-[#1a1a1a] rounded-full shadow-xl border border-white/10 dark:border-white/20"
+                  : ""
+              }`}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <span>☕ Buy Coffee</span>
-                <span className="text-[11px] text-amber-500 font-bold" suppressHydrationWarning>
-                  {coffeeCount}
-                </span>
-              </button>
+                {mobileMenuOpen ? (
+                  <>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </>
+                ) : (
+                  <>
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                  </>
+                )}
+              </svg>
             </div>
           </div>
-        </>
-      )}
+
+          {/* Right Section: Divider + Theme Toggle */}
+          <div
+            className={`flex items-center gap-4 ml-6 md:ml-8 pl-5 md:pl-6 border-l transition-colors duration-700 ${
+              scrolled
+                ? "border-white/15 dark:border-white/20"
+                : "border-black/10 dark:border-white/15"
+            }`}
+          >
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              className="transition-colors duration-500 cursor-pointer flex items-center justify-center"
+            >
+              {isDark ? (
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-white hover:text-neutral-300 transition-colors"
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              ) : (
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-colors ${
+                    scrolled
+                      ? "text-white hover:text-neutral-300"
+                      : "text-[#1a1a1a] hover:opacity-75"
+                  }`}
+                >
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Dropdown Drawer */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, y: -10 }}
+                animate={{ height: "auto", opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className={`absolute top-[100%] left-4 right-4 mt-3 rounded-2xl p-5 shadow-2xl overflow-hidden flex flex-col gap-3 md:hidden backdrop-blur-2xl ${
+                  scrolled
+                    ? "bg-[#141414]/95 dark:bg-[#181818]/98 border border-white/10 dark:border-white/20"
+                    : "bg-white/95 dark:bg-[#161616]/98 border border-black/10 dark:border-white/15"
+                }`}
+              >
+                {navItems.map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className={`text-[13px] tracking-wide font-medium w-full border-b pb-2.5 transition-colors ${
+                      scrolled
+                        ? "text-neutral-300 dark:text-neutral-300 hover:text-white border-white/10"
+                        : "text-[#1a1a1a]/80 dark:text-white/80 hover:text-[#1a1a1a] dark:hover:text-white border-black/5 dark:border-white/10"
+                    }`}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.nav>
+      </motion.div>
     </>
   );
 }

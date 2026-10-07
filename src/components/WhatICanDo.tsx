@@ -51,7 +51,8 @@ const techCategories = [
 
 export function WhatICanDo() {
   return (
-    <section id="what-i-can-do" className="section">
+    <section id="what-i-can-do" className="section relative">
+      <span id="skills" className="absolute -top-24 pointer-events-none" />
       <div className="what-i-can-do-grid">
         {/* Left Side */}
         <div className="what-i-can-do-left">
