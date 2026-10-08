@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Inter, JetBrains_Mono, Great_Vibes } from "next/font/google";
 import "./globals.css";
 
@@ -90,8 +91,13 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <head>
-        <script
+      <body
+        className="font-sans antialiased overflow-x-hidden selection:bg-emerald-500/20 selection:text-emerald-400"
+        suppressHydrationWarning
+      >
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -105,11 +111,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body
-        className="font-sans antialiased overflow-x-hidden selection:bg-emerald-500/20 selection:text-emerald-400"
-        suppressHydrationWarning
-      >
         {children}
       </body>
     </html>

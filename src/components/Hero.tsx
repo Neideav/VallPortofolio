@@ -6,20 +6,17 @@ import { personalInfo as defaultPersonal } from "@/data/personal";
 import { fetchPersonalInfo } from "@/lib/personal";
 
 export function Hero() {
-  const [info, setInfo] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const local = localStorage.getItem("porto_personal_v1");
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (parsed && parsed.name) return parsed;
-        }
-      } catch {}
-    }
-    return defaultPersonal;
-  });
+  const [info, setInfo] = useState(defaultPersonal);
 
   useEffect(() => {
+    try {
+      const local = localStorage.getItem("porto_personal_v1");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed && parsed.name) setInfo(parsed);
+      }
+    } catch {}
+
     fetchPersonalInfo().then((data) => {
       if (data) setInfo(data);
     });
@@ -63,13 +60,13 @@ export function Hero() {
 
       {/* Bottom Left Hero Text */}
       <div className="hero-text">
-        <h1 className="hero-name">
+        <h1 className="hero-name" suppressHydrationWarning>
           {info.name}
         </h1>
-        <div className="hero-subtitle">
+        <div className="hero-subtitle" suppressHydrationWarning>
           {info.title}
         </div>
-        <p className="hero-statement">
+        <p className="hero-statement" suppressHydrationWarning>
           {info.shortBio || defaultPersonal.shortBio}
         </p>
       </div>

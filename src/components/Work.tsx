@@ -69,14 +69,18 @@ const workProjects: WorkProject[] = [
 ];
 
 export function Work() {
-  const [projectsList, setProjectsList] = useState<WorkProject[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const local = localStorage.getItem("porto_projects_v1");
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map((p: any) => {
+  const [projectsList, setProjectsList] = useState<WorkProject[]>(workProjects);
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const local = localStorage.getItem("porto_projects_v1");
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProjectsList(
+            parsed.map((p: any) => {
               const defaultMatch = workProjects.find((wp) => wp.id === p.id);
               const chosenImage =
                 p.imageUrl ||
@@ -92,17 +96,12 @@ export function Work() {
                 link: p.githubUrl,
                 tags: p.technologies || [],
               };
-            });
-          }
+            })
+          );
         }
-      } catch {}
-    }
-    return workProjects;
-  });
-  const [activeIndex, setActiveIndex] = useState(1);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+      }
+    } catch {}
 
-  useEffect(() => {
     getProjects().then((items) => {
       if (items && items.length > 0) {
         setProjectsList(
@@ -320,8 +319,8 @@ export function Work() {
       {/* Active Work Info */}
       <Reveal delay={200}>
         <div className="work-info">
-          <h3 className="work-info-title">{activeProject.title}</h3>
-          <p className="work-info-desc">{activeProject.description}</p>
+          <h3 className="work-info-title" suppressHydrationWarning>{activeProject.title}</h3>
+          <p className="work-info-desc" suppressHydrationWarning>{activeProject.description}</p>
           <div className="flex flex-wrap justify-center gap-1.5 mb-5 px-2">
             {activeProject.tags.map((tag) => (
               <span
