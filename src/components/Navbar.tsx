@@ -158,14 +158,12 @@ export function Navbar() {
       }
       if (el) {
         e.preventDefault();
-        const win = window as unknown as {
-          lenis?: { scrollTo: (target: HTMLElement, options: { offset: number; duration: number }) => void };
-        };
-        if (win.lenis) {
-          win.lenis.scrollTo(el, { offset: -100, duration: 1.5 });
-        } else {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        const targetTop = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({
+          top: Math.round(targetTop),
+          behavior: "smooth",
+        });
+        window.history.pushState(null, "", href);
       }
     }
     setMobileMenuOpen(false);

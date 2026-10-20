@@ -47,9 +47,16 @@ export default function Home() {
     if (typeof window !== "undefined" && window.location.hash) {
       setTimeout(() => {
         const id = window.location.hash.replace("#", "");
-        const el = document.getElementById(id);
+        let el = document.getElementById(id);
+        if (!el && id === "skills") {
+          el = document.getElementById("what-i-can-do");
+        }
         if (el) {
-          el.scrollIntoView({ behavior: "smooth" });
+          const targetTop = el.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: Math.round(targetTop),
+            behavior: "smooth",
+          });
         }
       }, 50);
     }

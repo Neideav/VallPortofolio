@@ -70,7 +70,7 @@ export function Awards() {
   };
 
   return (
-    <section id="awards" className="section min-h-screen flex flex-col justify-center py-20">
+    <section id="awards" className="section min-h-screen border-t border-[var(--line)]">
       <div className="w-full">
         <Reveal delay={0}>
           <div className="section-label">RECOGNITION</div>

@@ -74,7 +74,7 @@ export function Contact() {
   };
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" className="section min-h-screen border-t border-[var(--line)]">
       <div className="contact-grid">
         {/* Left Side */}
         <div className="contact-left">

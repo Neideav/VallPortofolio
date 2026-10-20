@@ -63,7 +63,7 @@ export function Trainings() {
   };
 
   return (
-    <section id="trainings" className="section">
+    <section id="trainings" className="section min-h-screen border-t border-[var(--line)]">
       <Reveal delay={0}>
         <div className="section-label">Growth &amp; Experience</div>
         <FadeInTitle text="Journey and Experience" />
