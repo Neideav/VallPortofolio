@@ -5,7 +5,7 @@ import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
 import { TechSphere, TechItem } from "./TechSphere";
 
-// Curated skill categories for the editorial list on the left
+// Curated skill categories for the list on the left
 const categorizedSkills = [
   {
     category: "Cloud & DevOps",
@@ -103,46 +103,40 @@ const sphereItems: TechItem[] = [
 
 export function WhatICanDo() {
   return (
-    <section id="what-i-can-do" className="section relative border-t border-[var(--line)]">
-      <span id="skills" className="absolute -top-24 pointer-events-none" />
+    <section
+      id="skills"
+      className="section min-h-screen border-t border-[var(--line)]"
+    >
+      <span id="what-i-can-do" className="sr-only pointer-events-none" />
 
-      {/* Section Header */}
-      <div className="mb-10 sm:mb-14">
+      {/* Header consistent with other sections (Work, About, Awards, Trainings) */}
+      <div className="mb-6 sm:mb-8">
         <Reveal delay={0}>
-          <div className="section-label flex items-center gap-2 mb-2">
-            <span className="font-mono text-emerald-500 font-semibold">03</span>
-            <span className="text-[var(--muted)] opacity-60">—</span>
-            <span>SKILLS &amp; TECHNOLOGIES</span>
-          </div>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <FadeInTitle text="Skills & Technologies" as="h2" />
-              <p className="mt-3 text-sm sm:text-base text-[var(--muted)] max-w-2xl leading-relaxed">
-                Tech stack and tools I use to build scalable backend systems, resilient cloud
-                architectures, and secure digital platforms.
-              </p>
-            </div>
-          </div>
+          <div className="section-label">MY CAPABILITIES</div>
+          <FadeInTitle text="What I Can Do" />
+          <p className="section-desc">
+            I combine cloud architecture, backend development, and cybersecurity skills to build
+            reliable systems, scalable APIs, and secure digital infrastructure.
+          </p>
         </Reveal>
       </div>
 
-      {/* 12-Column Grid Layout matching rezatech.my.id */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      {/* Grid: Categories on Left, 3D Sphere on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
         {/* Left Side (5 cols): Categorized Skills */}
         <div className="lg:col-span-5 flex flex-col">
           <Reveal delay={100}>
             <div className="flex flex-col divide-y divide-[var(--line)] border-y border-[var(--line)]">
               {categorizedSkills.map((cat) => (
-                <div key={cat.category} className="py-5 first:pt-4 last:pb-4">
-                  <h3 className="text-[11px] font-mono font-semibold uppercase tracking-[0.18em] text-[var(--muted)] mb-3 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
+                <div key={cat.category} className="py-3 sm:py-3.5 first:pt-2.5 last:pb-2.5">
+                  <h3 className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[var(--muted)] mb-2">
                     {cat.category}
                   </h3>
-                  <ul className="flex flex-wrap gap-2">
+                  <ul className="flex flex-wrap gap-1.5 sm:gap-2">
                     {cat.skills.map((skill) => (
                       <li
                         key={skill}
-                        className="inline-flex items-center rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--text)] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors duration-200 hover:border-emerald-500 hover:text-emerald-500 dark:bg-[#161920] dark:border-white/10 dark:hover:border-emerald-400 dark:hover:text-emerald-400"
+                        className="inline-flex items-center rounded-full border border-[var(--line)] bg-[var(--surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--text)] transition-colors hover:border-emerald-500 hover:text-emerald-500"
                       >
                         {skill}
                       </li>
@@ -155,9 +149,9 @@ export function WhatICanDo() {
         </div>
 
         {/* Right Side (7 cols): Interactive 3D Sphere */}
-        <div className="lg:col-span-7 flex justify-center">
-          <Reveal delay={180} className="w-full">
-            <TechSphere items={sphereItems} maxSize={560} />
+        <div className="lg:col-span-7 flex justify-center items-center">
+          <Reveal delay={180} className="w-full flex justify-center">
+            <TechSphere items={sphereItems} maxSize={500} />
           </Reveal>
         </div>
       </div>

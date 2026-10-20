@@ -13,7 +13,7 @@ interface TechSphereProps {
   maxSize?: number;
 }
 
-export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
+export function TechSphere({ items, maxSize = 500 }: TechSphereProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const targetVelocity = useRef({ vx: 0.0012, vy: 0.0035 });
@@ -38,7 +38,7 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let sphereRadius = 0.38 * container.clientWidth;
+    let sphereRadius = 0.41 * container.clientWidth;
     let rotX = 0.35;
     let rotY = 0.0;
     let currVx = targetVelocity.current.vx;
@@ -73,8 +73,8 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
         const screenY = (py * cosX - yRotZ * sinX) * sphereRadius;
 
         // Dynamic scale & opacity according to 3D depth
-        const scale = 0.62 + 0.5 * depth;
-        const opacity = 0.16 + 0.84 * depth;
+        const scale = 0.7 + 0.45 * depth;
+        const opacity = 0.18 + 0.82 * depth;
         const zIndex = Math.round(100 * depth);
 
         el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) translate(-50%, -50%) scale(${scale})`;
@@ -106,7 +106,7 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
     // Resize observer to scale sphere radius proportionally
     const resizeObserver = new ResizeObserver(() => {
       if (containerRef.current) {
-        sphereRadius = 0.38 * containerRef.current.clientWidth;
+        sphereRadius = 0.41 * containerRef.current.clientWidth;
         if (prefersReducedMotion) updateFrame();
       }
     });
@@ -164,21 +164,15 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
         {/* Orbit Rings (Outer Circle + Ellipses) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-[11%] rounded-full border border-[var(--line)] dark:border-white/15 opacity-80"
+          className="pointer-events-none absolute inset-[9%] rounded-full border border-[var(--line)] dark:border-white/15 opacity-80"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-[11%] top-1/2 h-[26%] -translate-y-1/2 rounded-[50%] border border-[var(--line)] dark:border-white/15 opacity-70"
+          className="pointer-events-none absolute inset-x-[9%] top-1/2 h-[26%] -translate-y-1/2 rounded-[50%] border border-[var(--line)] dark:border-white/15 opacity-70"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-[11%] left-1/2 w-[26%] -translate-x-1/2 rounded-[50%] border border-[var(--line)] dark:border-white/15 opacity-70"
-        />
-
-        {/* Center glowing anchor dot */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981]"
+          className="pointer-events-none absolute inset-y-[9%] left-1/2 w-[26%] -translate-x-1/2 rounded-[50%] border border-[var(--line)] dark:border-white/15 opacity-70"
         />
 
         {/* Orbiting Tech Badges */}
@@ -191,19 +185,19 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
               }}
               className="absolute left-0 top-0 opacity-0 will-change-transform"
             >
-              <span className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-medium text-[var(--text)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-[var(--surface-2)] dark:bg-[#151921]/90 dark:border-white/15 dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] dark:hover:border-emerald-400 dark:hover:text-emerald-400">
+              <span className="flex items-center gap-2.5 whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-xs sm:text-[13px] font-medium text-[var(--text)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-[var(--surface-2)] dark:bg-[#151921]/90 dark:border-white/15 dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] dark:hover:border-emerald-400 dark:hover:text-emerald-400">
                 {item.icon ? (
                   <img
                     src={item.icon}
                     alt=""
-                    width={15}
-                    height={15}
+                    width={16}
+                    height={16}
                     loading="lazy"
                     draggable={false}
-                    className="h-3.5 w-3.5 object-contain shrink-0"
+                    className="h-4 w-4 object-contain shrink-0"
                   />
                 ) : item.svg ? (
-                  <span className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
+                  <span className="h-4 w-4 flex items-center justify-center shrink-0">
                     {item.svg}
                   </span>
                 ) : null}
@@ -215,7 +209,7 @@ export function TechSphere({ items, maxSize = 560 }: TechSphereProps) {
       </div>
 
       {/* Guide text matching rezatech.my.id */}
-      <p className="mt-4 text-center text-[11px] font-mono font-medium uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400 select-none">
+      <p className="mt-4 text-center text-xs font-mono font-medium uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400 select-none">
         Move your cursor to spin
       </p>
     </div>

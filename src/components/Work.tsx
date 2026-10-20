@@ -193,7 +193,7 @@ export function Work() {
   const activeProject = projectsList[activeIndex] || projectsList[0];
 
   return (
-    <section id="work" className="section">
+    <section id="work" className="section min-h-screen border-t border-[var(--line)]">
       {/* Header */}
       <Reveal delay={0}>
         <div className="work-header">
