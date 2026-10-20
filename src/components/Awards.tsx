@@ -17,23 +17,33 @@ import { fetchAwardsData } from "@/lib/awards";
 
 export function Awards() {
   const [selectedPhoto, setSelectedPhoto] = useState<AwardPhoto | null>(null);
-  const [awards, setAwards] = useState<AwardItem[]>(defaultAwardsList);
-  const [photos, setPhotos] = useState<AwardPhoto[]>(defaultAwardPhotosList);
+  const [awards, setAwards] = useState<AwardItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const localAwards = localStorage.getItem("porto_awards_v1");
+        if (localAwards) {
+          const parsed = JSON.parse(localAwards);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardsList;
+  });
+
+  const [photos, setPhotos] = useState<AwardPhoto[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const localPhotos = localStorage.getItem("porto_award_photos_v1");
+        if (localPhotos) {
+          const parsed = JSON.parse(localPhotos);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultAwardPhotosList;
+  });
 
   useEffect(() => {
-    try {
-      const localAwards = localStorage.getItem("porto_awards_v1");
-      if (localAwards) {
-        const parsed = JSON.parse(localAwards);
-        if (Array.isArray(parsed) && parsed.length > 0) setAwards(parsed);
-      }
-      const localPhotos = localStorage.getItem("porto_award_photos_v1");
-      if (localPhotos) {
-        const parsed = JSON.parse(localPhotos);
-        if (Array.isArray(parsed) && parsed.length > 0) setPhotos(parsed);
-      }
-    } catch {}
-
     fetchAwardsData().then((data) => {
       if (data) {
         if (data.awards && data.awards.length > 0) setAwards(data.awards);
@@ -70,7 +80,7 @@ export function Awards() {
   };
 
   return (
-    <section id="awards" className="section min-h-screen border-t border-[var(--line)]">
+    <section id="awards" className="section border-t border-[var(--line)]">
       <div className="w-full">
         <Reveal delay={0}>
           <div className="section-label">RECOGNITION</div>

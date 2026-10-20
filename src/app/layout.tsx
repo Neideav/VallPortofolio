@@ -30,10 +30,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://nauval-portfolio.vercel.app"),
+  metadataBase: new URL("https://nvaldymaulana.vercel.app"),
   title: "NAUVAL PORTFOLIO — Cloud Engineer, Backend Developer & DevOps Engineer",
   description:
     "Portfolio of Muhammad Bahruddin Nauvaldy Maulana, a developer focused on cloud infrastructure, backend development, DevOps, automation, and modern web technologies.",
+  alternates: {
+    canonical: "https://nvaldymaulana.vercel.app",
+  },
   keywords: [
     "Muhammad Bahruddin Nauvaldy Maulana",
     "Nauval",
@@ -52,7 +55,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://nauval-portfolio.vercel.app",
+    url: "https://nvaldymaulana.vercel.app",
     title: "NAUVAL PORTFOLIO",
     description:
       "Specializing in Cloud Infrastructure, Backend Architecture, DevOps Automation, and Software Engineering.",

@@ -83,24 +83,17 @@ body:before {
 .section {
   position: relative;
   z-index: 10;
-  padding: 85px 40px 48px;
+  padding: 80px 40px 60px;
   max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
-}
-
-@media (min-width: 1024px) {
-  .section.min-h-screen {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+  scroll-margin-top: 84px;
 }
 
 @media (max-width: 768px) {
   .section {
-    padding: 70px 16px 40px;
+    padding: 60px 16px 40px;
+    scroll-margin-top: 68px;
     overflow-x: clip;
   }
 }

@@ -20,48 +20,42 @@ export async function GET() {
           .eq("id", "default")
           .single();
         if (prof?.currently && typeof prof.currently === "object") {
-          projectImagesMirror = (prof.currently as any).project_images || {};
+          projectImagesMirror = ((prof.currently as Record<string, unknown>).project_images as Record<string, string>) || {};
         }
       } catch {
         // ignore mirror fetch error
       }
 
-      let result: any = await supabase
+      const { data, error } = await supabase
         .from("projects")
-        .select(
-          "id, number, title, category, description, detailed_description, technologies, github_url, live_url, featured, metrics, architecture_points, banner_gradient, sort_order, image_url"
-        )
+        .select("*")
         .order("sort_order", { ascending: true });
 
-      // If column image_url does not exist in remote DB yet, fallback query without it
-      if (result.error && (result.error.message?.includes("image_url") || result.error.code === "42703")) {
-        result = await supabase
-          .from("projects")
-          .select(
-            "id, number, title, category, description, detailed_description, technologies, github_url, live_url, featured, metrics, architecture_points, banner_gradient, sort_order"
-          )
-          .order("sort_order", { ascending: true });
-      }
-
-      if (!result.error && result.data && result.data.length > 0) {
+      if (!error && data && data.length > 0) {
         // Map Supabase snake_case to Project camelCase interface with resolved image
-        const mapped: Project[] = result.data.map((row: any) => {
-          const resolvedImage = extractProjectCoverImage(row, projectImagesMirror);
+        const mapped: Project[] = (data as unknown as Record<string, unknown>[]).map((row) => {
+          const resolvedImage = extractProjectCoverImage(
+            row as unknown as Parameters<typeof extractProjectCoverImage>[0],
+            projectImagesMirror
+          );
           return {
-            id: row.id,
-            number: row.number,
-            title: row.title,
-            category: row.category,
-            description: row.description,
-            detailedDescription: row.detailed_description || undefined,
-            technologies: row.technologies || [],
-            githubUrl: row.github_url,
-            liveUrl: row.live_url || undefined,
-            featured: row.featured,
+            id: String(row.id),
+            number: String(row.number),
+            title: String(row.title),
+            category: String(row.category),
+            description: String(row.description),
+            detailedDescription: (row.detailed_description as string) || undefined,
+            technologies: (row.technologies as string[]) || [],
+            githubUrl: String(row.github_url),
+            liveUrl: (row.live_url as string) || undefined,
+            featured: Boolean(row.featured),
             metrics: (row.metrics as { label: string; value: string }[]) || undefined,
-            architecturePoints: row.architecture_points || undefined,
+            architecturePoints: Array.isArray(row.architecture_points)
+              ? (row.architecture_points as string[])
+              : undefined,
             bannerGradient:
-              row.banner_gradient || "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
+              (row.banner_gradient as string) ||
+              "from-emerald-950/40 via-slate-900/60 to-zinc-950/80",
             imageUrl: resolvedImage || undefined,
             image: resolvedImage || undefined,
           };

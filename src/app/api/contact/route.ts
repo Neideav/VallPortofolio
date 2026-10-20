@@ -8,10 +8,10 @@ export async function POST(req: Request) {
     const email = typeof body.email === "string" ? body.email.trim() : "";
     const message = typeof body.message === "string" ? body.message.trim() : "";
 
-    // 1. Input Validation
+    // 1. Server-Side Input Validation
     if (!name || name.length < 1 || name.length > 120) {
       return NextResponse.json(
-        { success: false, error: "Please enter a valid name." },
+        { success: false, error: "Please enter a valid name (1–120 characters)." },
         { status: 400 }
       );
     }
@@ -26,48 +26,56 @@ export async function POST(req: Request) {
 
     if (!message || message.length < 2 || message.length > 4000) {
       return NextResponse.json(
-        { success: false, error: "Please enter a message (maximum 4000 characters)." },
+        { success: false, error: "Please enter a message (between 2 and 4000 characters)." },
         { status: 400 }
       );
     }
 
-    // 2. Insert to Supabase PostgreSQL database
+    // 2. Initialize Supabase Server Client
     const supabase = getSupabaseServerClient();
 
-    if (supabase) {
-      const { error } = await supabase.from("contact_messages").insert([
+    if (!supabase) {
+      // Supabase is unconfigured - never report false success
+      console.warn("Supabase client is not available to store contact message.");
+      return NextResponse.json(
         {
-          name,
-          email,
-          message,
-          status: "unread",
+          success: false,
+          error: "The contact service is temporarily unavailable. Please reach out directly via email.",
         },
-      ]);
-
-      if (error) {
-        console.error("Supabase contact_messages insert error:", error);
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Something went wrong while dispatching your message. Please try again.",
-          },
-          { status: 500 }
-        );
-      }
-    } else {
-      console.warn(
-        "Supabase is not configured yet (missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY). Message received in fallback mode."
+        { status: 503 }
       );
     }
 
+    // 3. Insert to Supabase PostgreSQL database
+    const { error } = await supabase.from("contact_messages").insert([
+      {
+        name,
+        email,
+        message,
+        status: "unread",
+      },
+    ]);
+
+    if (error) {
+      console.error("Supabase contact_messages insert error:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unable to dispatch your message at this time. Please try again later.",
+        },
+        { status: 500 }
+      );
+    }
+
+    // Only return success when the insert was confirmed by the database
     return NextResponse.json({
       success: true,
-      message: "Message sent successfully.",
+      message: "Your message has been received successfully.",
     });
   } catch (err) {
     console.error("Contact API unhandled error:", err);
     return NextResponse.json(
-      { success: false, error: "Failed to process request." },
+      { success: false, error: "Failed to process contact request." },
       { status: 500 }
     );
   }

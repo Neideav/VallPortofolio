@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { GraduationCap, BookOpen, Layers, Check } from "lucide-react";
+import { GraduationCap, Check } from "lucide-react";
 import { educationData } from "@/data/education";
 
 export function Education() {

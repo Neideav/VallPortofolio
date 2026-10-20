@@ -19,11 +19,8 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
-  Eye, 
   Sparkles,
   ArrowUpRight,
-  Shield,
-  Layers,
   Camera,
   RefreshCw,
   FileText,
@@ -40,11 +37,10 @@ import {
   Sun,
   Moon
 } from "lucide-react";
-import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { ProjectRow, PersonalInfoRow, ContactMessageRow } from "@/lib/supabase/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { ProjectRow, ContactMessageRow, Json } from "@/lib/supabase/types";
 import { 
   projects as fallbackProjects, 
-  DEFAULT_PROJECT_IMAGES, 
   extractProjectCoverImage 
 } from "@/data/projects";
 import { personalInfo as fallbackPersonal } from "@/data/personal";
@@ -64,13 +60,12 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("projects");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-
-  useEffect(() => {
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof document !== "undefined") {
-      setIsDarkTheme(document.documentElement.classList.contains("dark"));
+      return document.documentElement.classList.contains("dark");
     }
-  }, []);
+    return true;
+  });
 
   const toggleTheme = () => {
     const next = !isDarkTheme;
@@ -90,7 +85,7 @@ export default function AdminDashboardPage() {
 
   // Data States
   const [projectsList, setProjectsList] = useState<ProjectRow[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   const [personalData, setPersonalData] = useState<{
     name: string;
@@ -137,14 +132,14 @@ export default function AdminDashboardPage() {
     currently_exploring: fallbackPersonal.currently.exploring,
     currently_learning: fallbackPersonal.currently.learning,
   });
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showManualUrl, setShowManualUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [messagesList, setMessagesList] = useState<ContactMessageRow[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
 
   // Awards & Collage States (Max 6 Photos)
   const [awardsList, setAwardsList] = useState<AwardItem[]>(() => {
@@ -173,7 +168,6 @@ export default function AdminDashboardPage() {
   });
   const [editingAward, setEditingAward] = useState<Partial<AwardItem> | null>(null);
   const [editingPhoto, setEditingPhoto] = useState<{ index: number; photo: AwardPhoto; isNew?: boolean } | null>(null);
-  const [isSavingAwards, setIsSavingAwards] = useState(false);
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Trainings States
@@ -191,9 +185,7 @@ export default function AdminDashboardPage() {
   });
   const [editingTraining, setEditingTraining] = useState<Partial<TrainingEntry> | null>(null);
   const [trainingImgInputs, setTrainingImgInputs] = useState<string[]>(["", "", ""]);
-  const [isSavingTrainings, setIsSavingTrainings] = useState(false);
   const trainingFileInputRef = useRef<HTMLInputElement>(null);
-  const activeTrainingImgSlotRef = useRef<number>(0);
   const [activeTrainingImgSlot, setActiveTrainingImgSlot] = useState<number>(0);
 
   // Project Modal State (Add or Edit)
@@ -210,34 +202,12 @@ export default function AdminDashboardPage() {
     }, 4000);
   };
 
-  // 1. Verify Authentication
-  useEffect(() => {
-    async function verifyAuth() {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        router.replace("/admin/login");
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.replace("/admin/login");
-        return;
-      }
-
-      setUserEmail(session.user.email || "Owner");
-      setIsLoadingUser(false);
-    }
-
-    verifyAuth();
-  }, [router]);
 
   // 2. Fetch Projects
   const fetchProjects = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    setIsLoadingProjects(true);
     try {
       // 1. Fetch mirror of project_images from personal_info if available
       let projectImagesMirror: Record<string, string> = {};
@@ -248,7 +218,7 @@ export default function AdminDashboardPage() {
           .eq("id", "default")
           .single();
         if (prof?.currently && typeof prof.currently === "object") {
-          projectImagesMirror = (prof.currently as Record<string, any>).project_images || {};
+          projectImagesMirror = ((prof.currently as Record<string, unknown>).project_images as Record<string, string>) || {};
         }
       } catch {
         // ignore mirror fetch error
@@ -284,7 +254,7 @@ export default function AdminDashboardPage() {
         setProjectsList(mappedFallback);
       } else if (data && data.length > 0) {
         // Map Supabase rows and resolve cover image from direct column, metrics JSONB, mirror, or defaults
-        const mappedData: ProjectRow[] = data.map((p: any) => ({
+        const mappedData: ProjectRow[] = (data as ProjectRow[]).map((p) => ({
           ...p,
           image_url: extractProjectCoverImage(p, projectImagesMirror),
         }));
@@ -327,7 +297,6 @@ export default function AdminDashboardPage() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    setIsLoadingProfile(true);
     try {
       const { data, error } = await supabase
         .from("personal_info")
@@ -439,7 +408,6 @@ export default function AdminDashboardPage() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    setIsLoadingMessages(true);
     try {
       const { data, error } = await supabase
         .from("contact_messages")
@@ -456,13 +424,40 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  // 1. Verify Authentication & Load Dashboard Data
   useEffect(() => {
-    if (!isLoadingUser) {
-      fetchProjects();
-      fetchProfile();
-      fetchMessages();
+    async function verifyAuth() {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const appMeta = (session.user.app_metadata || {}) as Record<string, unknown>;
+      const isRoleAdmin = appMeta.role === "admin" || appMeta.is_admin === true;
+      const isEmailOwner = session.user.email?.toLowerCase() === "nvaldymaulana@gmail.com";
+
+      if (!isRoleAdmin && !isEmailOwner) {
+        await supabase.auth.signOut();
+        router.replace("/admin/login");
+        return;
+      }
+
+      setUserEmail(session.user.email || "Owner");
+      setIsLoadingUser(false);
+      void fetchProjects();
+      void fetchProfile();
+      void fetchMessages();
     }
-  }, [isLoadingUser, fetchProjects, fetchProfile, fetchMessages]);
+
+    verifyAuth();
+  }, [router, fetchProjects, fetchProfile, fetchMessages]);
 
   // Handle Logout
   const handleLogout = async () => {
@@ -592,7 +587,7 @@ export default function AdminDashboardPage() {
         metricsArr.push({ label: "__cover_image__", value: coverImageUrl });
       }
 
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         id: editingProject.id,
         number: editingProject.number || "01",
         title: editingProject.title,
@@ -612,14 +607,14 @@ export default function AdminDashboardPage() {
       };
 
       // 1. Primary save to projects table
-      let { error } = await supabase.from("projects").upsert(payload);
+      let { error } = await supabase.from("projects").upsert(payload as unknown as ProjectRow);
 
       // If remote Supabase schema doesn't have image_url column yet, fallback without image_url column
       // Notice: metricsArr STILL contains __cover_image__, so the image is safely saved in the table!
-      if (error && (error.message?.includes("image_url") || (error as any).code === "42703")) {
+      if (error && (error.message?.includes("image_url") || (error as { code?: string }).code === "42703")) {
         const fallbackPayload = { ...payload };
         delete fallbackPayload.image_url;
-        const res = await supabase.from("projects").upsert(fallbackPayload);
+        const res = await supabase.from("projects").upsert(fallbackPayload as unknown as ProjectRow);
         error = res.error;
       }
 
@@ -637,8 +632,8 @@ export default function AdminDashboardPage() {
           .eq("id", "default")
           .single();
         if (prof) {
-          const curr = (prof.currently as Record<string, any>) || {};
-          const pImgs = { ...(curr.project_images || {}) };
+          const curr = (prof.currently as Record<string, unknown>) || {};
+          const pImgs = { ...((curr.project_images as Record<string, string>) || {}) };
           if (coverImageUrl) {
             pImgs[editingProject.id] = coverImageUrl;
           } else {
@@ -687,7 +682,7 @@ export default function AdminDashboardPage() {
             .eq("id", "default")
             .single();
           if (prof) {
-            const curr = (prof.currently as Record<string, any>) || {};
+            const curr = (prof.currently as Record<string, Record<string, string>>) || {};
             if (curr.project_images && curr.project_images[id]) {
               const pImgs = { ...curr.project_images };
               delete pImgs[id];
@@ -877,7 +872,6 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    setIsSavingAwards(true);
     try {
       const listToSave = newAwards || awardsList;
       const photosToSave = (newPhotos || awardPhotos).slice(0, 6);
@@ -906,7 +900,7 @@ export default function AdminDashboardPage() {
       const { error } = await supabase
         .from("personal_info")
         .update({
-          currently: updatedCurrently as any,
+          currently: updatedCurrently as unknown as Json,
           updated_at: new Date().toISOString(),
         })
         .eq("id", "default");
@@ -919,8 +913,6 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       showToast("error", msg);
-    } finally {
-      setIsSavingAwards(false);
     }
   };
 
@@ -1079,7 +1071,6 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    setIsSavingTrainings(true);
     try {
       const listToSave = newTrainings || trainingsList;
 
@@ -1105,7 +1096,7 @@ export default function AdminDashboardPage() {
       const { error } = await supabase
         .from("personal_info")
         .update({
-          currently: updatedCurrently as any,
+          currently: updatedCurrently as unknown as Json,
           updated_at: new Date().toISOString(),
         })
         .eq("id", "default");
@@ -1118,8 +1109,6 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Terjadi kesalahan";
       showToast("error", msg);
-    } finally {
-      setIsSavingTrainings(false);
     }
   };
 
@@ -2531,7 +2520,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <div className="mb-6">
-              <div className="section-label mb-1">// PROJECT REPOSITORY</div>
+              <div className="section-label mb-1">{"// PROJECT REPOSITORY"}</div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingProject.title ? `Edit: ${editingProject.title}` : "Tambah Proyek Baru"}
               </h3>
@@ -2892,7 +2881,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <div className="mb-6">
-              <div className="section-label mb-1">// HONORS &amp; CREDENTIALS</div>
+              <div className="section-label mb-1">{"// HONORS & CREDENTIALS"}</div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingAward.id ? "Edit Penghargaan" : "Tambah Penghargaan Baru"}
               </h3>
@@ -3001,7 +2990,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <div className="mb-6">
-              <div className="section-label mb-1">// COLLAGE FRAME EDITOR</div>
+              <div className="section-label mb-1">{"// COLLAGE FRAME EDITOR"}</div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingPhoto.isNew
                   ? "Tambah Foto Kolase Baru"
@@ -3133,7 +3122,7 @@ export default function AdminDashboardPage() {
                             ...editingPhoto,
                             photo: {
                               ...editingPhoto.photo,
-                              orientation: ori.key as any,
+                              orientation: ori.key as AwardPhoto["orientation"],
                             },
                           })
                         }
@@ -3185,7 +3174,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <div className="mb-6">
-              <div className="section-label mb-1">// TRAINING &amp; FLIPPER EXPERIENCE</div>
+              <div className="section-label mb-1">{"// TRAINING & FLIPPER EXPERIENCE"}</div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {editingTraining.id && trainingsList.some((t) => t.id === editingTraining.id)
                   ? "Edit Training & Experience"

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Trophy, Award, Zap, Shield, Sparkles } from "lucide-react";
 import { achievements, Achievement } from "@/data/achievements";
 
 export function Achievements() {

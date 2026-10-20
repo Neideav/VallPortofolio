@@ -27,13 +27,12 @@ export default function AdminLoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-
-  useEffect(() => {
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof document !== "undefined") {
-      setIsDarkTheme(document.documentElement.classList.contains("dark"));
+      return document.documentElement.classList.contains("dark");
     }
-  }, []);
+    return true;
+  });
 
   const toggleTheme = () => {
     const next = !isDarkTheme;
@@ -47,7 +46,7 @@ export default function AdminLoginPage() {
     }
   };
 
-  // If already logged in, redirect straight to /admin
+  // If already logged in, redirect straight to /admin if authorized
   useEffect(() => {
     async function checkSession() {
       try {
@@ -55,8 +54,13 @@ export default function AdminLoginPage() {
         if (supabase) {
           const { data: { session } } = await supabase.auth.getSession();
           if (session) {
-            router.replace("/admin");
-            return;
+            const appMeta = (session.user.app_metadata || {}) as Record<string, unknown>;
+            const isRoleAdmin = appMeta.role === "admin" || appMeta.is_admin === true;
+            const isEmailOwner = session.user.email?.toLowerCase() === "nvaldymaulana@gmail.com";
+            if (isRoleAdmin || isEmailOwner) {
+              router.replace("/admin");
+              return;
+            }
           }
         }
       } catch (err) {
@@ -111,6 +115,17 @@ export default function AdminLoginPage() {
       }
 
       if (data.session) {
+        const appMeta = (data.session.user.app_metadata || {}) as Record<string, unknown>;
+        const isRoleAdmin = appMeta.role === "admin" || appMeta.is_admin === true;
+        const isEmailOwner = data.session.user.email?.toLowerCase() === "nvaldymaulana@gmail.com";
+
+        if (!isRoleAdmin && !isEmailOwner) {
+          await supabase.auth.signOut();
+          setErrorMessage("Akun ini terdaftar namun tidak memiliki hak akses administrator.");
+          setIsLoading(false);
+          return;
+        }
+
         router.replace("/admin");
       }
     } catch (err: unknown) {
@@ -161,7 +176,7 @@ export default function AdminLoginPage() {
             <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center justify-center text-[var(--text)] shadow-sm">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <div className="section-label mb-2">// RESTRICTED ACCESS</div>
+            <div className="section-label mb-2">{"// RESTRICTED ACCESS"}</div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] mb-2">
               CMS Admin Portal
             </h1>

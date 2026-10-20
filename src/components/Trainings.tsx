@@ -9,7 +9,18 @@ import { TrainingEntry, defaultTrainingData } from "@/data/trainings";
 import { fetchTrainingsData } from "@/lib/trainings";
 
 export function Trainings() {
-  const [trainings, setTrainings] = useState<TrainingEntry[]>(defaultTrainingData);
+  const [trainings, setTrainings] = useState<TrainingEntry[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_trainings_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return defaultTrainingData;
+  });
   const [stackIndices, setStackIndices] = useState<Record<string, number>>({
     "cloud-devops": 0,
     "ctf-competitions": 0,
@@ -17,16 +28,6 @@ export function Trainings() {
   });
 
   useEffect(() => {
-    try {
-      const local = localStorage.getItem("porto_trainings_v1");
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setTrainings(parsed);
-        }
-      }
-    } catch {}
-
     fetchTrainingsData().then((data) => {
       if (data && data.length > 0) setTrainings(data);
     });
@@ -63,7 +64,7 @@ export function Trainings() {
   };
 
   return (
-    <section id="trainings" className="section min-h-screen border-t border-[var(--line)]">
+    <section id="trainings" className="section border-t border-[var(--line)]">
       <Reveal delay={0}>
         <div className="section-label">Growth &amp; Experience</div>
         <FadeInTitle text="Journey and Experience" />

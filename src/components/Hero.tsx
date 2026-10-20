@@ -6,17 +6,20 @@ import { personalInfo as defaultPersonal } from "@/data/personal";
 import { fetchPersonalInfo } from "@/lib/personal";
 
 export function Hero() {
-  const [info, setInfo] = useState(defaultPersonal);
+  const [info, setInfo] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_personal_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed && parsed.name) return parsed;
+        }
+      } catch {}
+    }
+    return defaultPersonal;
+  });
 
   useEffect(() => {
-    try {
-      const local = localStorage.getItem("porto_personal_v1");
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (parsed && parsed.name) setInfo(parsed);
-      }
-    } catch {}
-
     fetchPersonalInfo().then((data) => {
       if (data) setInfo(data);
     });

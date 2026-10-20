@@ -29,22 +29,29 @@ export function FadeInTitle({
   ...props
 }: FadeInTitleProps) {
   const cleanText = decodeEntities(text);
-  const [displayedCount, setDisplayedCount] = useState(0);
-  const [hasStarted, setHasStarted] = useState(false);
-  const ref = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
+  const [displayedCount, setDisplayedCount] = useState(() => {
     if (
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      setHasStarted(true);
-      setDisplayedCount(cleanText.length);
-      return;
+      return cleanText.length;
     }
+    return 0;
+  });
+  const [hasStarted, setHasStarted] = useState(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return true;
+    }
+    return false;
+  });
+  const ref = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || hasStarted) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -58,7 +65,7 @@ export function FadeInTitle({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [cleanText.length]);
+  }, [hasStarted]);
 
   useEffect(() => {
     if (!hasStarted) return;
