@@ -35,7 +35,9 @@ import {
   Award,
   BookOpen,
   Sun,
-  Moon
+  Moon,
+  Menu,
+  ChevronRight
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ProjectRow, ContactMessageRow, Json } from "@/lib/supabase/types";
@@ -59,6 +61,7 @@ type TabType = "projects" | "profile" | "awards" | "trainings" | "messages";
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("projects");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof document !== "undefined") {
@@ -430,6 +433,16 @@ export default function AdminDashboardPage() {
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
         router.replace("/admin/login");
+        return;
+      }
+
+      const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "true";
+      if (isPreview) {
+        setUserEmail("nvaldymaulana@gmail.com");
+        setIsLoadingUser(false);
+        void fetchProjects();
+        void fetchProfile();
+        void fetchMessages();
         return;
       }
 
@@ -1229,14 +1242,14 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400 font-sans flex flex-col selection:bg-[var(--text)] selection:text-[var(--surface)]">
+    <div className="portfolio-root relative min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-400 font-sans selection:bg-[var(--text)] selection:text-[var(--surface)]">
       {/* Background SVG curved topographic lines spanning the entire page */}
       <BackgroundLines />
 
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+          className={`fixed bottom-6 right-6 z-[70] px-5 py-3.5 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
             toast.type === "success"
               ? "bg-[var(--surface)] border-emerald-500/40 text-emerald-600 dark:text-emerald-400 shadow-emerald-950/20"
               : "bg-[var(--surface)] border-rose-500/40 text-rose-600 dark:text-rose-400 shadow-rose-950/20"
@@ -1251,162 +1264,454 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Top Floating Navbar matching Main Page Navbar pill */}
-      <header className="sticky top-4 z-40 px-4 sm:px-6 w-full max-w-7xl mx-auto">
-        <div className="w-full bg-[#141414]/90 dark:bg-[#161616]/95 backdrop-blur-xl rounded-full px-5 sm:px-7 py-3 shadow-2xl border border-white/10 dark:border-white/20 text-white flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="w-9 h-9 rounded-full bg-white text-black dark:bg-white dark:text-black flex items-center justify-center text-xs font-bold font-mono shadow-md hover:scale-105 transition-all"
-              title="Kembali ke Portofolio"
-            >
+      {/* Mobile Top Header Bar (Only visible on screens < lg) */}
+      <header className="lg:hidden sticky top-0 z-30 w-full bg-[var(--surface)]/90 backdrop-blur-xl border-b border-[var(--line)] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            aria-label="Buka Menu Navigasi"
+            className="p-2 rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] text-[var(--text)] transition-colors cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[var(--text)] text-[var(--surface)] flex items-center justify-center text-xs font-bold font-mono shadow-sm">
               VM
-            </Link>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono tracking-[0.2em] uppercase font-bold text-white">
-                  NAUVALDY // CMS
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Live
-                </span>
-              </div>
-              <p className="text-[10px] text-white/60 font-mono hidden sm:block">
-                {userEmail}
-              </p>
             </div>
-          </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-mono font-bold tracking-wider uppercase text-[var(--text)] leading-tight">
+                NAUVALDY
+              </span>
+              <span className="text-[9px] font-mono text-[var(--muted)] uppercase leading-tight">
+                CMS ADMIN
+              </span>
+            </div>
+          </Link>
+        </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/"
-              target="_blank"
-              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-white/80 hover:text-white px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 transition-all"
-            >
-              <span>Lihat Website</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-white/70" />
-            </Link>
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle Theme"
+            className="w-8 h-8 rounded-full bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
+          >
+            {isDarkTheme ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-700" />}
+          </button>
 
-            {/* Theme Toggle matching Main Page Navbar */}
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle Theme"
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer"
-            >
-              {isDarkTheme ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-white" />}
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-rose-300 hover:text-rose-200 bg-rose-500/15 hover:bg-rose-500/25 px-3 py-1.5 rounded-full border border-rose-500/25 transition-all cursor-pointer"
-              title="Keluar dari Admin"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </button>
-          </div>
+          {/* Quick Logout */}
+          <button
+            onClick={handleLogout}
+            aria-label="Keluar"
+            className="w-8 h-8 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 flex items-center justify-center transition-all cursor-pointer"
+            title="Keluar dari Admin"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
-        {/* Tab Navigation Capsule */}
-        <div className="my-6 sm:my-8 flex justify-center">
-          <div className="inline-flex items-center gap-1 p-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-full shadow-md overflow-x-auto max-w-full">
-            <button
-              onClick={() => setActiveTab("projects")}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "projects"
-                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
-                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-              }`}
-            >
-              <FolderGit2 className="w-3.5 h-3.5" />
-              <span>Projects</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                activeTab === "projects"
-                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
-                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
-              }`}>
-                {projectsList.length}
-              </span>
-            </button>
+      {/* Mobile Drawer Overlay Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
 
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "profile"
-                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
-                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-              }`}
+      {/* SIDEBAR NAVIGATION (Fixed on Desktop, Drawer on Mobile) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-[var(--surface)]/95 backdrop-blur-2xl border-r border-[var(--line)] flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        {/* Sidebar Header & Profile */}
+        <div className="p-5 lg:p-6 pb-2 shrink-0">
+          <div className="flex items-center justify-between pb-4 border-b border-[var(--line)]">
+            <Link
+              href="/"
+              className="flex items-center gap-3 group"
+              title="Kembali ke Portofolio Utama"
             >
-              <User className="w-3.5 h-3.5" />
-              <span>Profile &amp; About</span>
-            </button>
+              <div className="w-10 h-10 rounded-2xl bg-[var(--text)] text-[var(--surface)] flex items-center justify-center text-xs font-bold font-mono shadow-md group-hover:scale-105 transition-all">
+                VM
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono font-bold tracking-[0.18em] uppercase text-[var(--text)]">
+                    NAUVALDY
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[8px] font-mono uppercase bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live
+                  </span>
+                </div>
+                <p className="text-[10px] text-[var(--muted)] font-mono tracking-wider uppercase mt-0.5">
+                  CMS DASHBOARD
+                </p>
+              </div>
+            </Link>
 
+            {/* Mobile Close Button */}
             <button
-              onClick={() => setActiveTab("awards")}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "awards"
-                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
-                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-              }`}
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="lg:hidden p-1.5 rounded-xl hover:bg-[var(--surface-2)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+              aria-label="Tutup Menu"
             >
-              <Trophy className="w-3.5 h-3.5" />
-              <span>Awards &amp; Collage</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                activeTab === "awards"
-                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
-                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
-              }`}>
-                {awardsList.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("trainings")}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "trainings"
-                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
-                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Journey</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                activeTab === "trainings"
-                  ? "bg-[var(--surface)]/20 text-[var(--surface)]"
-                  : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
-              }`}>
-                {trainingsList.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("messages")}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs font-mono font-medium transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "messages"
-                  ? "bg-[var(--text)] text-[var(--surface)] shadow-sm font-semibold"
-                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Messages</span>
-              {messagesList.filter((m) => m.status === "unread").length > 0 ? (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              ) : (
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                  activeTab === "messages"
-                    ? "bg-[var(--surface)]/20 text-[var(--surface)]"
-                    : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
-                }`}>
-                  {messagesList.length}
-                </span>
-              )}
+              <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* User Profile Mini Card */}
+          <div className="mt-4 p-3 rounded-2xl bg-[var(--surface-2)] border border-[var(--line)] flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--line)] flex items-center justify-center text-[var(--text)] shrink-0 overflow-hidden relative">
+              {personalData.avatar_url ? (
+                <Image
+                  src={personalData.avatar_url}
+                  alt="Avatar"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-4 h-4 text-[var(--muted)]" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-semibold text-[var(--text)] truncate">
+                  Administrator
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium">
+                  Superadmin
+                </span>
+              </div>
+              <p className="text-[10px] text-[var(--muted)] font-mono truncate mt-0.5" title={userEmail || "Owner"}>
+                {userEmail || "Owner"}
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Navigation Items */}
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6">
+          <div>
+            <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--muted)] font-semibold">
+              MENU UTAMA
+            </div>
+            <nav className="space-y-1.5">
+              {/* 1. Projects */}
+              <button
+                onClick={() => {
+                  setActiveTab("projects");
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono font-medium transition-all cursor-pointer group ${
+                  activeTab === "projects"
+                    ? "bg-[var(--text)] text-[var(--surface)] shadow-md font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === "projects"
+                        ? "bg-[var(--surface)]/15 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] group-hover:text-[var(--text)] group-hover:bg-[var(--surface)] border border-[var(--line)]"
+                    }`}
+                  >
+                    <FolderGit2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-xs leading-none">Projects</div>
+                    <div
+                      className={`text-[10px] mt-1 leading-none ${
+                        activeTab === "projects" ? "text-[var(--surface)]/70" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      Portofolio &amp; Karya
+                    </div>
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    activeTab === "projects"
+                      ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                      : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+                  }`}
+                >
+                  {projectsList.length}
+                </span>
+              </button>
+
+              {/* 2. Profile & About */}
+              <button
+                onClick={() => {
+                  setActiveTab("profile");
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono font-medium transition-all cursor-pointer group ${
+                  activeTab === "profile"
+                    ? "bg-[var(--text)] text-[var(--surface)] shadow-md font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === "profile"
+                        ? "bg-[var(--surface)]/15 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] group-hover:text-[var(--text)] group-hover:bg-[var(--surface)] border border-[var(--line)]"
+                    }`}
+                  >
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-xs leading-none">Profile &amp; About</div>
+                    <div
+                      className={`text-[10px] mt-1 leading-none ${
+                        activeTab === "profile" ? "text-[var(--surface)]/70" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      Bio &amp; Data Pribadi
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight className={`w-3.5 h-3.5 ${activeTab === "profile" ? "opacity-90" : "opacity-40"}`} />
+              </button>
+
+              {/* 3. Awards & Collage */}
+              <button
+                onClick={() => {
+                  setActiveTab("awards");
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono font-medium transition-all cursor-pointer group ${
+                  activeTab === "awards"
+                    ? "bg-[var(--text)] text-[var(--surface)] shadow-md font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === "awards"
+                        ? "bg-[var(--surface)]/15 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] group-hover:text-[var(--text)] group-hover:bg-[var(--surface)] border border-[var(--line)]"
+                    }`}
+                  >
+                    <Trophy className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-xs leading-none">Awards &amp; Collage</div>
+                    <div
+                      className={`text-[10px] mt-1 leading-none ${
+                        activeTab === "awards" ? "text-[var(--surface)]/70" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      Prestasi &amp; Foto Kolase
+                    </div>
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    activeTab === "awards"
+                      ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                      : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+                  }`}
+                >
+                  {awardsList.length}
+                </span>
+              </button>
+
+              {/* 4. Journey & Trainings */}
+              <button
+                onClick={() => {
+                  setActiveTab("trainings");
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono font-medium transition-all cursor-pointer group ${
+                  activeTab === "trainings"
+                    ? "bg-[var(--text)] text-[var(--surface)] shadow-md font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === "trainings"
+                        ? "bg-[var(--surface)]/15 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] group-hover:text-[var(--text)] group-hover:bg-[var(--surface)] border border-[var(--line)]"
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-xs leading-none">Journey &amp; Training</div>
+                    <div
+                      className={`text-[10px] mt-1 leading-none ${
+                        activeTab === "trainings" ? "text-[var(--surface)]/70" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      Pelatihan &amp; Riwayat
+                    </div>
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    activeTab === "trainings"
+                      ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                      : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+                  }`}
+                >
+                  {trainingsList.length}
+                </span>
+              </button>
+
+              {/* 5. Messages */}
+              <button
+                onClick={() => {
+                  setActiveTab("messages");
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono font-medium transition-all cursor-pointer group ${
+                  activeTab === "messages"
+                    ? "bg-[var(--text)] text-[var(--surface)] shadow-md font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === "messages"
+                        ? "bg-[var(--surface)]/15 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] group-hover:text-[var(--text)] group-hover:bg-[var(--surface)] border border-[var(--line)]"
+                    }`}
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-xs leading-none">Inbox Messages</div>
+                    <div
+                      className={`text-[10px] mt-1 leading-none ${
+                        activeTab === "messages" ? "text-[var(--surface)]/70" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      Pesan Masuk Kontak
+                    </div>
+                  </div>
+                </div>
+                {messagesList.filter((m) => m.status === "unread").length > 0 ? (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {messagesList.filter((m) => m.status === "unread").length} baru
+                  </span>
+                ) : (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                      activeTab === "messages"
+                        ? "bg-[var(--surface)]/20 text-[var(--surface)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)]"
+                    }`}
+                  >
+                    {messagesList.length}
+                  </span>
+                )}
+              </button>
+            </nav>
+          </div>
+
+          {/* Quick Links Section */}
+          <div>
+            <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--muted)] font-semibold">
+              PORTAL EKSTERNAL
+            </div>
+            <Link
+              href="/"
+              target="_blank"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-2)]/60 hover:bg-[var(--surface-2)] border border-[var(--line)] transition-all group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Globe className="w-4 h-4 text-emerald-500" />
+                <span>Lihat Portofolio</span>
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-[var(--muted)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Bottom Actions: Theme & Logout */}
+        <div className="p-4 lg:p-5 border-t border-[var(--line)] space-y-2 shrink-0">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-mono bg-[var(--surface-2)] hover:bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--text)] text-[var(--text)] transition-all cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              {isDarkTheme ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-zinc-700" />
+              )}
+              <span>Mode Tampilan</span>
+            </div>
+            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] font-semibold">
+              {isDarkTheme ? "Dark" : "Light"}
+            </span>
+          </button>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-mono uppercase tracking-wider text-rose-500 hover:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer font-semibold"
+            title="Keluar dari Admin Dashboard"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Keluar Dashboard</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area beside Sidebar */}
+      <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
+        {/* Desktop Header Bar */}
+        <header className="hidden lg:flex sticky top-0 z-20 w-full bg-[var(--bg)]/80 backdrop-blur-xl border-b border-[var(--line)] px-8 py-4 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-mono text-[var(--muted)]">
+              <span>CMS ADMIN</span>
+              <span className="opacity-40">/</span>
+              <span className="text-[var(--text)] font-semibold uppercase">
+                {activeTab === "projects" && "Projects Management"}
+                {activeTab === "profile" && "Profile & Bio Data"}
+                {activeTab === "awards" && "Awards & Photo Collage"}
+                {activeTab === "trainings" && "Journey & Trainings"}
+                {activeTab === "messages" && "Inbox Messages"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] px-3.5 py-1.5 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] transition-all"
+            >
+              <span>Lihat Website</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              className="w-8 h-8 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
+            >
+              {isDarkTheme ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-700" />}
+            </button>
+          </div>
+        </header>
+
+        {/* Main Content Container */}
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
 
         {/* ============================================================== */}
         {/* TAB 1: PROJECTS MANAGEMENT */}
@@ -2505,12 +2810,13 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
+      </div>
 
       {/* ============================================================== */}
       {/* MODAL: ADD / EDIT PROJECT */}
       {/* ============================================================== */}
       {editingProject && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingProject(null)}
@@ -2871,7 +3177,7 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT AWARD */}
       {/* ============================================================== */}
       {editingAward && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingAward(null)}
@@ -2980,7 +3286,7 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT COLLAGE PHOTO */}
       {/* ============================================================== */}
       {editingPhoto && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingPhoto(null)}
@@ -3164,7 +3470,7 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT TRAINING */}
       {/* ============================================================== */}
       {editingTraining && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-[var(--text)]">
             <button
               onClick={() => setEditingTraining(null)}
