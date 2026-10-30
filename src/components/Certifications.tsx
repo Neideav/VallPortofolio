@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Award, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ExternalLink, ShieldCheck } from "lucide-react";
 import { certifications, Certification } from "@/data/certifications";
 
 export function Certifications() {

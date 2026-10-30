@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { flushSync } from "react-dom";
 import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import { markComingFromWork } from "@/lib/introState";
+import { scrollToSection } from "@/lib/scrollToSection";
 
 function subscribeTheme(callback: () => void) {
   if (typeof window === "undefined" || typeof MutationObserver === "undefined") {
@@ -147,24 +148,19 @@ export function Navbar() {
       ];
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (isWorkPage) {
+    // Only mark returning from work if actually leaving /work to the home page
+    if (isWorkPage && (href === "/" || href.startsWith("/#") || href.startsWith("/?"))) {
       markComingFromWork();
     }
-    if (href.startsWith("/#") || href.startsWith("#")) {
+
+    if (!isWorkPage && (href.startsWith("/#") || href.startsWith("#"))) {
+      e.preventDefault();
       const targetId = href.replace("/#", "").replace("#", "");
-      let el = document.getElementById(targetId);
-      if (!el && targetId === "skills") {
-        el = document.getElementById("what-i-can-do");
-      }
-      if (el) {
-        e.preventDefault();
-        const targetTop = el.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-          top: Math.round(targetTop),
-          behavior: "smooth",
-        });
-        window.history.pushState(null, "", href);
-      }
+      scrollToSection(targetId);
+    } else if (isWorkPage && href.startsWith("#")) {
+      e.preventDefault();
+      const targetId = href.replace("#", "");
+      scrollToSection(targetId);
     }
     setMobileMenuOpen(false);
   };
@@ -267,9 +263,12 @@ export function Navbar() {
           </ul>
 
           {/* Mobile Hamburger Button */}
-          <div
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
+            aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`md:hidden cursor-pointer flex justify-end items-center transition-colors duration-700 ${
+            className={`md:hidden cursor-pointer flex justify-end items-center bg-transparent border-none p-0 transition-colors duration-700 ${
               scrolled ? "text-white" : isDark ? "text-white" : "text-neutral-900"
             }`}
           >
@@ -304,7 +303,7 @@ export function Navbar() {
                 )}
               </svg>
             </div>
-          </div>
+          </button>
 
           {/* Right Section: Divider + Theme Toggle */}
           <div

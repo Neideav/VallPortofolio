@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 
 export interface TechItem {
   name: string;
@@ -187,12 +188,12 @@ export function TechSphere({ items, maxSize = 500 }: TechSphereProps) {
             >
               <span className="flex items-center gap-2.5 whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-xs sm:text-[13px] font-medium text-[var(--text)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-[var(--surface-2)] dark:bg-[#151921]/90 dark:border-white/15 dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] dark:hover:border-emerald-400 dark:hover:text-emerald-400">
                 {item.icon ? (
-                  <img
+                  <Image
                     src={item.icon}
                     alt=""
                     width={16}
                     height={16}
-                    loading="lazy"
+                    unoptimized
                     draggable={false}
                     className="h-4 w-4 object-contain shrink-0"
                   />

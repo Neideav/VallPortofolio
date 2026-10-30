@@ -6,7 +6,6 @@ import { motion, useSpring } from "framer-motion";
 export function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isPointer, setIsPointer] = useState(false);
 
   // Smooth springs for tracking mouse coordinates
   const cursorX = useSpring(-100, { damping: 25, stiffness: 250 });

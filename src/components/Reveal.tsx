@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface RevealProps {
   children: React.ReactNode;
-  delay?: number;
+  delay?: number; // In milliseconds for backward compatibility
   className?: string;
   style?: React.CSSProperties;
   yOffset?: number;
@@ -15,41 +16,35 @@ export function Reveal({
   delay = 0,
   className = "",
   style = {},
-  yOffset = 24,
+  yOffset = 20,
 }: RevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  // Convert milliseconds from legacy API to seconds for Framer Motion
+  const delaySec = Math.max(0, delay / 1000);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
+  if (shouldReduceMotion) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
     );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  }
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: isInView ? 1 : 0,
-        transform: isInView ? "translateY(0)" : `translateY(${yOffset}px)`,
-        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
-        ...style,
+    <motion.div
+      initial={{ opacity: 0, y: yOffset }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{
+        duration: 0.65,
+        delay: delaySec,
+        ease: [0.16, 1, 0.3, 1],
       }}
+      className={className}
+      style={style}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }

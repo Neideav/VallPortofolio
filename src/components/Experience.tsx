@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Calendar, CheckCircle2, Terminal } from "lucide-react";
+import { Calendar, CheckCircle2 } from "lucide-react";
 import { experiences, ExperienceItem } from "@/data/experience";
 
 export function Experience() {

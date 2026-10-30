@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { FadeInTitle } from "./FadeInTitle";
+import { GlareHover } from "./GlareHover";
 import { getProjects } from "@/lib/projects";
 
 interface WorkProject {
@@ -69,47 +70,49 @@ const workProjects: WorkProject[] = [
 ];
 
 export function Work() {
-  const [projectsList, setProjectsList] = useState<WorkProject[]>(workProjects);
-  const [activeIndex, setActiveIndex] = useState(1);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-
-  useEffect(() => {
-    try {
-      const local = localStorage.getItem("porto_projects_v1");
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProjectsList(
-            parsed.map((p: any) => {
+  const [projectsList, setProjectsList] = useState<WorkProject[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_projects_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((p: Record<string, unknown>) => {
               const defaultMatch = workProjects.find((wp) => wp.id === p.id);
               const chosenImage =
-                p.imageUrl ||
-                p.image ||
+                (typeof p.imageUrl === "string" && p.imageUrl) ||
+                (typeof p.image === "string" && p.image) ||
                 defaultMatch?.image ||
                 "/images/projects/fintrack-pro.png";
 
               return {
-                id: p.id,
-                title: p.title,
-                description: p.description,
+                id: String(p.id || ""),
+                title: String(p.title || ""),
+                description: String(p.description || ""),
                 image: chosenImage,
-                link: p.githubUrl,
-                tags: p.technologies || [],
+                link: String(p.githubUrl || p.github_url || defaultMatch?.link || "#"),
+                tags: Array.isArray(p.technologies) ? (p.technologies as string[]) : defaultMatch?.tags || [],
               };
-            })
-          );
+            });
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
+    return workProjects;
+  });
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
+  useEffect(() => {
     getProjects().then((items) => {
       if (items && items.length > 0) {
         setProjectsList(
           items.map((p) => {
             const defaultMatch = workProjects.find((wp) => wp.id === p.id);
+            const raw = p as unknown as Record<string, unknown>;
             const chosenImage =
-              (p as any).imageUrl ||
-              (p as any).image ||
+              (typeof raw.imageUrl === "string" && raw.imageUrl) ||
+              (typeof raw.image === "string" && raw.image) ||
               defaultMatch?.image ||
               "/images/projects/fintrack-pro.png";
 
@@ -119,7 +122,7 @@ export function Work() {
               description: p.description,
               image: chosenImage,
               link: p.githubUrl,
-              tags: p.technologies,
+              tags: p.technologies || [],
             };
           })
         );
@@ -193,7 +196,7 @@ export function Work() {
   const activeProject = projectsList[activeIndex] || projectsList[0];
 
   return (
-    <section id="work" className="section min-h-screen border-t border-[var(--line)]">
+    <section id="work" className="section border-t border-[var(--line)]">
       {/* Header */}
       <Reveal delay={0}>
         <div className="work-header">
@@ -228,17 +231,19 @@ export function Work() {
                   className={`work-album-item ${isCenter ? "work-album-item-center" : ""}`}
                   style={getPositionStyle(index)}
                 >
-                  <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      priority={isCenter}
-                      unoptimized
-                      className="work-album-img"
-                      sizes="400px"
-                    />
-                  </div>
+                  <GlareHover borderRadius="0.75rem" className="w-full aspect-video shadow-2xl">
+                    <div className="relative w-full h-full aspect-video rounded-xl overflow-hidden">
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        priority={isCenter}
+                        unoptimized
+                        className="work-album-img"
+                        sizes="400px"
+                      />
+                    </div>
+                  </GlareHover>
                 </div>
               );
             })}

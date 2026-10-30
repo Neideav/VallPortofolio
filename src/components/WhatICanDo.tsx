@@ -105,10 +105,8 @@ export function WhatICanDo() {
   return (
     <section
       id="skills"
-      className="section min-h-screen border-t border-[var(--line)]"
+      className="section border-t border-[var(--line)]"
     >
-      <span id="what-i-can-do" className="sr-only pointer-events-none" />
-
       {/* Header consistent with other sections (Work, About, Awards, Trainings) */}
       <div className="mb-6 sm:mb-8">
         <Reveal delay={0}>

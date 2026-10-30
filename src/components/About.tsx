@@ -8,17 +8,20 @@ import { fetchPersonalInfo } from "@/lib/personal";
 import { FadeInTitle } from "./FadeInTitle";
 
 export function About() {
-  const [personal, setPersonal] = useState(defaultPersonal);
+  const [personal, setPersonal] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const local = localStorage.getItem("porto_personal_v1");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed && parsed.name) return parsed;
+        }
+      } catch {}
+    }
+    return defaultPersonal;
+  });
 
   useEffect(() => {
-    try {
-      const local = localStorage.getItem("porto_personal_v1");
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (parsed && parsed.name) setPersonal(parsed);
-      }
-    } catch {}
-
     fetchPersonalInfo().then((data) => {
       if (data) setPersonal(data);
     });
@@ -27,7 +30,7 @@ export function About() {
     <>
       <section
         id="about"
-        className="section min-h-screen flex flex-col justify-center border-t border-[var(--line)] cursor-default overflow-hidden"
+        className="section border-t border-[var(--line)] cursor-default"
       >
         <div className="w-full">
           {/* Section Header: Discover / About Me */}

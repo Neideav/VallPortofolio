@@ -15,18 +15,13 @@ import { Trainings } from "@/components/Trainings";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { checkAndClearComingFromWork } from "@/lib/introState";
+import { scrollToSection } from "@/lib/scrollToSection";
 
 export default function Home() {
   // If returning from /work, transitionOnly is true (curtains only, no text).
   // On direct visit or page refresh, transitionOnly is false (plays the text greeting).
-  const [transitionOnly, setTransitionOnly] = useState(() => checkAndClearComingFromWork());
+  const [transitionOnly] = useState(() => checkAndClearComingFromWork());
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!transitionOnly && checkAndClearComingFromWork()) {
-      setTransitionOnly(true);
-    }
-  }, [transitionOnly]);
 
   useEffect(() => {
     if (isLoading) {
@@ -45,20 +40,10 @@ export default function Home() {
   const handleComplete = () => {
     setIsLoading(false);
     if (typeof window !== "undefined" && window.location.hash) {
+      // Small timeout to allow the exit animation / layout unfreeze to settle
       setTimeout(() => {
-        const id = window.location.hash.replace("#", "");
-        let el = document.getElementById(id);
-        if (!el && id === "skills") {
-          el = document.getElementById("what-i-can-do");
-        }
-        if (el) {
-          const targetTop = el.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({
-            top: Math.round(targetTop),
-            behavior: "smooth",
-          });
-        }
-      }, 50);
+        scrollToSection(window.location.hash, { updateHash: false });
+      }, 100);
     }
   };
 
